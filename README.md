@@ -1,3 +1,24 @@
+# versions
+## node
+24.14.0
+
+## packages
+├── @eslint/js@9.39.2
+├── @monaco-editor/react@4.7.0
+├── @tailwindcss/vite@4.1.18
+├── @types/react-dom@19.2.3
+├── @types/react@19.2.9
+├── @vitejs/plugin-react@5.1.2
+├── eslint-plugin-react-hooks@7.0.1
+├── eslint-plugin-react-refresh@0.4.26
+├── eslint@9.39.2
+├── globals@16.5.0
+├── lucide-react@0.562.0
+├── react-dom@19.2.3
+├── react@19.2.3
+├── tailwindcss@4.1.18
+└── vite@7.3.1
+---
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
