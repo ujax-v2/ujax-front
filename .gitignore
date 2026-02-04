@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/windows,macos,react,visualstudiocode,git
-# Edit at https://www.toptal.com/developers/gitignore?templates=windows,macos,react,visualstudiocode,git
+# Created by https://www.toptal.com/developers/gitignore/api/git,react,windows,visualstudiocode,macos
+# Edit at https://www.toptal.com/developers/gitignore?templates=git,react,windows,visualstudiocode,macos
 
 ### Git ###
 # Created by git for backups. To disable backups in Git:
@@ -110,4 +110,4 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/windows,macos,react,visualstudiocode,git
+# End of https://www.toptal.com/developers/gitignore/api/git,react,windows,visualstudiocode,macos

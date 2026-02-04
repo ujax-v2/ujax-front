@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "jsx": "preserve",
+    "outDir": "./temp-output",
+    "noEmit": false,
+    "declaration": false,
+    "removeComments": false,
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmitOnError": false
+  },
+  "include": ["src/**/*"]
+}
