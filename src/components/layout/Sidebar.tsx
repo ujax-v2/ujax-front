@@ -1,21 +1,36 @@
 import React from 'react';
-import { useRecoilState } from 'recoil';
-import { navigationState, sidebarOpenState } from '../../store/atoms';
-import { 
-  LayoutDashboard, 
-  BookOpen, 
-  Users, 
+import { useRecoilState, useSetRecoilState } from 'recoil';
+import { navigationState, sidebarOpenState, userState } from '../../store/atoms';
+import { logoutApi } from '../../api/auth';
+import {
+  LayoutDashboard,
+  BookOpen,
+  Users,
   Trophy,
   SlidersHorizontal,
   Bell,
   PanelLeftClose,
-  ChevronsUpDown
+  ChevronsUpDown,
+  LogOut
 } from 'lucide-react';
 import { cn } from '../ui/Base';
 
 export const Sidebar = () => {
   const [currentPage, setCurrentPage] = useRecoilState(navigationState);
   const [isOpen, setIsOpen] = useRecoilState(sidebarOpenState);
+  const [user, setUser] = useRecoilState(userState);
+
+  const handleLogout = async () => {
+    try {
+      if (user.refreshToken) {
+        await logoutApi(user.refreshToken);
+      }
+    } catch {
+      // logout API 실패해도 로컬 상태는 초기화
+    }
+    localStorage.removeItem('auth');
+    setUser({ isLoggedIn: false, name: 'Guest', email: '', avatar: '', accessToken: '', refreshToken: '' });
+  };
 
   const menuItems = [
     { id: 'dashboard', label: '워크스페이스', icon: LayoutDashboard },
@@ -31,8 +46,8 @@ export const Sidebar = () => {
       {/* Header with User Switcher & Collapse */}
       <div className="h-14 flex items-center justify-between px-3 hover:bg-slate-800/30 transition-colors cursor-pointer group mb-2">
         <div className="flex items-center gap-2 px-2 overflow-hidden">
-          <div className="w-5 h-5 rounded bg-emerald-500 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-white">C</div>
-          <span className="font-semibold text-sm text-slate-200 truncate">지훈 성의 Space</span>
+          <div className="w-5 h-5 rounded bg-emerald-500 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-white">{user.name?.charAt(0)?.toUpperCase() || 'U'}</div>
+          <span className="font-semibold text-sm text-slate-200 truncate">{user.name || '사용자'}의 Space</span>
           <ChevronsUpDown className="w-3 h-3 text-slate-500" />
         </div>
         <button 
@@ -72,9 +87,9 @@ export const Sidebar = () => {
           className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium text-slate-300 hover:bg-slate-800/50 transition-colors"
         >
           <div className="w-5 h-5 rounded-full bg-slate-700 overflow-hidden">
-             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Profile" className="w-full h-full object-cover" />
+             <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.avatar || user.name || 'user'}`} alt="Profile" className="w-full h-full object-cover" />
           </div>
-          <span className="flex-1 text-left truncate">지훈 성</span>
+          <span className="flex-1 text-left truncate">{user.name || '사용자'}</span>
         </button>
 
         {/* Basic Settings */}
@@ -87,12 +102,21 @@ export const Sidebar = () => {
         </button>
 
         {/* Notifications */}
-        <button 
-          onClick={() => setCurrentPage('settings')} // Can route to specific tab if needed
+        <button
+          onClick={() => setCurrentPage('settings')}
           className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors"
         >
           <Bell className="w-4 h-4" />
           <span className="flex-1 text-left">알림</span>
+        </button>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-slate-800/50 transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="flex-1 text-left">로그아웃</span>
         </button>
       </div>
     </div>
