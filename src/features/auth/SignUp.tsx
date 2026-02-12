@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
-import { navigationState } from '../../store/atoms';
+import { navigationState, userState } from '../../store/atoms';
+import { signupApi } from '../../api/auth';
 import { Button, Card } from '../../components/ui/Base';
 import { Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export const SignUp = () => {
   const setPage = useSetRecoilState(navigationState);
+  const setUser = useSetRecoilState(userState);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     nickname: ''
   });
+  const [apiError, setApiError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = (name, value) => {
     if (name === 'password') {
@@ -96,8 +100,30 @@ export const SignUp = () => {
             </div>
           </div>
 
-          <Button onClick={() => setPage('login')} className="w-full bg-emerald-600 hover:bg-emerald-700 py-2.5 mt-2">
-            Sign Up
+          {apiError && <p className="text-sm text-red-400">{apiError}</p>}
+
+          <Button
+            disabled={loading}
+            onClick={async () => {
+              setApiError('');
+              setLoading(true);
+              try {
+                const result = await signupApi(formData.email, formData.password, formData.nickname);
+                const { accessToken, refreshToken } = result.data;
+                const payload = JSON.parse(atob(accessToken.split('.')[1]));
+                const name = payload.name || formData.nickname;
+                localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken, name, email: formData.email }));
+                setUser({ isLoggedIn: true, name, email: formData.email, avatar: name, accessToken, refreshToken });
+                setPage('dashboard');
+              } catch (err: any) {
+                setApiError(err.message || '회원가입에 실패했습니다.');
+              } finally {
+                setLoading(false);
+              }
+            }}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 py-2.5 mt-2"
+          >
+            {loading ? '가입 중...' : 'Sign Up'}
           </Button>
         </form>
 
