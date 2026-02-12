@@ -62,3 +62,26 @@ export const currentChallengeState = atom({
   key: 'currentChallengeState',
   default: null,
 });
+
+export const currentWorkspaceState = atom({
+  key: 'currentWorkspaceState',
+  default: 'ws-1'
+});
+
+export const workspacesState = atom({
+  key: 'workspacesState',
+  default: [
+    { id: 'ws-1', name: "지훈 성의 Notion", icon: "지", role: 'owner', members: 1 },
+    { id: 'ws-2', name: "Ujax (임시)", icon: "U", role: 'member', members: 5 }
+  ]
+});
+
+export const settingsTabState = atom({
+  key: 'settingsTabState',
+  default: 'profile',
+});
+
+export const isCreateWorkspaceModalOpenState = atom({
+  key: 'isCreateWorkspaceModalOpenState',
+  default: false,
+});

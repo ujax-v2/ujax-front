@@ -7,15 +7,19 @@ import {
   Eye,
   Calendar,
   MessageSquare,
-  ArrowLeft
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  History
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 
 export const ProblemSolutions = () => {
   const setPage = useSetRecoilState(navigationState);
   const [activeSolutionId, setActiveSolutionId] = useState(1);
+  const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
 
-  // Mock solutions for the specific problem (1000. A+B)
+  // Mock solutions with multiple versions
   const solutions = [
     { 
       id: 1, 
@@ -27,7 +31,11 @@ export const ProblemSolutions = () => {
       likes: 42, 
       views: 128,
       tags: ['Math', 'Implementation'],
-      code: `import java.util.Scanner;
+      versions: [
+        {
+          id: 'v2',
+          timestamp: '3시간 전',
+          code: `import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
@@ -40,6 +48,23 @@ public class Main {
         sc.close();
     }
 }`
+        },
+        {
+          id: 'v1',
+          timestamp: '4시간 전',
+          code: `import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        // Initial attempt with basic input
+        int a = sc.nextInt();
+        int b = sc.nextInt();
+        System.out.println(a + b);
+    }
+}`
+        }
+      ]
     },
     { 
       id: 2, 
@@ -51,7 +76,13 @@ public class Main {
       likes: 38, 
       views: 95,
       tags: ['Short', 'Math'],
-      code: `print(sum(map(int, input().split())))`
+      versions: [
+        {
+           id: 'v1',
+           timestamp: '5시간 전',
+           code: `print(sum(map(int, input().split())))`
+        }
+      ]
     },
     { 
       id: 3, 
@@ -63,7 +94,11 @@ public class Main {
       likes: 29, 
       views: 150,
       tags: ['Performance', 'IO'],
-      code: `#include <iostream>
+      versions: [
+         {
+           id: 'v1',
+           timestamp: '1일 전',
+           code: `#include <iostream>
 using namespace std;
 
 int main() {
@@ -76,14 +111,36 @@ int main() {
     cout << a + b;
     return 0;
 }`
+         }
+      ]
     },
   ];
 
   const activeSolution = solutions.find(s => s.id === activeSolutionId) || solutions[0];
+  const activeVersion = activeSolution.versions[currentVersionIndex] || activeSolution.versions[0];
+  const totalVersions = activeSolution.versions.length;
+
   const comments = [
     { id: 1, user: 'user123', content: '깔끔한 풀이네요! 배웠습니다.', time: '2시간 전' },
     { id: 2, user: 'coder99', content: 'Scanner 대신 BufferedReader를 쓰면 더 빠르지 않을까요?', time: '1시간 전' },
   ];
+
+  const handleSolutionChange = (id) => {
+    setActiveSolutionId(id);
+    setCurrentVersionIndex(0); // Reset version when changing solution
+  };
+
+  const handlePrevVersion = () => {
+    if (currentVersionIndex < totalVersions - 1) {
+      setCurrentVersionIndex(prev => prev + 1);
+    }
+  };
+
+  const handleNextVersion = () => {
+    if (currentVersionIndex > 0) {
+      setCurrentVersionIndex(prev => prev - 1);
+    }
+  };
 
   return (
     <div className="flex h-full bg-[#0F1117]">
@@ -109,7 +166,7 @@ int main() {
           {solutions.map((sol) => (
             <div 
               key={sol.id}
-              onClick={() => setActiveSolutionId(sol.id)}
+              onClick={() => handleSolutionChange(sol.id)}
               className={`p-4 border-b border-slate-800/50 cursor-pointer transition-all hover:bg-slate-800/30 ${
                 sol.id === activeSolutionId ? 'bg-slate-800/40 border-l-4 border-l-emerald-500' : 'border-l-4 border-l-transparent'
               }`}
@@ -125,6 +182,9 @@ int main() {
                 <span>{sol.user}</span>
                 <div className="flex items-center gap-2">
                   <span className="flex items-center gap-0.5"><ThumbsUp className="w-3 h-3" /> {sol.likes}</span>
+                  {sol.versions.length > 1 && (
+                     <span className="flex items-center gap-0.5" title="Multiple versions"><History className="w-3 h-3" /></span>
+                  )}
                 </div>
               </div>
             </div>
@@ -150,13 +210,39 @@ int main() {
           </div>
         </div>
 
+        {/* Code Version Controller */}
+        <div className="h-10 border-b border-slate-800 bg-[#1e1e1e] flex items-center justify-between px-4">
+           <div className="flex items-center gap-2 text-xs text-slate-400">
+              <History className="w-3.5 h-3.5" />
+              <span>제출 기록 (Version {totalVersions - currentVersionIndex} / {totalVersions})</span>
+              <span className="text-slate-600 ml-2">{activeVersion.timestamp}</span>
+           </div>
+           
+           <div className="flex items-center gap-1">
+             <button 
+               onClick={handlePrevVersion}
+               disabled={currentVersionIndex >= totalVersions - 1}
+               className="p-1 rounded hover:bg-slate-700 text-slate-400 disabled:opacity-30 disabled:hover:bg-transparent"
+             >
+               <ChevronLeft className="w-4 h-4" />
+             </button>
+             <button 
+               onClick={handleNextVersion}
+               disabled={currentVersionIndex <= 0}
+               className="p-1 rounded hover:bg-slate-700 text-slate-400 disabled:opacity-30 disabled:hover:bg-transparent"
+             >
+               <ChevronRight className="w-4 h-4" />
+             </button>
+           </div>
+        </div>
+
         {/* Code */}
         <div className="flex-1 bg-[#1e1e1e] relative">
           <Editor
             height="100%"
             theme="vs-dark"
             language={activeSolution.lang.toLowerCase().replace('python3', 'python').replace('c++', 'cpp')}
-            value={activeSolution.code}
+            value={activeVersion.code}
             options={{
               minimap: { enabled: false },
               fontSize: 14,

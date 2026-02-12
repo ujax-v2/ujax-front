@@ -91,16 +91,15 @@ export const ProblemList = () => {
               </div>
             ))}
             
-            {/* Create New Box Card (Alternative) */}
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="border border-dashed border-slate-800 rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-slate-500 hover:text-emerald-500 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all min-h-[160px]"
-            >
-              <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-emerald-500/20">
-                <Plus className="w-6 h-6" />
-              </div>
-              <span className="font-medium">새 문제집 만들기</span>
-            </button>
+              <button 
+                onClick={() => setPage('problem-registration')}
+                className="border border-dashed border-slate-800 rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-slate-500 hover:text-emerald-500 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all min-h-[160px]"
+              >
+                <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-emerald-500/20">
+                  <Plus className="w-6 h-6" />
+                </div>
+                <span className="font-medium">문제 등록하기</span>
+              </button>
           </div>
         </div>
 
@@ -163,7 +162,7 @@ export const ProblemList = () => {
               </button>
               <h1 className="text-2xl font-bold text-slate-100">{currentBox.title}</h1>
             </div>
-            <Button variant="primary" className="gap-2">
+            <Button variant="primary" className="gap-2" onClick={() => setPage('problem-registration')}>
               <Plus className="w-4 h-4" /> 문제 가져오기
             </Button>
           </div>
