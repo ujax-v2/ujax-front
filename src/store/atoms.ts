@@ -43,14 +43,31 @@ export const ideIsExecutingState = atom({
   default: false,
 });
 
+function loadUser() {
+  try {
+    const stored = localStorage.getItem('auth');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed.accessToken) {
+        return {
+          isLoggedIn: true,
+          name: parsed.name || 'User',
+          email: parsed.email || '',
+          avatar: parsed.avatar || '',
+          accessToken: parsed.accessToken as string,
+          refreshToken: parsed.refreshToken as string,
+        };
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return { isLoggedIn: false, name: 'Guest', email: '', avatar: '', accessToken: '', refreshToken: '' };
+}
+
 export const userState = atom({
   key: 'userState',
-  default: {
-    isLoggedIn: false,
-    name: 'Guest',
-    email: '',
-    avatar: '',
-  }
+  default: loadUser(),
 });
 
 export const communityTabState = atom({
