@@ -97,7 +97,21 @@
       outDir: 'build',
     },
     server: {
-      port: 3000,
+      port: 5173,
       open: true,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:8080',
+          changeOrigin: true,
+        },
+        '/oauth2': {
+          target: 'http://localhost:8080',
+          changeOrigin: true,
+        },
+        '/login/oauth2': {
+          target: 'http://localhost:8080',
+          changeOrigin: true,
+        },
+      },
     },
   });
