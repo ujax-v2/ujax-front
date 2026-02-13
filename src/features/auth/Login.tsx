@@ -1,25 +1,46 @@
 import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { navigationState, userState } from '../../store/atoms';
+import { loginApi } from '../../api/auth';
 import { Button, Card } from '../../components/ui/Base';
 import { Mail, Lock, Github, MessageCircle } from 'lucide-react';
 
-export const Login = () => {
+interface LoginProps {
+  oauthError?: string;
+  onClearError?: () => void;
+}
+
+export const Login = ({ oauthError, onClearError }: LoginProps) => {
   const setPage = useSetRecoilState(navigationState);
   const setUser = useSetRecoilState(userState);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const clearOauthError = () => {
+    if (oauthError && onClearError) onClearError();
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate login
-    setUser({
-      isLoggedIn: true,
-      name: '지훈 성',
-      email: email,
-      avatar: 'Felix',
-    });
-    setPage('dashboard');
+    setError('');
+    clearOauthError();
+    setLoading(true);
+    try {
+      const result = await loginApi(email, password);
+      const { accessToken, refreshToken } = result.data;
+      // Decode JWT to get user info
+      const payload = JSON.parse(atob(accessToken.split('.')[1]));
+      const name = payload.name || email;
+      localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken, name, email }));
+      setUser({ isLoggedIn: true, name, email, avatar: name, accessToken, refreshToken });
+      setPage('dashboard');
+    } catch (err: any) {
+      setError(err.message || '로그인에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,7 +59,7 @@ export const Login = () => {
               <input 
                 type="email" 
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); clearOauthError(); }}
                 className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2.5 pl-10 pr-4 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors"
                 placeholder="name@example.com"
               />
@@ -55,15 +76,19 @@ export const Login = () => {
               <input 
                 type="password" 
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); clearOauthError(); }}
                 className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2.5 pl-10 pr-4 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors"
                 placeholder="••••••••"
               />
             </div>
           </div>
 
-          <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 py-2.5">
-            Log In
+          {(error || oauthError) && (
+            <p className="text-sm text-red-400">{error || oauthError}</p>
+          )}
+
+          <Button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 py-2.5">
+            {loading ? '로그인 중...' : 'Log In'}
           </Button>
         </form>
 
@@ -73,12 +98,18 @@ export const Login = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <button className="flex items-center justify-center gap-2 bg-slate-900 border border-slate-800 rounded-lg py-2 text-sm text-slate-300 hover:bg-slate-800 transition-colors">
+          <a
+            href="/oauth2/authorization/google"
+            className="flex items-center justify-center gap-2 bg-slate-900 border border-slate-800 rounded-lg py-2 text-sm text-slate-300 hover:bg-slate-800 transition-colors"
+          >
             <Github className="w-4 h-4" /> Google
-          </button>
-          <button className="flex items-center justify-center gap-2 bg-[#FEE500] border border-[#FEE500] rounded-lg py-2 text-sm text-black hover:opacity-90 transition-opacity">
+          </a>
+          <a
+            href="/oauth2/authorization/kakao"
+            className="flex items-center justify-center gap-2 bg-[#FEE500] border border-[#FEE500] rounded-lg py-2 text-sm text-black hover:opacity-90 transition-opacity"
+          >
             <MessageCircle className="w-4 h-4 fill-current" /> Kakao
-          </button>
+          </a>
         </div>
 
         <div className="mt-6 text-center text-sm text-slate-400">

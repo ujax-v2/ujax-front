@@ -1,18 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { 
-  navigationState, 
-  sidebarOpenState, 
-  workspacesState, 
-  currentWorkspaceState, 
-  userState, 
+import {
+  navigationState,
+  sidebarOpenState,
+  workspacesState,
+  currentWorkspaceState,
+  userState,
   settingsTabState,
   isCreateWorkspaceModalOpenState
 } from '../../store/atoms';
-import { 
-  LayoutDashboard, 
-  BookOpen, 
-  Users, 
+import { logoutApi } from '../../api/auth';
+import {
+  LayoutDashboard,
+  BookOpen,
+  Users,
   Trophy,
   SlidersHorizontal,
   Bell,
@@ -34,8 +35,8 @@ export const Sidebar = () => {
   const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
   const [currentWorkspaceId, setCurrentWorkspaceId] = useRecoilState(currentWorkspaceState);
   const setIsCreateWorkspaceModalOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
-  const user = useRecoilValue(userState);
-  
+  const [user, setUser] = useRecoilState(userState);
+
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -50,6 +51,18 @@ export const Sidebar = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      if (user.refreshToken) {
+        await logoutApi(user.refreshToken);
+      }
+    } catch {
+      // logout API 실패해도 로컬 상태는 초기화
+    }
+    localStorage.removeItem('auth');
+    setUser({ isLoggedIn: false, name: 'Guest', email: '', avatar: '', accessToken: '', refreshToken: '' });
+  };
 
   const menuItems = [
     { id: 'dashboard', label: '워크스페이스', icon: LayoutDashboard },
@@ -75,7 +88,7 @@ export const Sidebar = () => {
     <div className="w-64 h-full bg-[#0F1117] border-r border-slate-800 flex flex-col flex-shrink-0 transition-all duration-300 relative z-50">
       {/* Header with Workspace Switcher */}
       <div className="p-3 relative" ref={menuRef}>
-        <div 
+        <div
           onClick={() => setIsWorkspaceMenuOpen(!isWorkspaceMenuOpen)}
           className="h-10 flex items-center justify-between px-2 hover:bg-slate-800/50 transition-colors cursor-pointer rounded-lg group select-none"
         >
@@ -86,7 +99,7 @@ export const Sidebar = () => {
             <span className="font-semibold text-sm text-slate-200 truncate">{currentWorkspace.name}</span>
             <ChevronsUpDown className="w-3 h-3 text-slate-500" />
           </div>
-          <button 
+          <button
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(false);
@@ -112,7 +125,7 @@ export const Sidebar = () => {
                  </div>
                </div>
                <div className="flex gap-2">
-                 <button 
+                 <button
                   onClick={() => {
                     setSettingsTab('general');
                     setPage('settings');
@@ -122,10 +135,10 @@ export const Sidebar = () => {
                  >
                    <Settings className="w-3.5 h-3.5" /> 설정
                  </button>
-                 <button 
+                 <button
                   onClick={() => {
                     setSettingsTab('ws-members');
-                    setPage('settings'); 
+                    setPage('settings');
                     setIsWorkspaceMenuOpen(false);
                   }}
                   className="flex-1 py-1.5 text-xs text-slate-300 bg-slate-700/50 hover:bg-slate-700 rounded border border-slate-600/50 flex items-center justify-center gap-1.5 transition-colors"
@@ -139,7 +152,7 @@ export const Sidebar = () => {
              <div className="py-2 max-h-[240px] overflow-y-auto">
                <div className="px-3 py-1.5 text-xs font-medium text-slate-500">bookandpapers717@gmail.com</div>
                {workspaces.map(ws => (
-                 <div 
+                 <div
                    key={ws.id}
                    onClick={() => handleSwitchWorkspace(ws.id)}
                    className="flex items-center justify-between px-3 py-2 hover:bg-slate-700/30 cursor-pointer group"
@@ -162,8 +175,8 @@ export const Sidebar = () => {
                    )}
                  </div>
                ))}
-               
-               <div 
+
+               <div
                  onClick={handleCreateWorkspace}
                  className="flex items-center gap-2 px-3 py-2 hover:bg-slate-700/30 cursor-pointer text-slate-400 hover:text-slate-200 mt-1"
                >
@@ -196,8 +209,8 @@ export const Sidebar = () => {
               onClick={() => setPage(item.id)}
               className={cn(
                 'w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors group',
-                currentPage === item.id 
-                  ? 'bg-slate-800 text-slate-100' 
+                currentPage === item.id
+                  ? 'bg-slate-800 text-slate-100'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
               )}
             >
@@ -210,7 +223,7 @@ export const Sidebar = () => {
 
       {/* Bottom Settings Section */}
       <div className="p-2 border-t border-slate-800/50 space-y-0.5">
-         <button 
+         <button
           onClick={() => {
              setSettingsTab('general');
              setPage('settings');
@@ -219,6 +232,15 @@ export const Sidebar = () => {
         >
           <SlidersHorizontal className="w-4 h-4" />
           <span className="flex-1 text-left">설정</span>
+        </button>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-slate-800/50 transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="flex-1 text-left">로그아웃</span>
         </button>
       </div>
     </div>

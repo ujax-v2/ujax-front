@@ -11,6 +11,7 @@ import { SolutionForm } from './features/community/SolutionForm';
 import { Community } from './features/community/Community';
 import { Login } from './features/auth/Login';
 import { SignUp } from './features/auth/SignUp';
+import { OAuthCallback } from './features/auth/OAuthCallback';
 import { ProblemSolutions } from './features/problems/ProblemSolutions';
 import { ChallengeList } from './features/challenges/ChallengeList';
 import { ChallengeDetail } from './features/challenges/ChallengeDetail';
@@ -22,14 +23,26 @@ function AppContent() {
   const currentPage = useRecoilValue(navigationState);
   const [isSidebarOpen, setSidebarOpen] = useRecoilState(sidebarOpenState);
   const [user, setUser] = useRecoilState(userState);
+  const [isOAuthCallback, setIsOAuthCallback] = React.useState(
+    () => window.location.pathname === '/auth/callback'
+  );
+  const [oauthError, setOauthError] = React.useState('');
+
+  // Handle OAuth callback URL
+  if (isOAuthCallback) {
+    return <OAuthCallback onComplete={(error?: string) => {
+      if (error) setOauthError(error);
+      setIsOAuthCallback(false);
+    }} />;
+  }
 
   // Simple Auth Redirect Check
   const isAuthPage = currentPage === 'login' || currentPage === 'signup';
 
   if (!user.isLoggedIn && !isAuthPage) {
-    return <Login />;
+    return <Login oauthError={oauthError} onClearError={() => setOauthError('')} />;
   }
-  
+
   if (currentPage === 'signup') {
     return <SignUp />;
   }
