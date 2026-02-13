@@ -7,15 +7,14 @@ import {
   Clock, 
   Trophy, 
   MoreHorizontal,
-  Plus,
   Moon,
   Sun,
   Megaphone,
   HelpCircle,
   TrendingUp
 } from 'lucide-react';
-import { useSetRecoilState } from 'recoil';
-import { navigationState, communityTabState } from '../../store/atoms';
+import { useSetRecoilState, useRecoilValue } from 'recoil';
+import { navigationState, communityTabState, workspacesState, currentWorkspaceState } from '../../store/atoms';
 
 // Contribution Graph Component
 const ContributionGraph = () => {
@@ -110,6 +109,12 @@ const ContributionGraph = () => {
 export const Dashboard = () => {
   const setPage = useSetRecoilState(navigationState);
   const setCommunityTab = useSetRecoilState(communityTabState);
+  const workspaces = useRecoilValue(workspacesState);
+  const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
+  const setWorkspaces = useSetRecoilState(workspacesState);
+  const setCurrentWorkspaceId = useSetRecoilState(currentWorkspaceState);
+
+  const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId) || workspaces[0];
 
   const notices = [
     { id: 1, title: '시스템 점검 안내 (02/10 02:00 ~ 04:00)', date: '2024.02.08', author: 'Admin' },
@@ -124,16 +129,13 @@ export const Dashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">지훈 성의 Workspace</h1>
+            <h1 className="text-2xl font-bold text-slate-100">{currentWorkspace.name}</h1>
             <p className="text-slate-400 mt-1">오늘도 즐거운 코딩 되세요!</p>
           </div>
           <div className="flex items-center gap-3">
             <button className="p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-yellow-400 transition-colors">
               <Sun className="w-5 h-5" />
             </button>
-            <Button className="gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 cursor-not-allowed opacity-70">
-              <Plus className="w-4 h-4" /> Create Workspace
-            </Button>
           </div>
         </div>
 
@@ -212,6 +214,7 @@ export const Dashboard = () => {
               </div>
             </Card>
 
+            {/* Challenges Widget Hidden
             <Card className="p-5 bg-gradient-to-br from-emerald-900/20 to-slate-900 border-slate-800">
               <div className="flex items-center gap-3 mb-3">
                 <Trophy className="w-8 h-8 text-yellow-500" />
@@ -224,6 +227,7 @@ export const Dashboard = () => {
                 보러가기
               </Button>
             </Card>
+            */}
           </div>
         </div>
       </div>

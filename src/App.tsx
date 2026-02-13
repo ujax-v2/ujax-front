@@ -15,6 +15,8 @@ import { OAuthCallback } from './features/auth/OAuthCallback';
 import { ProblemSolutions } from './features/problems/ProblemSolutions';
 import { ChallengeList } from './features/challenges/ChallengeList';
 import { ChallengeDetail } from './features/challenges/ChallengeDetail';
+import { ProblemRegistration } from './features/problems/ProblemRegistration';
+import { CreateWorkspaceModal } from './components/modals/CreateWorkspaceModal';
 import { Menu } from 'lucide-react';
 
 function AppContent() {
@@ -49,6 +51,7 @@ function AppContent() {
     switch (currentPage) {
       case 'dashboard': return <Dashboard />;
       case 'problems': return <ProblemList />;
+      case 'problem-registration': return <ProblemRegistration />;
       case 'ide': return <IDE />;
       case 'solution-form': return <SolutionForm />;
       case 'community': return <Community />;
@@ -86,6 +89,7 @@ export default function App() {
   return (
     <RecoilRoot>
       <AppContent />
+      <CreateWorkspaceModal />
     </RecoilRoot>
   );
 }

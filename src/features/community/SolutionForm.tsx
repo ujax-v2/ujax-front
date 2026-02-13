@@ -76,13 +76,7 @@ export const SolutionForm = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-300">설명</label>
-              <textarea 
-                placeholder="접근 방식, 알고리즘, 시간 복잡도 등을 설명해주세요..."
-                className="w-full h-64 bg-slate-900 border border-slate-800 rounded-lg p-4 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 transition-colors resize-none leading-relaxed"
-              />
-            </div>
+            {/* Description Removed as per request */}
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
