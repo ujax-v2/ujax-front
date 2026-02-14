@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from
 import { sidebarOpenState, userState } from './store/atoms';
 import { Sidebar } from './components/layout/Sidebar';
 import { Dashboard } from './features/dashboard/Dashboard';
+import { Home } from './features/home/Home';
 import { IDE } from './features/ide/IDE';
 import { ProblemList } from './features/problems/ProblemList';
 import { Profile } from './features/user/Profile';
@@ -69,8 +70,11 @@ function AppContent() {
           <Route path="/signup" element={<PublicOnlyRoute><SignUp /></PublicOnlyRoute>} />
           <Route path="/auth/callback" element={<OAuthCallback />} />
 
+          {/* Landing / Home (Accessible to all) */}
+          <Route path="/" element={<Home />} />
+
           {/* Protected Routes */}
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/problems" element={<ProtectedRoute><ProblemList /></ProtectedRoute>} />
           <Route path="/problems/new" element={<ProtectedRoute><ProblemRegistration /></ProtectedRoute>} />
           <Route path="/problems/:id/solutions" element={<ProtectedRoute><ProblemSolutions /></ProtectedRoute>} />

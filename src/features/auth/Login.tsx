@@ -90,10 +90,7 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
           </div>
 
           <div className="space-y-1">
-            <div className="flex justify-between">
-              <label className="text-xs font-medium text-slate-400">Password</label>
-              <button type="button" className="text-xs text-emerald-500 hover:text-emerald-400">Forgot Password?</button>
-            </div>
+            <label className="text-xs font-medium text-slate-400">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
