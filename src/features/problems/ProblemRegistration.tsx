@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Card, Button, Badge } from '../../components/ui/Base';
+import { Card, Button, Badge } from '@/components/ui/Base';
 import { ArrowLeft, Save, Calendar, Tag, Bell, Settings } from 'lucide-react';
-import { useWorkspaceNavigate } from '../../hooks/useWorkspaceNavigate';
+import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 
 export const ProblemRegistration = () => {
   const { navigate, toWs } = useWorkspaceNavigate();

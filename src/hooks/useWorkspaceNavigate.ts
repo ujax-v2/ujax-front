@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
-import { currentWorkspaceState } from '../store/atoms';
+import { currentWorkspaceState } from '@/store/atoms';
 
 /**
  * 워크스페이스 스코프 네비게이션 훅

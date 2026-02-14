@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Badge } from '../../components/ui/Base';
+import { Card, Button, Badge } from '@/components/ui/Base';
 import { Play, RotateCcw, Save, Settings, CheckCircle2, AlertCircle, Loader2, Share, ArrowLeft, Timer, ChevronDown, ChevronRight, Plus, Code2 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { useParams } from 'react-router-dom';
-import { useWorkspaceNavigate } from '../../hooks/useWorkspaceNavigate';
-import { ideCodeState, ideLanguageState, ideOutputState, ideIsExecutingState, IdeOutput } from '../../store/atoms';
+import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
+import { ideCodeState, ideLanguageState, ideOutputState, ideIsExecutingState, IdeOutput } from '@/store/atoms';
 
 // Language ID mapping for Judge0
 const LANGUAGE_OPTIONS = [

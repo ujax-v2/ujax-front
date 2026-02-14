@@ -1,10 +1,10 @@
 import React from 'react';
-import { Card, Button, Badge } from '../../components/ui/Base';
+import { Card, Button, Badge } from '@/components/ui/Base';
 import { ArrowLeft, Save, FileCode, MessageSquare, Tag } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useRecoilValue } from 'recoil';
 import { useNavigate } from 'react-router-dom';
-import { ideCodeState, ideLanguageState } from '../../store/atoms';
+import { ideCodeState, ideLanguageState } from '@/store/atoms';
 
 export const SolutionForm = () => {
   const navigate = useNavigate();

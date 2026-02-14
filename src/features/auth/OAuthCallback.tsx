@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
-import { userState } from '../../store/atoms';
+import { userState } from '@/store/atoms';
 
 interface Props {
   onComplete?: (error?: string) => void;

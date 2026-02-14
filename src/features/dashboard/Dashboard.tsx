@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Card, Button, Badge } from '../../components/ui/Base';
+import { Card, Button, Badge } from '@/components/ui/Base';
 import {
   Activity,
   CheckCircle2,
@@ -12,8 +12,8 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
-import { useWorkspaceNavigate } from '../../hooks/useWorkspaceNavigate';
-import { communityTabState, workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState } from '../../store/atoms';
+import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
+import { communityTabState, workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState } from '@/store/atoms';
 
 // Contribution Graph Component
 const ContributionGraph = () => {

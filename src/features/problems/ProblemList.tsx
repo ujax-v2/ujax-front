@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Card, Button, Badge, Modal } from '../../components/ui/Base';
+import { Card, Button, Badge, Modal } from '@/components/ui/Base';
 import { Search, Filter, FolderPlus, Folder, ArrowLeft, Plus, MoreVertical, X } from 'lucide-react';
 import { useRecoilState } from 'recoil';
-import { useWorkspaceNavigate } from '../../hooks/useWorkspaceNavigate';
-import { currentProblemBoxState } from '../../store/atoms';
+import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
+import { currentProblemBoxState } from '@/store/atoms';
 
 export const ProblemList = () => {
   const { navigate, toWs } = useWorkspaceNavigate();

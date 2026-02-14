@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { userState, workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState } from '../../store/atoms';
-import { Button, Card } from '../../components/ui/Base';
+import { userState, workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState } from '@/store/atoms';
+import { Button, Card } from '@/components/ui/Base';
 import { Code2, Users, Zap, Layout, Monitor, Search } from 'lucide-react';
 
 export const Home = () => {

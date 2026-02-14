@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useRecoilState } from 'recoil';
-import { communityTabState } from '../../store/atoms';
-import { Button, Badge } from '../../components/ui/Base';
+import { communityTabState } from '@/store/atoms';
+import { Button, Badge } from '@/components/ui/Base';
 import {
   MessageCircle,
   Megaphone,

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
-import { isCreateWorkspaceModalOpenState, workspacesState, currentWorkspaceState } from '../../store/atoms';
+import { isCreateWorkspaceModalOpenState, workspacesState, currentWorkspaceState } from '@/store/atoms';
 import { Button } from '../ui/Base';
 import { X, Check } from 'lucide-react';
 import { createPortal } from 'react-dom';

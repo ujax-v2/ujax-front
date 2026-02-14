@@ -1,8 +1,8 @@
 import React from 'react';
 import { useRecoilValue } from 'recoil';
-import { currentChallengeState } from '../../store/atoms';
-import { useWorkspaceNavigate } from '../../hooks/useWorkspaceNavigate';
-import { Button, Card, Badge } from '../../components/ui/Base';
+import { currentChallengeState } from '@/store/atoms';
+import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
+import { Button, Card, Badge } from '@/components/ui/Base';
 import { ArrowLeft, Calendar, CheckCircle2, XCircle, Flame, Trophy, Clock, Code2, Medal } from 'lucide-react';
 
 export const ChallengeDetail = () => {

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
-import { userState } from '../../store/atoms';
-import { loginApi } from '../../api/auth';
-import { Button, Card } from '../../components/ui/Base';
+import { userState } from '@/store/atoms';
+import { loginApi } from '@/api/auth';
+import { Button, Card } from '@/components/ui/Base';
 import { Mail, Lock, MessageCircle } from 'lucide-react';
 
 interface LoginProps {

@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
-import { Card, Button, Badge } from '../../components/ui/Base';
+import { Card, Button, Badge } from '@/components/ui/Base';
 import { Search, Users, Globe, Lock, ArrowRight } from 'lucide-react';
-import { workspacesState, currentWorkspaceState } from '../../store/atoms';
+import { workspacesState, currentWorkspaceState } from '@/store/atoms';
 
 /**
  * 워크스페이스 탐색 페이지

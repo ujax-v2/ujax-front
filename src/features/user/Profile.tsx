@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Button, Badge } from '../../components/ui/Base';
+import { Card, Button, Badge } from '@/components/ui/Base';
 import { useNavigate } from 'react-router-dom';
 import {
   Settings,

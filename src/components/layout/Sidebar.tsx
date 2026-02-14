@@ -8,8 +8,8 @@ import {
   userState,
   settingsTabState,
   isCreateWorkspaceModalOpenState
-} from '../../store/atoms';
-import { logoutApi } from '../../api/auth';
+} from '@/store/atoms';
+import { logoutApi } from '@/api/auth';
 import {
   LayoutDashboard,
   BookOpen,

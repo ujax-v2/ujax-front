@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
-import { userState } from '../../store/atoms';
-import { signupApi } from '../../api/auth';
-import { Button, Card } from '../../components/ui/Base';
+import { userState } from '@/store/atoms';
+import { signupApi } from '@/api/auth';
+import { Button, Card } from '@/components/ui/Base';
 import { Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export const SignUp = () => {

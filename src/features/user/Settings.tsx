@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Card, Button, Badge, Avatar } from '../../components/ui/Base';
+import { Card, Button, Badge, Avatar } from '@/components/ui/Base';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
-import { currentWorkspaceState, workspacesState, settingsTabState } from '../../store/atoms';
+import { currentWorkspaceState, workspacesState, settingsTabState } from '@/store/atoms';
 import {
   User,
   Lock,
