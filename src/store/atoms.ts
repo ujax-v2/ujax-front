@@ -62,7 +62,7 @@ function loadUser() {
     const stored = localStorage.getItem('auth');
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (parsed.accessToken) {
+      if (parsed && typeof parsed === 'object' && parsed.accessToken) {
         return {
           isLoggedIn: true,
           name: parsed.name || 'User',
@@ -73,8 +73,9 @@ function loadUser() {
         };
       }
     }
-  } catch {
-    // ignore
+  } catch (e) {
+    console.warn('Failed to load user session, clearing storage:', e);
+    localStorage.removeItem('auth');
   }
   return { isLoggedIn: false, name: 'Guest', email: '', avatar: '', accessToken: '', refreshToken: '' };
 }
