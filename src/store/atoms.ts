@@ -11,10 +11,19 @@ export const sidebarOpenState = atom({
   default: true,
 });
 
+// 문제집(ProblemBox) 타입
+export interface ProblemBox {
+  id: number;
+  title: string;
+  count: number;
+  category: string;
+  color: string;
+}
+
 // Problem Box State
-export const currentProblemBoxState = atom({
+export const currentProblemBoxState = atom<ProblemBox | null>({
   key: 'currentProblemBoxState',
-  default: null, // null means showing list of boxes, otherwise contains box ID/Data
+  default: null, // null이면 문제집 목록 표시, 값이 있으면 해당 문제집 내부 표시
 });
 
 // IDE State
@@ -80,7 +89,20 @@ export const communityTabState = atom({
   default: 'notices',
 });
 
-export const currentChallengeState = atom<any>({
+// 챌린지 타입
+export interface Challenge {
+  id: number;
+  title: string;
+  participants: number;
+  duration: string;
+  startDate: string;
+  reward: string;
+  status: 'active' | 'recruiting' | 'ended';
+  color: string;
+  description: string;
+}
+
+export const currentChallengeState = atom<Challenge | null>({
   key: 'currentChallengeState',
   default: null,
 });

@@ -66,7 +66,7 @@ export const ChallengeList = () => {
     problems: ''
   });
 
-  const handleCreateChallenge = (e) => {
+  const handleCreateChallenge = (e: React.FormEvent) => {
     e.preventDefault();
     const challenge = {
       id: challenges.length + 1,

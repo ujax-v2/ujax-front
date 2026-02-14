@@ -28,7 +28,7 @@ export const ProblemList = () => {
     solved: i % 4 === 0
   }));
 
-  const getDifficultyColor = (diff) => {
+  const getDifficultyColor = (diff: string) => {
     switch (diff) {
       case 'Gold': return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
       case 'Silver': return 'text-slate-300 bg-slate-400/10 border-slate-400/20';
@@ -40,7 +40,7 @@ export const ProblemList = () => {
   // Create Box Form State
   const [newBox, setNewBox] = useState({ title: '', category: 'Algorithm' });
 
-  const handleCreateBox = (e) => {
+  const handleCreateBox = (e: React.FormEvent) => {
     e.preventDefault();
     const box = {
       id: boxes.length + 1,
@@ -93,7 +93,7 @@ export const ProblemList = () => {
             ))}
 
             <button
-              onClick={() => navigate('/problems/new')}
+              onClick={() => toWs('problems/new')}
               className="border border-dashed border-slate-800 rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-slate-500 hover:text-emerald-500 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all min-h-[160px]"
             >
               <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-emerald-500/20">
@@ -163,7 +163,7 @@ export const ProblemList = () => {
               </button>
               <h1 className="text-2xl font-bold text-slate-100">{currentBox.title}</h1>
             </div>
-            <Button variant="primary" className="gap-2" onClick={() => navigate('/problems/new')}>
+            <Button variant="primary" className="gap-2" onClick={() => toWs('problems/new')}>
               <Plus className="w-4 h-4" /> 문제 가져오기
             </Button>
           </div>
