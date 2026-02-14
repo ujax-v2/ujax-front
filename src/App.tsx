@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRecoilState, useRecoilValue, RecoilRoot } from 'recoil';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { sidebarOpenState, userState, currentWorkspaceState } from './store/atoms';
+import { sidebarOpenState, userState, currentWorkspaceState, workspacesState } from './store/atoms';
 import { Sidebar } from './components/layout/Sidebar';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { Home } from './features/home/Home';
@@ -63,7 +63,17 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
  */
 function RedirectToWorkspace({ page }: { page: string }) {
   const currentWsId = useRecoilValue(currentWorkspaceState);
-  return <Navigate to={`/ws/${currentWsId}/${page}`} replace />;
+  const workspaces = useRecoilValue(workspacesState);
+
+  // 유효한 워크스페이스 ID 찾기
+  const isValid = workspaces.some(w => w.id === currentWsId);
+  const targetId = isValid ? currentWsId : (workspaces.length > 0 ? workspaces[0].id : null);
+
+  if (!targetId) {
+    return <Navigate to="/explore" replace />;
+  }
+
+  return <Navigate to={`/ws/${targetId}/${page}`} replace />;
 }
 
 function AppContent() {

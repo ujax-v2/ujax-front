@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { useWorkspaceNavigate } from '../../hooks/useWorkspaceNavigate';
-import { communityTabState, workspacesState, currentWorkspaceState } from '../../store/atoms';
+import { communityTabState, workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState } from '../../store/atoms';
 
 // Contribution Graph Component
 const ContributionGraph = () => {
@@ -111,14 +111,33 @@ const ContributionGraph = () => {
 };
 
 export const Dashboard = () => {
-  const { toWs } = useWorkspaceNavigate();
+  const { navigate, toWs } = useWorkspaceNavigate();
   const setCommunityTab = useSetRecoilState(communityTabState);
   const workspaces = useRecoilValue(workspacesState);
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
   const setWorkspaces = useSetRecoilState(workspacesState);
   const setCurrentWorkspaceId = useSetRecoilState(currentWorkspaceState);
+  const setCreateWorkspaceOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
 
-  const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId) || workspaces[0];
+  const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
+
+  if (!currentWorkspace) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-[#0F1117] text-slate-400 p-8">
+        <div className="text-center space-y-4">
+          <p className="text-lg">선택된 워크스페이스가 없습니다.</p>
+          <Button onClick={() => setCreateWorkspaceOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            새 워크스페이스 생성하기
+          </Button>
+          <div className="mt-4">
+            <Button variant="ghost" onClick={() => navigate('/explore')} className="text-slate-500 hover:text-slate-300">
+              워크스페이스 탐색하기
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const notices = [
     { id: 1, title: '시스템 점검 안내 (02/10 02:00 ~ 04:00)', date: '2024.02.08', author: 'Admin' },
