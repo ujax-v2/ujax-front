@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
-import { navigationState, currentChallengeState } from '../../store/atoms';
+import { currentChallengeState } from '../../store/atoms';
+import { useNavigate } from 'react-router-dom';
 import { Button, Card, Badge, Modal } from '../../components/ui/Base';
 import { Trophy, Users, Clock, Plus, Target, Calendar, Archive, Timer } from 'lucide-react';
 
 export const ChallengeList = () => {
-  const setPage = useSetRecoilState(navigationState);
+  const navigate = useNavigate();
   const setCurrentChallenge = useSetRecoilState(currentChallengeState);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   // Mock Data
   const [challenges, setChallenges] = useState([
     {
@@ -103,20 +104,20 @@ export const ChallengeList = () => {
         {/* Active & Recruiting Section */}
         <section className="space-y-6">
           <div className="flex items-center gap-2 text-lg font-bold text-slate-200">
-             <Trophy className="w-5 h-5 text-emerald-500" /> 진행중인 챌린지
+            <Trophy className="w-5 h-5 text-emerald-500" /> 진행중인 챌린지
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {activeChallenges.map((challenge) => (
-              <div 
+              <div
                 key={challenge.id}
                 onClick={() => {
                   setCurrentChallenge(challenge);
-                  setPage('challenge-detail');
+                  navigate(`/challenges/${challenge.id}`);
                 }}
                 className="group relative overflow-hidden bg-slate-900/50 border border-slate-800 rounded-xl p-6 cursor-pointer hover:bg-slate-800/50 hover:border-slate-700 transition-all"
               >
                 <div className={`absolute top-0 left-0 w-1 h-full ${challenge.color}`}></div>
-                
+
                 <div className="flex justify-between items-start mb-4 pl-2">
                   <div className={`w-10 h-10 rounded-lg ${challenge.color} bg-opacity-20 flex items-center justify-center text-slate-200`}>
                     <Trophy className="w-5 h-5" />
@@ -162,22 +163,22 @@ export const ChallengeList = () => {
         {/* Ended Challenges Section */}
         <section className="space-y-6 pt-6 border-t border-slate-800/50">
           <div className="flex items-center gap-2 text-lg font-bold text-slate-200">
-             <Archive className="w-5 h-5 text-slate-500" /> 종료된 챌린지
+            <Archive className="w-5 h-5 text-slate-500" /> 종료된 챌린지
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             {endedChallenges.map((challenge) => (
-              <div 
+            {endedChallenges.map((challenge) => (
+              <div
                 key={challenge.id}
                 onClick={() => {
                   setCurrentChallenge(challenge);
-                  setPage('challenge-detail');
+                  navigate(`/challenges/${challenge.id}`);
                 }}
                 className="group relative overflow-hidden bg-slate-900/30 border border-slate-800 rounded-xl p-6 cursor-pointer hover:bg-slate-800/50 hover:border-slate-700 transition-all grayscale hover:grayscale-0"
               >
                 <div className={`absolute top-0 left-0 w-1 h-full bg-slate-600`}></div>
-                
+
                 <div className="flex justify-between items-start mb-4 pl-2">
-                   <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500">
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500">
                     <Archive className="w-5 h-5" />
                   </div>
                   <Badge variant="secondary">종료</Badge>
@@ -186,7 +187,7 @@ export const ChallengeList = () => {
                 <h3 className="text-lg font-bold text-slate-300 mb-2 group-hover:text-white transition-colors pl-2">
                   {challenge.title}
                 </h3>
-                
+
                 <div className="pl-2 text-sm text-slate-500 mb-4 h-10 line-clamp-2">
                   {challenge.description}
                 </div>
@@ -211,35 +212,35 @@ export const ChallengeList = () => {
           <form onSubmit={handleCreateChallenge} className="space-y-4">
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-400">챌린지 제목</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 required
                 value={newChallenge.title}
-                onChange={(e) => setNewChallenge({...newChallenge, title: e.target.value})}
+                onChange={(e) => setNewChallenge({ ...newChallenge, title: e.target.value })}
                 placeholder="예: 1일 1문제 뽀개기"
                 className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500"
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                 <label className="text-sm font-medium text-slate-400">기간 (일)</label>
-                 <div className="relative">
-                   <Timer className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                   <input 
-                    type="number" 
+                <label className="text-sm font-medium text-slate-400">기간 (일)</label>
+                <div className="relative">
+                  <Timer className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="number"
                     min="1"
                     value={newChallenge.duration}
-                    onChange={(e) => setNewChallenge({...newChallenge, duration: e.target.value})}
+                    onChange={(e) => setNewChallenge({ ...newChallenge, duration: e.target.value })}
                     className="w-full bg-slate-900 border border-slate-800 rounded-lg pl-10 pr-4 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500"
                   />
-                 </div>
+                </div>
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-400">분류</label>
-                <select 
+                <select
                   value={newChallenge.category}
-                  onChange={(e) => setNewChallenge({...newChallenge, category: e.target.value})}
+                  onChange={(e) => setNewChallenge({ ...newChallenge, category: e.target.value })}
                   className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500"
                 >
                   <option>알고리즘</option>
@@ -252,23 +253,23 @@ export const ChallengeList = () => {
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-400">문제 선택</label>
               <div className="border border-slate-800 rounded-lg bg-slate-900/50 p-3 h-32 overflow-y-auto space-y-2">
-                 {/* Mock Problem Selector */}
-                 <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer p-1 hover:bg-slate-800 rounded">
-                   <input type="checkbox" className="rounded border-slate-700 bg-slate-800 text-emerald-500 focus:ring-emerald-500" />
-                   1000. A+B
-                 </label>
-                 <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer p-1 hover:bg-slate-800 rounded">
-                   <input type="checkbox" className="rounded border-slate-700 bg-slate-800 text-emerald-500 focus:ring-emerald-500" />
-                   1920. 수 찾기
-                 </label>
-                 <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer p-1 hover:bg-slate-800 rounded">
-                   <input type="checkbox" className="rounded border-slate-700 bg-slate-800 text-emerald-500 focus:ring-emerald-500" />
-                   2557. Hello World
-                 </label>
-                 <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer p-1 hover:bg-slate-800 rounded">
-                   <input type="checkbox" className="rounded border-slate-700 bg-slate-800 text-emerald-500 focus:ring-emerald-500" />
-                   2739. 구구단
-                 </label>
+                {/* Mock Problem Selector */}
+                <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer p-1 hover:bg-slate-800 rounded">
+                  <input type="checkbox" className="rounded border-slate-700 bg-slate-800 text-emerald-500 focus:ring-emerald-500" />
+                  1000. A+B
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer p-1 hover:bg-slate-800 rounded">
+                  <input type="checkbox" className="rounded border-slate-700 bg-slate-800 text-emerald-500 focus:ring-emerald-500" />
+                  1920. 수 찾기
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer p-1 hover:bg-slate-800 rounded">
+                  <input type="checkbox" className="rounded border-slate-700 bg-slate-800 text-emerald-500 focus:ring-emerald-500" />
+                  2557. Hello World
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer p-1 hover:bg-slate-800 rounded">
+                  <input type="checkbox" className="rounded border-slate-700 bg-slate-800 text-emerald-500 focus:ring-emerald-500" />
+                  2739. 구구단
+                </label>
               </div>
             </div>
 

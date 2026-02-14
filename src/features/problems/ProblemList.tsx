@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Card, Button, Badge, Modal } from '../../components/ui/Base';
 import { Search, Filter, FolderPlus, Folder, ArrowLeft, Plus, MoreVertical, X } from 'lucide-react';
-import { useSetRecoilState, useRecoilState } from 'recoil';
-import { navigationState, currentProblemBoxState } from '../../store/atoms';
+import { useRecoilState } from 'recoil';
+import { useNavigate } from 'react-router-dom';
+import { currentProblemBoxState } from '../../store/atoms';
 
 export const ProblemList = () => {
-  const setPage = useSetRecoilState(navigationState);
+  const navigate = useNavigate();
   const [currentBox, setCurrentBox] = useRecoilState(currentProblemBoxState);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   // Mock data for Boxes
   const [boxes, setBoxes] = useState([
     { id: 1, title: '코딩테스트 기초 100제', count: 15, category: 'Basic', color: 'bg-emerald-500' },
@@ -70,7 +71,7 @@ export const ProblemList = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {boxes.map((box) => (
-              <div 
+              <div
                 key={box.id}
                 onClick={() => setCurrentBox(box)}
                 className="group bg-slate-900/50 border border-slate-800 rounded-xl p-6 cursor-pointer hover:bg-slate-800/50 hover:border-slate-700 transition-all"
@@ -85,21 +86,21 @@ export const ProblemList = () => {
                 </div>
                 <h3 className="text-lg font-semibold text-slate-200 mb-1 group-hover:text-white">{box.title}</h3>
                 <div className="flex justify-between items-center text-sm text-slate-500">
-                   <span>{box.count} 문제</span>
-                   <span className="text-xs bg-slate-800 px-2 py-0.5 rounded">{box.category}</span>
+                  <span>{box.count} 문제</span>
+                  <span className="text-xs bg-slate-800 px-2 py-0.5 rounded">{box.category}</span>
                 </div>
               </div>
             ))}
-            
-              <button 
-                onClick={() => setPage('problem-registration')}
-                className="border border-dashed border-slate-800 rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-slate-500 hover:text-emerald-500 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all min-h-[160px]"
-              >
-                <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-emerald-500/20">
-                  <Plus className="w-6 h-6" />
-                </div>
-                <span className="font-medium">문제 등록하기</span>
-              </button>
+
+            <button
+              onClick={() => navigate('/problems/new')}
+              className="border border-dashed border-slate-800 rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-slate-500 hover:text-emerald-500 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all min-h-[160px]"
+            >
+              <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-emerald-500/20">
+                <Plus className="w-6 h-6" />
+              </div>
+              <span className="font-medium">문제 등록하기</span>
+            </button>
           </div>
         </div>
 
@@ -108,20 +109,20 @@ export const ProblemList = () => {
           <form onSubmit={handleCreateBox} className="space-y-4">
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-400">문제집 이름</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 required
                 value={newBox.title}
-                onChange={(e) => setNewBox({...newBox, title: e.target.value})}
+                onChange={(e) => setNewBox({ ...newBox, title: e.target.value })}
                 placeholder="예: 코딩테스트 대비 100제"
                 className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500"
               />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-400">분류</label>
-              <select 
+              <select
                 value={newBox.category}
-                onChange={(e) => setNewBox({...newBox, category: e.target.value})}
+                onChange={(e) => setNewBox({ ...newBox, category: e.target.value })}
                 className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500"
               >
                 <option value="Algorithm">알고리즘</option>
@@ -154,7 +155,7 @@ export const ProblemList = () => {
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button 
+              <button
                 onClick={() => setCurrentBox(null)}
                 className="p-2 -ml-2 text-slate-400 hover:text-slate-100 rounded-lg hover:bg-slate-800 transition-colors"
               >
@@ -162,7 +163,7 @@ export const ProblemList = () => {
               </button>
               <h1 className="text-2xl font-bold text-slate-100">{currentBox.title}</h1>
             </div>
-            <Button variant="primary" className="gap-2" onClick={() => setPage('problem-registration')}>
+            <Button variant="primary" className="gap-2" onClick={() => navigate('/problems/new')}>
               <Plus className="w-4 h-4" /> 문제 가져오기
             </Button>
           </div>
@@ -171,9 +172,9 @@ export const ProblemList = () => {
           <div className="flex gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-              <input 
-                type="text" 
-                placeholder="문제 검색..." 
+              <input
+                type="text"
+                placeholder="문제 검색..."
                 className="w-full h-12 bg-slate-900 border border-slate-800 rounded-lg pl-10 pr-4 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
               />
             </div>
@@ -188,12 +189,12 @@ export const ProblemList = () => {
               <div>알고리즘 분류</div>
               <div className="text-center">상태</div>
             </div>
-            
+
             <div className="divide-y divide-slate-800/50">
               {problems.map((problem) => (
-                <div 
+                <div
                   key={problem.id}
-                  onClick={() => setPage('ide')}
+                  onClick={() => navigate(`/ide/${problem.id}`)}
                   className="grid grid-cols-[80px_1fr_120px_200px_100px] gap-4 p-4 items-center hover:bg-slate-800/30 transition-colors cursor-pointer group"
                 >
                   <div className="text-center text-slate-500 font-mono">{problem.id}</div>

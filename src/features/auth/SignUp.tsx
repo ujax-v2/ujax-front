@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useSetRecoilState } from 'recoil';
-import { navigationState, userState } from '../../store/atoms';
+import { useNavigate } from 'react-router-dom';
+import { userState } from '../../store/atoms';
 import { signupApi } from '../../api/auth';
 import { Button, Card } from '../../components/ui/Base';
 import { Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export const SignUp = () => {
-  const setPage = useSetRecoilState(navigationState);
+  const navigate = useNavigate();
   const setUser = useSetRecoilState(userState);
   const [formData, setFormData] = useState({
     email: '',
@@ -48,8 +48,8 @@ export const SignUp = () => {
             <label className="text-xs font-medium text-slate-400">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input 
-                type="email" 
+              <input
+                type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
@@ -64,8 +64,8 @@ export const SignUp = () => {
             <label className="text-xs font-medium text-slate-400">Nickname</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 name="nickname"
                 value={formData.nickname}
                 onChange={handleChange}
@@ -79,8 +79,8 @@ export const SignUp = () => {
             <label className="text-xs font-medium text-slate-400">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input 
-                type="password" 
+              <input
+                type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
@@ -88,7 +88,7 @@ export const SignUp = () => {
                 placeholder="••••••••"
               />
             </div>
-            
+
             {/* Password Validation Feedback Area */}
             <div className="grid grid-cols-2 gap-2 mt-2">
               <div className={`text-xs flex items-center gap-1 ${formData.password.length >= 8 ? 'text-emerald-500' : 'text-slate-600'}`}>
@@ -114,7 +114,7 @@ export const SignUp = () => {
                 const name = payload.name || formData.nickname;
                 localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken, name, email: formData.email }));
                 setUser({ isLoggedIn: true, name, email: formData.email, avatar: name, accessToken, refreshToken });
-                setPage('dashboard');
+                navigate('/');
               } catch (err: any) {
                 setApiError(err.message || '회원가입에 실패했습니다.');
               } finally {
@@ -129,7 +129,7 @@ export const SignUp = () => {
 
         <div className="mt-6 text-center text-sm text-slate-400">
           Already have an account?{' '}
-          <button onClick={() => setPage('login')} className="text-emerald-500 hover:text-emerald-400 font-medium">
+          <button onClick={() => navigate('/login')} className="text-emerald-500 hover:text-emerald-400 font-medium">
             Log In
           </button>
         </div>

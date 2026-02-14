@@ -1,22 +1,21 @@
 import React from 'react';
 import { Card, Button, Badge } from '../../components/ui/Base';
-import { useSetRecoilState } from 'recoil';
-import { navigationState } from '../../store/atoms';
-import { 
-  Settings, 
-  MapPin, 
-  Link as LinkIcon, 
-  Twitter, 
-  Github, 
-  Flame, 
-  CheckCircle2, 
-  Coins, 
+import { useNavigate } from 'react-router-dom';
+import {
+  Settings,
+  MapPin,
+  Link as LinkIcon,
+  Twitter,
+  Github,
+  Flame,
+  CheckCircle2,
+  Coins,
   CalendarDays,
   Edit2
 } from 'lucide-react';
 
 export const Profile = () => {
-  const setPage = useSetRecoilState(navigationState);
+  const navigate = useNavigate();
 
   // Mock Data
   const user = {
@@ -44,16 +43,16 @@ export const Profile = () => {
   return (
     <div className="flex-1 overflow-y-auto bg-[#0F1117] p-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        
+
         {/* Profile Header */}
         <Card className="p-8 bg-[#141820] border-slate-800 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-emerald-900/40 to-slate-900/40"></div>
-          
+
           <div className="relative flex flex-col md:flex-row gap-6 items-end -mt-4">
             <div className="w-32 h-32 rounded-2xl bg-slate-800 border-4 border-[#141820] overflow-hidden shadow-xl">
               <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Profile" className="w-full h-full object-cover" />
             </div>
-            
+
             <div className="flex-1 mb-2">
               <div className="flex justify-between items-start">
                 <div>
@@ -64,12 +63,12 @@ export const Profile = () => {
                   <Button variant="secondary" className="gap-2">
                     <Edit2 className="w-4 h-4" /> Edit Profile
                   </Button>
-                  <Button variant="secondary" onClick={() => setPage('settings')}>
+                  <Button variant="secondary" onClick={() => navigate('/settings')}>
                     <Settings className="w-4 h-4" /> Settings
                   </Button>
                 </div>
               </div>
-              
+
               <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-400">
                 <div className="flex items-center gap-1">
                   <MapPin className="w-4 h-4" /> {user.location}
@@ -91,8 +90,8 @@ export const Profile = () => {
               <span className="text-sm text-slate-500">{user.xp} / {user.nextLevelXp} XP</span>
             </div>
             <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-emerald-500" 
+              <div
+                className="h-full bg-emerald-500"
                 style={{ width: `${(user.xp / user.nextLevelXp) * 100}%` }}
               ></div>
             </div>
@@ -110,7 +109,7 @@ export const Profile = () => {
               <div className="text-xs text-slate-500">Current Streak</div>
             </div>
           </Card>
-          
+
           <Card className="p-6 bg-[#141820] border-slate-800 flex items-center gap-4">
             <div className="p-3 rounded-full bg-emerald-500/10 text-emerald-500">
               <CheckCircle2 className="w-6 h-6" />
@@ -141,7 +140,7 @@ export const Profile = () => {
           <div className="flex items-end justify-between h-32 gap-2">
             {activity.map((item, idx) => (
               <div key={idx} className="flex-1 flex flex-col items-center gap-2 group">
-                <div 
+                <div
                   className="w-full bg-emerald-500/20 rounded-t-sm hover:bg-emerald-500/50 transition-colors relative"
                   style={{ height: `${(item.count / 60) * 100}%` }}
                 >

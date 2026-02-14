@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useSetRecoilState } from 'recoil';
-import { navigationState, userState } from '../../store/atoms';
+import { useNavigate } from 'react-router-dom';
+import { userState } from '../../store/atoms';
 import { loginApi } from '../../api/auth';
 import { Button, Card } from '../../components/ui/Base';
 import { Mail, Lock, Github, MessageCircle } from 'lucide-react';
@@ -11,7 +11,7 @@ interface LoginProps {
 }
 
 export const Login = ({ oauthError, onClearError }: LoginProps) => {
-  const setPage = useSetRecoilState(navigationState);
+  const navigate = useNavigate();
   const setUser = useSetRecoilState(userState);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,8 +34,8 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
       const payload = JSON.parse(atob(accessToken.split('.')[1]));
       const name = payload.name || email;
       localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken, name, email }));
-      setUser({ isLoggedIn: true, name, email, avatar: name, accessToken, refreshToken });
-      setPage('dashboard');
+      setLoading(false);
+      navigate('/');
     } catch (err: any) {
       setError(err.message || '로그인에 실패했습니다.');
     } finally {
@@ -56,8 +56,8 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
             <label className="text-xs font-medium text-slate-400">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input 
-                type="email" 
+              <input
+                type="email"
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); clearOauthError(); }}
                 className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2.5 pl-10 pr-4 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors"
@@ -73,8 +73,8 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
             </div>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input 
-                type="password" 
+              <input
+                type="password"
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); clearOauthError(); }}
                 className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2.5 pl-10 pr-4 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors"
@@ -114,7 +114,7 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
 
         <div className="mt-6 text-center text-sm text-slate-400">
           Don't have an account?{' '}
-          <button onClick={() => setPage('signup')} className="text-emerald-500 hover:text-emerald-400 font-medium">
+          <button onClick={() => navigate('/signup')} className="text-emerald-500 hover:text-emerald-400 font-medium">
             Sign Up
           </button>
         </div>

@@ -2,18 +2,19 @@ import React from 'react';
 import { Card, Button, Badge } from '../../components/ui/Base';
 import { ArrowLeft, Save, FileCode, MessageSquare, Tag } from 'lucide-react';
 import Editor from '@monaco-editor/react';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { ideCodeState, ideLanguageState, navigationState } from '../../store/atoms';
+import { useRecoilValue } from 'recoil';
+import { useNavigate } from 'react-router-dom';
+import { ideCodeState, ideLanguageState } from '../../store/atoms';
 
 export const SolutionForm = () => {
+  const navigate = useNavigate();
   const code = useRecoilValue(ideCodeState);
   const language = useRecoilValue(ideLanguageState);
-  const setPage = useSetRecoilState(navigationState);
 
   const handleRegister = () => {
     // Logic to save the post would go here
     // Redirect to the community/solution view page
-    setPage('community');
+    navigate('/community');
   };
 
   return (
@@ -21,15 +22,15 @@ export const SolutionForm = () => {
       {/* Header */}
       <div className="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-[#0F1117]">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => setPage('ide')} className="text-slate-400 hover:text-slate-100">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/ide')} className="text-slate-400 hover:text-slate-100">
             <ArrowLeft className="w-4 h-4 mr-2" /> 돌아가기
           </Button>
           <div className="h-4 w-px bg-slate-800" />
           <h1 className="font-semibold text-slate-100">풀이 공유하기</h1>
         </div>
-        
-        <Button 
-          className="bg-emerald-600 hover:bg-emerald-700 text-white" 
+
+        <Button
+          className="bg-emerald-600 hover:bg-emerald-700 text-white"
           size="sm"
           onClick={handleRegister}
         >
@@ -69,8 +70,8 @@ export const SolutionForm = () => {
           <div className="p-8 max-w-2xl mx-auto w-full space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-300">제목</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="풀이의 핵심 내용을 요약해주세요"
                 className="w-full h-12 bg-slate-900 border border-slate-800 rounded-lg px-4 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
               />
@@ -89,9 +90,9 @@ export const SolutionForm = () => {
                 <Badge variant="default" className="bg-slate-800 pr-1 gap-1">
                   Greedy <button className="hover:text-red-400">×</button>
                 </Badge>
-                <input 
-                  type="text" 
-                  placeholder="태그 입력..." 
+                <input
+                  type="text"
+                  placeholder="태그 입력..."
                   className="bg-transparent border-none text-sm text-slate-300 focus:outline-none min-w-[100px]"
                 />
               </div>
@@ -102,7 +103,7 @@ export const SolutionForm = () => {
               <div>
                 <h4 className="text-sm font-semibold text-emerald-400 mb-1">풀이 공유 팁</h4>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  다른 사용자들이 이해하기 쉽도록 변수명과 로직을 명확하게 설명해주세요. 
+                  다른 사용자들이 이해하기 쉽도록 변수명과 로직을 명확하게 설명해주세요.
                   코드 복잡도(Big-O)를 포함하면 더 좋은 평가를 받을 수 있습니다.
                 </p>
               </div>

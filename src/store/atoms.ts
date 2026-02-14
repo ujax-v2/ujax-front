@@ -1,9 +1,5 @@
 import { atom } from 'recoil';
 
-export const navigationState = atom({
-  key: 'navigationState',
-  default: 'dashboard',
-});
 
 export const themeState = atom({
   key: 'themeState',
@@ -75,7 +71,7 @@ export const communityTabState = atom({
   default: 'notices',
 });
 
-export const currentChallengeState = atom({
+export const currentChallengeState = atom<any>({
   key: 'currentChallengeState',
   default: null,
 });
