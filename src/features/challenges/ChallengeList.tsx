@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { currentChallengeState } from '../../store/atoms';
-import { useNavigate } from 'react-router-dom';
+import { useWorkspaceNavigate } from '../../hooks/useWorkspaceNavigate';
 import { Button, Card, Badge, Modal } from '../../components/ui/Base';
 import { Trophy, Users, Clock, Plus, Target, Calendar, Archive, Timer } from 'lucide-react';
 
 export const ChallengeList = () => {
-  const navigate = useNavigate();
+  const { toWs } = useWorkspaceNavigate();
   const setCurrentChallenge = useSetRecoilState(currentChallengeState);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -112,7 +112,7 @@ export const ChallengeList = () => {
                 key={challenge.id}
                 onClick={() => {
                   setCurrentChallenge(challenge);
-                  navigate(`/challenges/${challenge.id}`);
+                  toWs(`challenges/${challenge.id}`);
                 }}
                 className="group relative overflow-hidden bg-slate-900/50 border border-slate-800 rounded-xl p-6 cursor-pointer hover:bg-slate-800/50 hover:border-slate-700 transition-all"
               >
@@ -171,7 +171,7 @@ export const ChallengeList = () => {
                 key={challenge.id}
                 onClick={() => {
                   setCurrentChallenge(challenge);
-                  navigate(`/challenges/${challenge.id}`);
+                  toWs(`challenges/${challenge.id}`);
                 }}
                 className="group relative overflow-hidden bg-slate-900/30 border border-slate-800 rounded-xl p-6 cursor-pointer hover:bg-slate-800/50 hover:border-slate-700 transition-all grayscale hover:grayscale-0"
               >

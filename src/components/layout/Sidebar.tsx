@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import {
   sidebarOpenState,
   workspacesState,
@@ -64,20 +64,36 @@ export const Sidebar = () => {
     navigate('/login');
   };
 
+  // 메뉴 항목의 path는 wsId 없이 상대 경로만 정의
+  // 실제 navigate 시 /ws/:wsId/ 접두사를 붙여줌
   const menuItems = [
-    { path: '/dashboard', label: '워크스페이스', icon: LayoutDashboard },
-    { path: '/problems', label: '문제', icon: BookOpen },
-    { path: '/community', label: '커뮤니티', icon: Users },
+    { subpath: 'dashboard', label: '워크스페이스', icon: LayoutDashboard },
+    { subpath: 'problems', label: '문제', icon: BookOpen },
+    { subpath: 'community', label: '커뮤니티', icon: Users },
   ];
+
+  // wsId 포함된 전체 경로 생성
+  const getWsPath = (subpath: string, wsId?: string) => {
+    const id = wsId || currentWorkspaceId;
+    return `/ws/${id}/${subpath}`;
+  };
+
+  // 현재 URL이 해당 메뉴의 활성 상태인지 확인
+  const isMenuActive = (subpath: string) => {
+    const fullPath = getWsPath(subpath);
+    return location.pathname === fullPath || location.pathname.startsWith(fullPath + '/');
+  };
 
   const handleCreateWorkspace = () => {
     setIsWorkspaceMenuOpen(false);
     setIsCreateWorkspaceModalOpen(true);
   };
 
+  // 워크스페이스 전환 시 → 새 WS의 대시보드로 이동
   const handleSwitchWorkspace = (id: string) => {
     setCurrentWorkspaceId(id);
     setIsWorkspaceMenuOpen(false);
+    navigate(`/ws/${id}/dashboard`);
   };
 
   if (!isOpen) return null;
@@ -162,7 +178,6 @@ export const Sidebar = () => {
                     <span className={`text-sm truncate ${ws.id === currentWorkspaceId ? 'text-slate-100 font-medium' : 'text-slate-400'}`}>
                       {ws.name}
                     </span>
-
                   </div>
                   {ws.id === currentWorkspaceId ? (
                     <Check className="w-4 h-4 text-emerald-500" />
@@ -187,22 +202,22 @@ export const Sidebar = () => {
         )}
       </div>
 
-      {/* Main Navigation */}
+      {/* Main Navigation — 워크스페이스 스코프 메뉴 */}
       <div className="flex-1 px-2 space-y-0.5 overflow-y-auto">
         <div className="mb-2 px-2 pt-2">
           <div className="text-[11px] font-bold text-slate-500 mb-1 px-2 uppercase tracking-wider">메뉴</div>
           {menuItems.map((item) => (
             <button
-              key={item.path}
-              onClick={() => navigate(item.path)}
+              key={item.subpath}
+              onClick={() => navigate(getWsPath(item.subpath))}
               className={cn(
                 'w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors group',
-                location.pathname === item.path || location.pathname.startsWith(item.path)
+                isMenuActive(item.subpath)
                   ? 'bg-slate-800 text-slate-100'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
               )}
             >
-              <item.icon className={cn("w-4 h-4", location.pathname === item.path || location.pathname.startsWith(item.path) ? "text-slate-100" : "text-slate-500 group-hover:text-slate-400")} />
+              <item.icon className={cn("w-4 h-4", isMenuActive(item.subpath) ? "text-slate-100" : "text-slate-500 group-hover:text-slate-400")} />
               <span className="flex-1 text-left">{item.label}</span>
             </button>
           ))}

@@ -1,19 +1,19 @@
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import { currentChallengeState } from '../../store/atoms';
-import { useNavigate } from 'react-router-dom';
+import { useWorkspaceNavigate } from '../../hooks/useWorkspaceNavigate';
 import { Button, Card, Badge } from '../../components/ui/Base';
 import { ArrowLeft, Calendar, CheckCircle2, XCircle, Flame, Trophy, Clock, Code2, Medal } from 'lucide-react';
 
 export const ChallengeDetail = () => {
-  const navigate = useNavigate();
+  const { navigate, toWs } = useWorkspaceNavigate();
   const currentChallenge = useRecoilValue(currentChallengeState);
 
   // If no challenge is selected (e.g. direct load), fallback or redirect
   if (!currentChallenge) {
     // In a real app we'd redirect, but for now let's just show a loading or error state
     // Or we can just redirect back to list
-    navigate('/challenges');
+    toWs('challenges');
     return null;
   }
 
@@ -39,7 +39,7 @@ export const ChallengeDetail = () => {
 
         {/* Header */}
         <div className="flex flex-col gap-6">
-          <Button variant="ghost" className="w-fit -ml-2 text-slate-400" onClick={() => navigate('/challenges')}>
+          <Button variant="ghost" className="w-fit -ml-2 text-slate-400" onClick={() => toWs('challenges')}>
             <ArrowLeft className="w-4 h-4 mr-2" /> 챌린지 목록
           </Button>
 

@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useRecoilState, useRecoilValue, RecoilRoot } from 'recoil';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { sidebarOpenState, userState } from './store/atoms';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { sidebarOpenState, userState, currentWorkspaceState } from './store/atoms';
 import { Sidebar } from './components/layout/Sidebar';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { Home } from './features/home/Home';
@@ -38,13 +38,41 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/**
+ * 워크스페이스 스코프 라우트의 래퍼 컴포넌트
+ * URL의 wsId를 읽어 Recoil의 currentWorkspaceState와 동기화
+ */
+function WorkspaceScope({ children }: { children: React.ReactNode }) {
+  const { wsId } = useParams();
+  const [currentWsId, setCurrentWsId] = useRecoilState(currentWorkspaceState);
+
+  // URL의 wsId가 변경되면 Recoil 상태도 동기화
+  React.useEffect(() => {
+    if (wsId && wsId !== currentWsId) {
+      setCurrentWsId(wsId);
+    }
+  }, [wsId, currentWsId, setCurrentWsId]);
+
+  return <>{children}</>;
+}
+
+/**
+ * 로그인 후 기본 워크스페이스로 리다이렉트하는 컴포넌트
+ * /dashboard 같은 구(old) 라우트 접근 시 → /ws/:defaultWsId/dashboard 로 이동
+ */
+function RedirectToWorkspace({ page }: { page: string }) {
+  const currentWsId = useRecoilValue(currentWorkspaceState);
+  return <Navigate to={`/ws/${currentWsId}/${page}`} replace />;
+}
+
 function AppContent() {
   const [isSidebarOpen, setSidebarOpen] = useRecoilState(sidebarOpenState);
   const user = useRecoilValue(userState);
   const location = useLocation();
 
-  // Hide sidebar on auth pages and IDE
-  const isFullScreen = ['/login', '/signup', '/auth/callback'].includes(location.pathname) || location.pathname.startsWith('/ide');
+  // 사이드바를 숨겨야 하는 페이지: 인증, IDE, 홈
+  const isFullScreen = ['/login', '/signup', '/auth/callback', '/'].includes(location.pathname)
+    || location.pathname.startsWith('/ide');
   const showSidebar = !isFullScreen && user.isLoggedIn;
 
   return (
@@ -64,30 +92,47 @@ function AppContent() {
         )}
 
         <Routes>
-          {/* Public Routes */}
+          {/* 공개 라우트 */}
           <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
           <Route path="/signup" element={<PublicOnlyRoute><SignUp /></PublicOnlyRoute>} />
           <Route path="/auth/callback" element={<OAuthCallback />} />
 
-          {/* Landing / Home (Accessible to all) */}
+          {/* 홈 (비로그인/로그인 모두 접근 가능) */}
           <Route path="/" element={<Home />} />
 
-          {/* Protected Routes */}
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/problems" element={<ProtectedRoute><ProblemList /></ProtectedRoute>} />
-          <Route path="/problems/new" element={<ProtectedRoute><ProblemRegistration /></ProtectedRoute>} />
-          <Route path="/problems/:id/solutions" element={<ProtectedRoute><ProblemSolutions /></ProtectedRoute>} />
+          {/* ═══ 워크스페이스 스코프 라우트 ═══ */}
+          <Route path="/ws/:wsId/dashboard" element={
+            <ProtectedRoute><WorkspaceScope><Dashboard /></WorkspaceScope></ProtectedRoute>
+          } />
+          <Route path="/ws/:wsId/problems" element={
+            <ProtectedRoute><WorkspaceScope><ProblemList /></WorkspaceScope></ProtectedRoute>
+          } />
+          <Route path="/ws/:wsId/problems/new" element={
+            <ProtectedRoute><WorkspaceScope><ProblemRegistration /></WorkspaceScope></ProtectedRoute>
+          } />
+          <Route path="/ws/:wsId/community" element={
+            <ProtectedRoute><WorkspaceScope><Community /></WorkspaceScope></ProtectedRoute>
+          } />
+          <Route path="/ws/:wsId/challenges" element={
+            <ProtectedRoute><WorkspaceScope><ChallengeList /></WorkspaceScope></ProtectedRoute>
+          } />
+          <Route path="/ws/:wsId/challenges/:id" element={
+            <ProtectedRoute><WorkspaceScope><ChallengeDetail /></WorkspaceScope></ProtectedRoute>
+          } />
 
+          {/* ═══ 글로벌 라우트 (WS 무관) ═══ */}
           <Route path="/ide" element={<ProtectedRoute><IDE /></ProtectedRoute>} />
           <Route path="/ide/:problemId" element={<ProtectedRoute><IDE /></ProtectedRoute>} />
-
-          <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
-
-          <Route path="/challenges" element={<ProtectedRoute><ChallengeList /></ProtectedRoute>} />
-          <Route path="/challenges/:id" element={<ProtectedRoute><ChallengeDetail /></ProtectedRoute>} />
+          <Route path="/problems/:id/solutions" element={<ProtectedRoute><ProblemSolutions /></ProtectedRoute>} />
 
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+
+          {/* ═══ 레거시 라우트 리다이렉트 (구 URL 호환) ═══ */}
+          <Route path="/dashboard" element={<ProtectedRoute><RedirectToWorkspace page="dashboard" /></ProtectedRoute>} />
+          <Route path="/problems" element={<ProtectedRoute><RedirectToWorkspace page="problems" /></ProtectedRoute>} />
+          <Route path="/community" element={<ProtectedRoute><RedirectToWorkspace page="community" /></ProtectedRoute>} />
+          <Route path="/challenges" element={<ProtectedRoute><RedirectToWorkspace page="challenges" /></ProtectedRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

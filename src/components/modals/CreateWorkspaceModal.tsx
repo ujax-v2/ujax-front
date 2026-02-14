@@ -4,11 +4,13 @@ import { isCreateWorkspaceModalOpenState, workspacesState, currentWorkspaceState
 import { Button } from '../ui/Base';
 import { X, Check } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 
 export const CreateWorkspaceModal = () => {
   const [isOpen, setIsOpen] = useRecoilState(isCreateWorkspaceModalOpenState);
   const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
   const setCurrentWorkspaceId = useSetRecoilState(currentWorkspaceState);
+  const navigate = useNavigate();
 
   const [name, setName] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
@@ -35,6 +37,8 @@ export const CreateWorkspaceModal = () => {
       setShowSuccess(false);
       setIsOpen(false);
       setName('');
+      // 새 WS의 대시보드로 이동
+      navigate(`/ws/${newWorkspace.id}/dashboard`);
     }, 2000);
   };
 

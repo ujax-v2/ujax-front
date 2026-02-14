@@ -12,7 +12,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
-import { useNavigate } from 'react-router-dom';
+import { useWorkspaceNavigate } from '../../hooks/useWorkspaceNavigate';
 import { communityTabState, workspacesState, currentWorkspaceState } from '../../store/atoms';
 
 // Contribution Graph Component
@@ -111,7 +111,7 @@ const ContributionGraph = () => {
 };
 
 export const Dashboard = () => {
-  const navigate = useNavigate();
+  const { toWs } = useWorkspaceNavigate();
   const setCommunityTab = useSetRecoilState(communityTabState);
   const workspaces = useRecoilValue(workspacesState);
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
@@ -207,7 +207,7 @@ export const Dashboard = () => {
                 <button
                   onClick={() => {
                     setCommunityTab('notices');
-                    navigate('/community');
+                    toWs('community');
                   }}
                   className="text-xs text-slate-400 hover:text-emerald-500 font-medium"
                 >

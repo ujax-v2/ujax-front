@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Card, Button, Badge, Modal } from '../../components/ui/Base';
 import { Search, Filter, FolderPlus, Folder, ArrowLeft, Plus, MoreVertical, X } from 'lucide-react';
 import { useRecoilState } from 'recoil';
-import { useNavigate } from 'react-router-dom';
+import { useWorkspaceNavigate } from '../../hooks/useWorkspaceNavigate';
 import { currentProblemBoxState } from '../../store/atoms';
 
 export const ProblemList = () => {
-  const navigate = useNavigate();
+  const { navigate, toWs } = useWorkspaceNavigate();
   const [currentBox, setCurrentBox] = useRecoilState(currentProblemBoxState);
   const [isModalOpen, setIsModalOpen] = useState(false);
 

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Card, Button, Badge } from '../../components/ui/Base';
 import { ArrowLeft, Save, Calendar, Tag, Bell, Settings } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useWorkspaceNavigate } from '../../hooks/useWorkspaceNavigate';
 
 export const ProblemRegistration = () => {
-  const navigate = useNavigate();
+  const { navigate, toWs } = useWorkspaceNavigate();
   const [useAlarm, setUseAlarm] = useState(false);
   const [problemNumber, setProblemNumber] = useState('');
   const [problemTitle, setProblemTitle] = useState('');
@@ -16,7 +16,7 @@ export const ProblemRegistration = () => {
     }
     // TODO: API 연동 시 실제 등록 로직 추가
     alert(`문제 "${problemNumber}. ${problemTitle}"이(가) 등록되었습니다.`);
-    navigate('/problems');
+    toWs('problems');
   };
 
   return (
@@ -26,7 +26,7 @@ export const ProblemRegistration = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-slate-100">문제 등록</h1>
-          <Button variant="secondary" onClick={() => navigate('/problems')} className="gap-2">
+          <Button variant="secondary" onClick={() => toWs('problems')} className="gap-2">
             <ArrowLeft className="w-4 h-4" /> 돌아가기
           </Button>
         </div>
@@ -124,7 +124,7 @@ export const ProblemRegistration = () => {
 
           <div className="flex gap-3 pt-4">
             <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold w-20" onClick={handleRegister}>등록</Button>
-            <Button variant="secondary" className="bg-white hover:bg-slate-100 text-slate-900 font-bold w-20 border-none" onClick={() => navigate('/problems')}>취소</Button>
+            <Button variant="secondary" className="bg-white hover:bg-slate-100 text-slate-900 font-bold w-20 border-none" onClick={() => toWs('problems')}>취소</Button>
           </div>
 
         </div>

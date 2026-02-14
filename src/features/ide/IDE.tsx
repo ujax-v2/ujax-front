@@ -3,7 +3,8 @@ import { Card, Button, Badge } from '../../components/ui/Base';
 import { Play, RotateCcw, Save, Settings, CheckCircle2, AlertCircle, Loader2, Share, ArrowLeft, Timer, ChevronDown, ChevronRight, Plus, Code2 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useWorkspaceNavigate } from '../../hooks/useWorkspaceNavigate';
 import { ideCodeState, ideLanguageState, ideOutputState, ideIsExecutingState, IdeOutput } from '../../store/atoms';
 
 // Language ID mapping for Judge0
@@ -96,7 +97,7 @@ export const IDE = () => {
   const [language, setLanguage] = useRecoilState(ideLanguageState);
   const [output, setOutput] = useRecoilState(ideOutputState);
   const [isExecuting, setIsExecuting] = useRecoilState(ideIsExecutingState);
-  const navigate = useNavigate();
+  const { navigate, toWs } = useWorkspaceNavigate();
   const { problemId } = useParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -220,7 +221,7 @@ export const IDE = () => {
       {/* IDE Header */}
       <div className="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-[#0F1117]">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/problems')}>
+          <Button variant="ghost" size="sm" onClick={() => toWs('problems')}>
             <ArrowLeft className="w-4 h-4 mr-2" /> 문제집으로
           </Button>
           <div className="h-4 w-px bg-slate-800" />
