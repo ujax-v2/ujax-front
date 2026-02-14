@@ -123,7 +123,7 @@ export const Home = () => {
 
                 {/* Footer */}
                 <footer className="border-t border-slate-800 py-12 text-center text-slate-500 text-sm">
-                    <p>&copy; 2024 UJAX Platform. All rights reserved.</p>
+                    <p>&copy; {new Date().getFullYear()} UJAX Platform. All rights reserved.</p>
                 </footer>
             </main>
         </div>

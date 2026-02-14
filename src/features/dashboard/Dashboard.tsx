@@ -7,8 +7,6 @@ import {
   Clock,
   Trophy,
   MoreHorizontal,
-  Moon,
-  Sun,
   Megaphone,
   HelpCircle,
   TrendingUp
@@ -139,9 +137,7 @@ export const Dashboard = () => {
             <p className="text-slate-400 mt-1">오늘도 즐거운 코딩 되세요!</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-yellow-400 transition-colors">
-              <Sun className="w-5 h-5" />
-            </button>
+            {/* 테마 토글은 기능 구현 후 추가 예정 */}
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Card, Button, Badge } from '../../components/ui/Base';
 import {
   ThumbsUp,
@@ -15,6 +15,7 @@ import Editor from '@monaco-editor/react';
 
 export const ProblemSolutions = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [activeSolutionId, setActiveSolutionId] = useState(1);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
 
@@ -146,7 +147,7 @@ int main() {
       {/* Sidebar: Solutions List for Selected Problem */}
       <div className="w-80 bg-[#0F1117] border-r border-slate-800 flex flex-col">
         <div className="p-4 border-b border-slate-800 flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/ide')} className="-ml-2 text-slate-400 hover:text-white">
+          <Button variant="ghost" size="sm" onClick={() => navigate(`/ide/${id || '1000'}`)} className="-ml-2 text-slate-400 hover:text-white">
             <ArrowLeft className="w-4 h-4 mr-2" /> 문제로 돌아가기
           </Button>
         </div>

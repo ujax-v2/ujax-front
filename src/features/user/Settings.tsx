@@ -105,7 +105,7 @@ export const Settings = () => {
         {/* Content Area */}
         <div className="flex-1 flex flex-col bg-white dark:bg-[#1e1e1e] relative">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate(-1)}
             className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors"
           >
             <X className="w-5 h-5" />
