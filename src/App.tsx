@@ -9,7 +9,6 @@ import { IDE } from './features/ide/IDE';
 import { ProblemList } from './features/problems/ProblemList';
 import { Profile } from './features/user/Profile';
 import { Settings } from './features/user/Settings';
-import { SolutionForm } from './features/community/SolutionForm';
 import { Community } from './features/community/Community';
 import { Login } from './features/auth/Login';
 import { SignUp } from './features/auth/SignUp';
@@ -82,7 +81,6 @@ function AppContent() {
           <Route path="/ide" element={<ProtectedRoute><IDE /></ProtectedRoute>} />
           <Route path="/ide/:problemId" element={<ProtectedRoute><IDE /></ProtectedRoute>} />
 
-          <Route path="/solutions/new" element={<ProtectedRoute><SolutionForm /></ProtectedRoute>} />
           <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
 
           <Route path="/challenges" element={<ProtectedRoute><ChallengeList /></ProtectedRoute>} />

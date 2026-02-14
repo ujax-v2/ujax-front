@@ -65,7 +65,7 @@ export const Sidebar = () => {
   };
 
   const menuItems = [
-    { path: '/', label: '워크스페이스', icon: LayoutDashboard },
+    { path: '/dashboard', label: '워크스페이스', icon: LayoutDashboard },
     { path: '/problems', label: '문제', icon: BookOpen },
     { path: '/community', label: '커뮤니티', icon: Users },
   ];
@@ -207,12 +207,12 @@ export const Sidebar = () => {
               onClick={() => navigate(item.path)}
               className={cn(
                 'w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors group',
-                location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))
+                location.pathname === item.path || location.pathname.startsWith(item.path)
                   ? 'bg-slate-800 text-slate-100'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
               )}
             >
-              <item.icon className={cn("w-4 h-4", location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)) ? "text-slate-100" : "text-slate-500 group-hover:text-slate-400")} />
+              <item.icon className={cn("w-4 h-4", location.pathname === item.path || location.pathname.startsWith(item.path) ? "text-slate-100" : "text-slate-500 group-hover:text-slate-400")} />
               <span className="flex-1 text-left">{item.label}</span>
             </button>
           ))}
