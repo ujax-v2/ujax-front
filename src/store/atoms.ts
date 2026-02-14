@@ -93,8 +93,8 @@ export const currentWorkspaceState = atom({
 export const workspacesState = atom({
   key: 'workspacesState',
   default: [
-    { id: 'ws-1', name: "지훈 성의 Notion", icon: "지", role: 'owner', members: 1 },
-    { id: 'ws-2', name: "Ujax (임시)", icon: "U", role: 'member', members: 5 }
+    { id: 'ws-1', name: "알고리즘 스터디", icon: "📚", role: 'owner', members: 4 },
+    { id: 'ws-2', name: "UJAX 개발팀", icon: "🚀", role: 'owner', members: 3 }
   ]
 });
 

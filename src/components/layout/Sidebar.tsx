@@ -119,7 +119,7 @@ export const Sidebar = () => {
                 </div>
                 <div className="flex-1 overflow-hidden">
                   <div className="font-bold text-slate-200 text-sm truncate">{currentWorkspace.name}</div>
-                  <div className="text-xs text-slate-500">무료 요금제 • {currentWorkspace.members}명의 멤버</div>
+                  <div className="text-xs text-slate-500">{currentWorkspace.members}명의 멤버</div>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -162,9 +162,7 @@ export const Sidebar = () => {
                     <span className={`text-sm truncate ${ws.id === currentWorkspaceId ? 'text-slate-100 font-medium' : 'text-slate-400'}`}>
                       {ws.name}
                     </span>
-                    {ws.role !== 'owner' && (
-                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">게스트</span>
-                    )}
+
                   </div>
                   {ws.id === currentWorkspaceId ? (
                     <Check className="w-4 h-4 text-emerald-500" />
@@ -185,14 +183,6 @@ export const Sidebar = () => {
               </div>
             </div>
 
-            <div className="border-t border-slate-700/50 py-2">
-              <div className="px-3 py-2 hover:bg-slate-700/30 cursor-pointer text-slate-400 hover:text-slate-200 text-sm">
-                다른 계정 추가
-              </div>
-              <div className="px-3 py-2 hover:bg-slate-700/30 cursor-pointer text-slate-400 hover:text-slate-200 text-sm">
-                모든 계정에서 로그아웃
-              </div>
-            </div>
           </div>
         )}
       </div>

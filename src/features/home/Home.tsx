@@ -25,11 +25,7 @@ export const Home = () => {
                     <div className="flex items-center gap-4">
                         {user.isLoggedIn ? (
                             <>
-                                <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={() => navigate('/dashboard')}>
-                                    Dashboard
-                                </Button>
                                 <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden border border-slate-600">
-                                    {/* Avatar mock */}
                                     <img src={`https://ui-avatars.com/api/?name=${user.name}&background=random`} alt="User" />
                                 </div>
                             </>
