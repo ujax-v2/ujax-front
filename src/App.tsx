@@ -20,22 +20,22 @@ import { ProblemRegistration } from './features/problems/ProblemRegistration';
 import { CreateWorkspaceModal } from './components/modals/CreateWorkspaceModal';
 import { Menu } from 'lucide-react';
 
-function ProtectedRoute({ children }: { children: JSX.Element }) {
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const user = useRecoilValue(userState);
   const location = useLocation();
 
   if (!user.isLoggedIn) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
-  return children;
+  return <>{children}</>;
 }
 
-function PublicOnlyRoute({ children }: { children: JSX.Element }) {
+function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   const user = useRecoilValue(userState);
   if (user.isLoggedIn) {
     return <Navigate to="/" replace />;
   }
-  return children;
+  return <>{children}</>;
 }
 
 function AppContent() {

@@ -4,7 +4,7 @@ import { Play, RotateCcw, Save, Settings, CheckCircle2, AlertCircle, Loader2, Sh
 import Editor from '@monaco-editor/react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ideCodeState, ideLanguageState, ideOutputState, ideIsExecutingState } from '../../store/atoms';
+import { ideCodeState, ideLanguageState, ideOutputState, ideIsExecutingState, IdeOutput } from '../../store/atoms';
 
 // Language ID mapping for Judge0
 const LANGUAGE_OPTIONS = [
@@ -158,7 +158,7 @@ export const IDE = () => {
           memory: "13000"
         });
       } else {
-        setOutput(mockResponse as any);
+        setOutput(mockResponse);
       }
 
     } catch (error) {
@@ -168,7 +168,7 @@ export const IDE = () => {
         status: { id: 0, description: "Network Error" },
         time: null,
         memory: null
-      } as any);
+      } as IdeOutput);
     } finally {
       setIsExecuting(false);
     }
@@ -194,7 +194,7 @@ export const IDE = () => {
         memory: "12480"
       };
 
-      setOutput(mockResponse as any);
+      setOutput(mockResponse);
 
       // If accepted, navigate to solutions list
       if (mockResponse.status?.id === 3) {
@@ -209,7 +209,7 @@ export const IDE = () => {
         status: { id: 0, description: "Error" },
         time: null,
         memory: null
-      } as any);
+      } as IdeOutput);
     } finally {
       setIsSubmitting(false);
     }

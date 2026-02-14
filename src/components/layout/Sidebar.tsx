@@ -37,13 +37,13 @@ export const Sidebar = () => {
   const [user, setUser] = useRecoilState(userState);
 
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
-  const menuRef = useRef(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId) || workspaces[0];
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsWorkspaceMenuOpen(false);
       }
     };
@@ -75,7 +75,7 @@ export const Sidebar = () => {
     setIsCreateWorkspaceModalOpen(true);
   };
 
-  const handleSwitchWorkspace = (id) => {
+  const handleSwitchWorkspace = (id: string) => {
     setCurrentWorkspaceId(id);
     setIsWorkspaceMenuOpen(false);
   };

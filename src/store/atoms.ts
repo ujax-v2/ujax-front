@@ -29,7 +29,16 @@ export const ideLanguageState = atom({
   default: 'javascript',
 });
 
-export const ideOutputState = atom({
+// IDE 실행 결과 타입 정의
+export interface IdeOutput {
+  stdout: string | null;
+  stderr: string | null;
+  status: { id: number; description: string } | null;
+  time: string | null;
+  memory: string | null;
+}
+
+export const ideOutputState = atom<IdeOutput | null>({
   key: 'ideOutputState',
   default: null,
 });
