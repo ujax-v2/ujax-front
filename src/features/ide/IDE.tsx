@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Badge } from '../../components/ui/Base';
+import { Card, Button, Badge } from '@/components/ui/Base';
 import { Play, RotateCcw, Save, Settings, CheckCircle2, AlertCircle, Loader2, Share, ArrowLeft, Timer, ChevronDown, ChevronRight, Plus, Code2 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
-import { ideCodeState, ideLanguageState, ideOutputState, ideIsExecutingState, navigationState } from '../../store/atoms';
+import { useParams } from 'react-router-dom';
+import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
+import { ideCodeState, ideLanguageState, ideOutputState, ideIsExecutingState, IdeOutput } from '@/store/atoms';
 
 // Language ID mapping for Judge0
 const LANGUAGE_OPTIONS = [
@@ -13,7 +15,7 @@ const LANGUAGE_OPTIONS = [
   { id: 62, name: 'Java (OpenJDK 13.0.1)', value: 'java', monaco: 'java' },
 ];
 
-const CODE_TEMPLATES = {
+const CODE_TEMPLATES: Record<string, string> = {
   javascript: `const fs = require('fs');
 const input = fs.readFileSync('/dev/stdin').toString().trim().split(' ');
 
@@ -60,7 +62,7 @@ const Stopwatch = () => {
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
-    let interval;
+    let interval: any;
     if (isRunning) {
       interval = setInterval(() => {
         setTime((prevTime) => prevTime + 1);
@@ -71,7 +73,7 @@ const Stopwatch = () => {
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number) => {
     const getSeconds = `0${seconds % 60}`.slice(-2);
     const minutes = Math.floor(seconds / 60);
     const getMinutes = `0${minutes % 60}`.slice(-2);
@@ -95,15 +97,17 @@ export const IDE = () => {
   const [language, setLanguage] = useRecoilState(ideLanguageState);
   const [output, setOutput] = useRecoilState(ideOutputState);
   const [isExecuting, setIsExecuting] = useRecoilState(ideIsExecutingState);
-  const setPage = useSetRecoilState(navigationState);
-  
+  const { navigate, toWs } = useWorkspaceNavigate();
+  const { problemId } = useParams();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Sections state for collapsible
   const [openSections, setOpenSections] = useState({
     problem: true,
     tests: false
   });
 
-  const toggleSection = (section) => {
+  const toggleSection = (section: 'problem' | 'tests') => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
@@ -114,13 +118,13 @@ export const IDE = () => {
     }
   }, []);
 
-  const handleEditorChange = (value) => {
+  const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined) {
       setCode(value);
     }
   };
 
-  const handleLanguageChange = (e) => {
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedLang = LANGUAGE_OPTIONS.find(lang => lang.value === e.target.value);
     if (selectedLang) {
       setLanguage(selectedLang.value);
@@ -136,7 +140,7 @@ export const IDE = () => {
 
     // Mock Judge0 API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500)); 
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       const mockResponse = {
         stdout: "3\n",
@@ -165,16 +169,51 @@ export const IDE = () => {
         status: { id: 0, description: "Network Error" },
         time: null,
         memory: null
-      });
+      } as IdeOutput);
     } finally {
       setIsExecuting(false);
     }
   };
 
-  const handleSubmit = () => {
-    // In a real app, we would validate the solution first
-    // For now, we just navigate to the sharing page (which is the form)
-    setPage('solution-form');
+  const handleSubmit = async () => {
+    if (isSubmitting || isExecuting) return;
+
+    setIsSubmitting(true);
+    setOpenSections(prev => ({ ...prev, tests: true }));
+    setOutput(null);
+
+    try {
+      // Mock Submission Delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Simulate 'Accepted' result
+      const mockResponse = {
+        stdout: "",
+        stderr: null,
+        status: { id: 3, description: "Accepted" },
+        time: "0.045",
+        memory: "12480"
+      };
+
+      setOutput(mockResponse);
+
+      // If accepted, navigate to solutions list
+      if (mockResponse.status?.id === 3) {
+        setTimeout(() => {
+          navigate(`/problems/${problemId || '1000'}/solutions`);
+        }, 1500);
+      }
+    } catch (error) {
+      setOutput({
+        stdout: null,
+        stderr: "Submission failed.",
+        status: { id: 0, description: "Error" },
+        time: null,
+        memory: null
+      } as IdeOutput);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -182,7 +221,7 @@ export const IDE = () => {
       {/* IDE Header */}
       <div className="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-[#0F1117]">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => setPage('problems')}>
+          <Button variant="ghost" size="sm" onClick={() => toWs('problems')}>
             <ArrowLeft className="w-4 h-4 mr-2" /> 문제집으로
           </Button>
           <div className="h-4 w-px bg-slate-800" />
@@ -191,12 +230,12 @@ export const IDE = () => {
             <h1 className="font-semibold text-slate-100">1000. A+B</h1>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <Stopwatch />
           <div className="h-4 w-px bg-slate-800 mx-2" />
-          
-          <select 
+
+          <select
             value={language}
             onChange={handleLanguageChange}
             className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-medium text-slate-300 focus:outline-none focus:border-emerald-500 cursor-pointer"
@@ -217,17 +256,17 @@ export const IDE = () => {
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel: Problem & Tests (Collapsible) */}
         <div className="w-[40%] border-r border-slate-800 flex flex-col bg-[#0F1117] overflow-y-auto custom-scrollbar">
-          
+
           {/* Problem Details Section */}
           <div className="border-b border-slate-800">
-            <button 
+            <button
               onClick={() => toggleSection('problem')}
               className="w-full flex items-center justify-between px-4 py-3 bg-[#141820] hover:bg-slate-800 transition-colors"
             >
               <span className="font-bold text-slate-200 text-sm">Problem Details</span>
               {openSections.problem ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </button>
-            
+
             {openSections.problem && (
               <div className="p-6 space-y-6 animate-in slide-in-from-top-2 duration-200">
                 <section>
@@ -236,14 +275,14 @@ export const IDE = () => {
                     두 정수 A와 B를 입력받은 다음, A+B를 출력하는 프로그램을 작성하시오.
                   </p>
                 </section>
-                
+
                 <section>
                   <h3 className="text-lg font-bold text-slate-100 mb-3">입력</h3>
                   <p className="text-slate-400 leading-relaxed">
                     첫째 줄에 A와 B가 주어진다. (0 &lt; A, B &lt; 10)
                   </p>
                 </section>
-                
+
                 <section>
                   <h3 className="text-lg font-bold text-slate-100 mb-3">출력</h3>
                   <p className="text-slate-400 leading-relaxed">
@@ -267,7 +306,7 @@ export const IDE = () => {
 
           {/* Test Results Section */}
           <div className="border-b border-slate-800">
-            <button 
+            <button
               onClick={() => toggleSection('tests')}
               className="w-full flex items-center justify-between px-4 py-3 bg-[#141820] hover:bg-slate-800 transition-colors"
             >
@@ -277,53 +316,53 @@ export const IDE = () => {
 
             {openSections.tests && (
               <div className="p-6 min-h-[200px] animate-in slide-in-from-top-2 duration-200">
-                  {isExecuting ? (
-                    <div className="flex flex-col items-center justify-center h-48 text-slate-500">
-                      <Loader2 className="w-8 h-8 animate-spin mb-4 text-emerald-500" />
-                      <p>코드를 실행하고 있습니다...</p>
-                    </div>
-                  ) : output ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        {output.status?.id === 3 ? (
-                          <div className="flex items-center gap-2 text-emerald-400">
-                            <CheckCircle2 className="w-5 h-5" />
-                            <span className="font-bold text-lg">테스트 통과</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2 text-red-400">
-                            <AlertCircle className="w-5 h-5" />
-                            <span className="font-bold text-lg">{output.status?.description || 'Error'}</span>
-                          </div>
-                        )}
-                        <div className="h-4 w-px bg-slate-700 mx-2" />
-                        <div className="text-sm text-slate-500">
-                          시간: {output.time || '0'}s • 메모리: {output.memory || '0'}KB
+                {isExecuting ? (
+                  <div className="flex flex-col items-center justify-center h-48 text-slate-500">
+                    <Loader2 className="w-8 h-8 animate-spin mb-4 text-emerald-500" />
+                    <p>코드를 실행하고 있습니다...</p>
+                  </div>
+                ) : output ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      {output.status?.id === 3 ? (
+                        <div className="flex items-center gap-2 text-emerald-400">
+                          <CheckCircle2 className="w-5 h-5" />
+                          <span className="font-bold text-lg">테스트 통과</span>
                         </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-red-400">
+                          <AlertCircle className="w-5 h-5" />
+                          <span className="font-bold text-lg">{output.status?.description || 'Error'}</span>
+                        </div>
+                      )}
+                      <div className="h-4 w-px bg-slate-700 mx-2" />
+                      <div className="text-sm text-slate-500">
+                        시간: {output.time || '0'}s • 메모리: {output.memory || '0'}KB
                       </div>
+                    </div>
 
-                      <Card className="p-4 bg-slate-900 border-slate-800">
-                        <h4 className="text-xs font-semibold text-slate-500 mb-2 uppercase">표준 출력 (Stdout)</h4>
-                        <pre className="text-sm font-mono text-slate-200 whitespace-pre-wrap">
-                          {output.stdout || <span className="text-slate-600 italic">No output</span>}
+                    <Card className="p-4 bg-slate-900 border-slate-800">
+                      <h4 className="text-xs font-semibold text-slate-500 mb-2 uppercase">표준 출력 (Stdout)</h4>
+                      <pre className="text-sm font-mono text-slate-200 whitespace-pre-wrap">
+                        {output.stdout || <span className="text-slate-600 italic">No output</span>}
+                      </pre>
+                    </Card>
+
+                    {output.stderr && (
+                      <Card className="p-4 bg-red-900/10 border-red-500/20">
+                        <h4 className="text-xs font-semibold text-red-400 mb-2 uppercase">에러 메시지 (Stderr)</h4>
+                        <pre className="text-sm font-mono text-red-300 whitespace-pre-wrap">
+                          {output.stderr}
                         </pre>
                       </Card>
-
-                      {output.stderr && (
-                        <Card className="p-4 bg-red-900/10 border-red-500/20">
-                          <h4 className="text-xs font-semibold text-red-400 mb-2 uppercase">에러 메시지 (Stderr)</h4>
-                          <pre className="text-sm font-mono text-red-300 whitespace-pre-wrap">
-                            {output.stderr}
-                          </pre>
-                        </Card>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-48 text-slate-600">
-                      <Play className="w-12 h-12 mb-4 opacity-20" />
-                      <p>코드를 실행하여 결과를 확인하세요.</p>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-48 text-slate-600">
+                    <Play className="w-12 h-12 mb-4 opacity-20" />
+                    <p>코드를 실행하여 결과를 확인하세요.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -358,29 +397,30 @@ export const IDE = () => {
             </Button>
 
             <div className="flex items-center gap-2">
-               <Button
+              <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setPage('problem-solutions')}
+                onClick={() => navigate(`/problems/1000/solutions`)}
                 className="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
-               >
-                 <Code2 className="w-4 h-4 mr-2" /> 풀이 보기
-               </Button>
-               <Button 
-                variant="primary" 
-                size="sm" 
+              >
+                <Code2 className="w-4 h-4 mr-2" /> 풀이 보기
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={executeCode}
                 disabled={isExecuting}
                 className="w-24"
               >
                 {isExecuting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Run Code'}
               </Button>
-              <Button 
-                className="bg-emerald-600 hover:bg-emerald-700 text-white w-24" 
+              <Button
+                className="bg-emerald-600 hover:bg-emerald-700 text-white w-24"
                 size="sm"
                 onClick={handleSubmit}
+                disabled={isSubmitting || isExecuting}
               >
-                Submit
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit'}
               </Button>
             </div>
           </div>

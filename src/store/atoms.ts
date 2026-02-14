@@ -1,9 +1,5 @@
 import { atom } from 'recoil';
 
-export const navigationState = atom({
-  key: 'navigationState',
-  default: 'dashboard',
-});
 
 export const themeState = atom({
   key: 'themeState',
@@ -15,10 +11,19 @@ export const sidebarOpenState = atom({
   default: true,
 });
 
+// 문제집(ProblemBox) 타입
+export interface ProblemBox {
+  id: number;
+  title: string;
+  count: number;
+  category: string;
+  color: string;
+}
+
 // Problem Box State
-export const currentProblemBoxState = atom({
+export const currentProblemBoxState = atom<ProblemBox | null>({
   key: 'currentProblemBoxState',
-  default: null, // null means showing list of boxes, otherwise contains box ID/Data
+  default: null, // null이면 문제집 목록 표시, 값이 있으면 해당 문제집 내부 표시
 });
 
 // IDE State
@@ -33,7 +38,16 @@ export const ideLanguageState = atom({
   default: 'javascript',
 });
 
-export const ideOutputState = atom({
+// IDE 실행 결과 타입 정의
+export interface IdeOutput {
+  stdout: string | null;
+  stderr: string | null;
+  status: { id: number; description: string } | null;
+  time: string | null;
+  memory: string | null;
+}
+
+export const ideOutputState = atom<IdeOutput | null>({
   key: 'ideOutputState',
   default: null,
 });
@@ -48,7 +62,7 @@ function loadUser() {
     const stored = localStorage.getItem('auth');
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (parsed.accessToken) {
+      if (parsed && typeof parsed === 'object' && parsed.accessToken) {
         return {
           isLoggedIn: true,
           name: parsed.name || 'User',
@@ -59,8 +73,9 @@ function loadUser() {
         };
       }
     }
-  } catch {
-    // ignore
+  } catch (e) {
+    console.warn('Failed to load user session, clearing storage:', e);
+    localStorage.removeItem('auth');
   }
   return { isLoggedIn: false, name: 'Guest', email: '', avatar: '', accessToken: '', refreshToken: '' };
 }
@@ -75,7 +90,20 @@ export const communityTabState = atom({
   default: 'notices',
 });
 
-export const currentChallengeState = atom({
+// 챌린지 타입
+export interface Challenge {
+  id: number;
+  title: string;
+  participants: number;
+  duration: string;
+  startDate: string;
+  reward: string;
+  status: 'active' | 'recruiting' | 'ended';
+  color: string;
+  description: string;
+}
+
+export const currentChallengeState = atom<Challenge | null>({
   key: 'currentChallengeState',
   default: null,
 });
@@ -88,8 +116,8 @@ export const currentWorkspaceState = atom({
 export const workspacesState = atom({
   key: 'workspacesState',
   default: [
-    { id: 'ws-1', name: "지훈 성의 Notion", icon: "지", role: 'owner', members: 1 },
-    { id: 'ws-2', name: "Ujax (임시)", icon: "U", role: 'member', members: 5 }
+    { id: 'ws-1', name: "알고리즘 스터디", icon: "📚", role: 'owner', members: 4 },
+    { id: 'ws-2', name: "UJAX 개발팀", icon: "🚀", role: 'owner', members: 3 }
   ]
 });
 

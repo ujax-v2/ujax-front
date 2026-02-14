@@ -1,5 +1,7 @@
+import { apiFetch } from './client';
+
 export async function loginApi(email: string, password: string) {
-  const res = await fetch('/api/v1/auth/login', {
+  const res = await apiFetch('/api/v1/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -12,7 +14,7 @@ export async function loginApi(email: string, password: string) {
 }
 
 export async function signupApi(email: string, password: string, name: string) {
-  const res = await fetch('/api/v1/auth/signup', {
+  const res = await apiFetch('/api/v1/auth/signup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password, name }),
@@ -25,7 +27,7 @@ export async function signupApi(email: string, password: string, name: string) {
 }
 
 export async function logoutApi(refreshToken: string) {
-  const res = await fetch('/api/v1/auth/logout', {
+  const res = await apiFetch('/api/v1/auth/logout', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken }),
