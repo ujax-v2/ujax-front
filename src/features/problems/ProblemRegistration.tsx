@@ -6,6 +6,18 @@ import { useNavigate } from 'react-router-dom';
 export const ProblemRegistration = () => {
   const navigate = useNavigate();
   const [useAlarm, setUseAlarm] = useState(false);
+  const [problemNumber, setProblemNumber] = useState('');
+  const [problemTitle, setProblemTitle] = useState('');
+
+  const handleRegister = () => {
+    if (!problemNumber.trim() || !problemTitle.trim()) {
+      alert('문제 번호와 제목을 입력해주세요.');
+      return;
+    }
+    // TODO: API 연동 시 실제 등록 로직 추가
+    alert(`문제 "${problemNumber}. ${problemTitle}"이(가) 등록되었습니다.`);
+    navigate('/problems');
+  };
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#0F1117] p-8 pb-24">
@@ -26,6 +38,8 @@ export const ProblemRegistration = () => {
               <label className="text-sm font-bold text-slate-400">백준 문제 번호</label>
               <input
                 type="text"
+                value={problemNumber}
+                onChange={(e) => setProblemNumber(e.target.value)}
                 placeholder="예: 125"
                 className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
               />
@@ -44,6 +58,8 @@ export const ProblemRegistration = () => {
             <label className="text-sm font-bold text-slate-400">문제 제목</label>
             <input
               type="text"
+              value={problemTitle}
+              onChange={(e) => setProblemTitle(e.target.value)}
               placeholder="예: 괄호의 값"
               className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
             />
@@ -107,8 +123,8 @@ export const ProblemRegistration = () => {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold w-20">등록</Button>
-            <Button variant="secondary" className="bg-white hover:bg-slate-100 text-slate-900 font-bold w-20 border-none">취소</Button>
+            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold w-20" onClick={handleRegister}>등록</Button>
+            <Button variant="secondary" className="bg-white hover:bg-slate-100 text-slate-900 font-bold w-20 border-none" onClick={() => navigate('/problems')}>취소</Button>
           </div>
 
         </div>
