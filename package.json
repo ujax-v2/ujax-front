@@ -1,6 +1,7 @@
 {
-      "name": "Algorithm Sharing Platform",
+      "name": "ujax-front",
       "version": "0.1.0",
+      "type": "module",
       "private": true,
       "dependencies": {
             "@monaco-editor/react": "*",

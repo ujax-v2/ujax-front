@@ -1,12 +1,12 @@
 # API 및 데이터 모델 (API & Data Models)
 
-이 문서는 프론트엔드 애플리케이션이 기대하는 데이터 구조를 설명합니다.
-백엔드 API는 호환성을 보장하기 위해 이 JSON 스키마를 준수해야 합니다.
+이 문서는 프론트엔드 애플리케이션이 기대하는 데이터 구조와 API 명세서입니다.
+백엔드 API는 호환성을 위해 아래의 JSON 스키마를 준수해야 합니다.
 
 ## 1. 핵심 엔티티 (Core Entities)
 
 ### 사용자 (`User`)
-인증된 사용자를 나타냅니다.
+인증된 사용자 정보입니다.
 
 ```json
 {
@@ -28,7 +28,7 @@
   "name": "알고리즘 스터디 5기",
   "role": "admin", // 이 워크스페이스에서의 현재 사용자 역할 (admin | member)
   "members": 15,
-  "description": "매일 알고리즘 연습 모임."
+  "description": "매일 알고리즘 문제를 푸는 모임입니다."
 }
 ```
 
@@ -52,7 +52,7 @@
 ```json
 {
   "id": 101,
-  "title": "30일 연속 챌린지",
+  "title": "30일 연속 풀기 챌린지",
   "participants": 42,
   "duration": "30 Days",
   "startDate": "2024-03-01",
@@ -64,14 +64,14 @@
 ## 2. 예상 API 엔드포인트 (Expected API Endpoints)
 
 ### 인증 (Authentication)
-- `POST /api/auth/login`: JWT 토큰 및 사용자 정보 반환.
-- `GET /api/auth/me`: 세션 유효성 검사 및 현재 사용자 반환.
+- `POST /api/auth/login`: 로그인 (JWT 토큰 발급)
+- `GET /api/auth/me`: 세션 확인 및 내 정보 조회
 
 ### 워크스페이스 (Workspaces)
-- `GET /api/workspaces`: 사용자가 가입한 워크스페이스 목록.
-- `GET /api/workspaces/:wsId`: 상세 워크스페이스 정보.
-- `GET /api/workspaces/explore`: 공개 워크스페이스 목록 (`WorkspaceExplore`용).
+- `GET /api/workspaces`: 가입된 워크스페이스 목록 조회
+- `GET /api/workspaces/:wsId`: 상세 워크스페이스 정보 조회
+- `GET /api/workspaces/explore`: 공개 워크스페이스 목록 조회 (WorkspaceExplore용)
 
 ### 기능 (Features)
-- `GET /api/problems`: 문제 목록 (필터 포함).
-- `POST /api/solutions`: 풀이 제출.
+- `GET /api/problems`: 문제 목록 조회 (필터 포함)
+- `POST /api/solutions`: 풀이 제출

@@ -65,7 +65,7 @@ import { Button } from '../../../../components/ui/button';
 ```
 
 ### 환경 변수 (Environment Variables)
-로컬 설정을 위해 루트 디렉토리에 `.env` 파일을 생성하세요:
+로컬 설정을 위해 루트 디렉토리에 `.env` 파일을 생성하세요 (`.env.example` 참고):
 
 ```env
 VITE_API_BASE_URL=http://localhost:8080/api
