@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 import { userState } from '../../store/atoms';
 import { loginApi } from '../../api/auth';
@@ -29,14 +30,36 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
     setLoading(true);
     try {
       const result = await loginApi(email, password);
-      const { accessToken, refreshToken } = result.data;
-      // Decode JWT to get user info
-      const payload = JSON.parse(atob(accessToken.split('.')[1]));
-      const name = payload.name || email;
-      localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken, name, email }));
+      const { accessToken, refreshToken, user } = result.data;
+
+      // Decode JWT to get user info fallback
+      let name = email;
+      try {
+        const payload = JSON.parse(atob(accessToken.split('.')[1]));
+        name = payload.name || email;
+      } catch (e) {
+        // ignore jwt parse error if any
+      }
+
+      const userData = {
+        isLoggedIn: true,
+        name: user?.name || name,
+        email: user?.email || email,
+        avatar: user?.avatar || '',
+        accessToken,
+        refreshToken
+      };
+
+      // Save to local storage
+      localStorage.setItem('auth', JSON.stringify(userData));
+
+      // Update Recoil state immediately
+      setUser(userData);
+
       setLoading(false);
       navigate('/');
     } catch (err: any) {
+      console.error('Login error', err);
       setError(err.message || '로그인에 실패했습니다.');
     } finally {
       setLoading(false);
