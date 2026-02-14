@@ -17,6 +17,7 @@ import { ProblemSolutions } from './features/problems/ProblemSolutions';
 import { ChallengeList } from './features/challenges/ChallengeList';
 import { ChallengeDetail } from './features/challenges/ChallengeDetail';
 import { ProblemRegistration } from './features/problems/ProblemRegistration';
+import { WorkspaceExplore } from './features/explore/WorkspaceExplore';
 import { CreateWorkspaceModal } from './components/modals/CreateWorkspaceModal';
 import { Menu } from 'lucide-react';
 
@@ -127,6 +128,7 @@ function AppContent() {
 
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/explore" element={<WorkspaceExplore />} />
 
           {/* ═══ 레거시 라우트 리다이렉트 (구 URL 호환) ═══ */}
           <Route path="/dashboard" element={<ProtectedRoute><RedirectToWorkspace page="dashboard" /></ProtectedRoute>} />

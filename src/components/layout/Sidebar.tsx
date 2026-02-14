@@ -22,7 +22,8 @@ import {
   LogOut,
   Settings,
   UserPlus,
-  MoreHorizontal
+  MoreHorizontal,
+  Compass
 } from 'lucide-react';
 import { cn } from '../ui/Base';
 
@@ -221,6 +222,23 @@ export const Sidebar = () => {
               <span className="flex-1 text-left">{item.label}</span>
             </button>
           ))}
+        </div>
+
+        {/* 탐색 섹션 (글로벌) */}
+        <div className="mb-2 px-2">
+          <div className="text-[11px] font-bold text-slate-500 mb-1 px-2 uppercase tracking-wider">탐색</div>
+          <button
+            onClick={() => navigate('/explore')}
+            className={cn(
+              'w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors group',
+              location.pathname.startsWith('/explore')
+                ? 'bg-slate-800 text-slate-100'
+                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+            )}
+          >
+            <Compass className={cn("w-4 h-4", location.pathname.startsWith('/explore') ? "text-slate-100" : "text-slate-500 group-hover:text-slate-400")} />
+            <span className="flex-1 text-left">워크스페이스 탐색</span>
+          </button>
         </div>
       </div>
 

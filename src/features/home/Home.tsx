@@ -1,18 +1,38 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { userState, isCreateWorkspaceModalOpenState } from '../../store/atoms';
+import { userState, workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState } from '../../store/atoms';
 import { Button, Card } from '../../components/ui/Base';
-import { Code2, Users, Zap, Layout, Monitor } from 'lucide-react';
+import { Code2, Users, Zap, Layout, Monitor, Search } from 'lucide-react';
 
 export const Home = () => {
     const navigate = useNavigate();
     const user = useRecoilValue(userState);
+    const workspaces = useRecoilValue(workspacesState);
+    const currentWsId = useRecoilValue(currentWorkspaceState);
     const setCreateWorkspaceOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
+
+    const [exploreQuery, setExploreQuery] = useState('');
+
+    // ═══ 요구사항 1: 로그인 유저 + 기존 WS 있으면 → 최근 WS 대시보드로 자동 이동 ═══
+    if (user.isLoggedIn && workspaces.length > 0) {
+        const targetWsId = currentWsId || workspaces[0].id;
+        return <Navigate to={`/ws/${targetWsId}/dashboard`} replace />;
+    }
+
+    // WS 탐색 검색 실행
+    const handleExploreSearch = (e?: React.FormEvent) => {
+        e?.preventDefault();
+        if (exploreQuery.trim()) {
+            navigate(`/explore?q=${encodeURIComponent(exploreQuery.trim())}`);
+        } else {
+            navigate('/explore');
+        }
+    };
 
     return (
         <div className="min-h-screen bg-[#0F1117] text-white flex flex-col">
-            {/* Navbar (Mock - or rely on Sidebar if collapsed) */}
+            {/* Navbar */}
             <nav className="border-b border-slate-800 bg-[#141820]/80 backdrop-blur-md sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -57,7 +77,7 @@ export const Home = () => {
                         팀원들과 함께 코드를 리뷰하고 성장하세요.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex flex-col sm:flex-row gap-4 mb-12">
                         {user.isLoggedIn ? (
                             <Button
                                 className="h-12 px-8 text-lg bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-900/20"
@@ -74,7 +94,54 @@ export const Home = () => {
                                 지금 무료로 시작하기
                             </Button>
                         )}
-                        {/* Removed '문제 둘러보기' button */}
+                    </div>
+                </section>
+
+                {/* ═══ 요구사항 2: 글로벌 워크스페이스 탐색 섹션 ═══ */}
+                <section className="py-16 bg-[#0a0d13]">
+                    <div className="max-w-3xl mx-auto px-6 text-center">
+                        <h2 className="text-2xl md:text-3xl font-bold text-slate-100 mb-3">
+                            워크스페이스 탐색
+                        </h2>
+                        <p className="text-slate-400 mb-8">
+                            공개 스터디를 찾아 참여하세요. 같은 목표를 가진 동료들과 함께 성장할 수 있습니다.
+                        </p>
+
+                        {/* 탐색 검색바 */}
+                        <form onSubmit={handleExploreSearch} className="flex gap-3 max-w-xl mx-auto">
+                            <div className="flex-1 relative">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                                <input
+                                    type="text"
+                                    value={exploreQuery}
+                                    onChange={(e) => setExploreQuery(e.target.value)}
+                                    placeholder="스터디 이름, 태그 검색..."
+                                    className="w-full h-12 bg-[#141820] border border-slate-700 rounded-xl pl-12 pr-4 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                                />
+                            </div>
+                            <Button
+                                type="submit"
+                                className="h-12 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+                            >
+                                검색
+                            </Button>
+                        </form>
+
+                        {/* 인기 태그 */}
+                        <div className="flex flex-wrap gap-2 justify-center mt-5">
+                            {['알고리즘', 'SSAFY', '코테대비', 'LeetCode', '대회준비'].map(tag => (
+                                <button
+                                    key={tag}
+                                    onClick={() => {
+                                        setExploreQuery(tag);
+                                        navigate(`/explore?q=${encodeURIComponent(tag)}`);
+                                    }}
+                                    className="px-3 py-1 text-xs rounded-full bg-slate-800 text-slate-400 border border-slate-700 hover:border-indigo-500/50 hover:text-indigo-400 transition-colors"
+                                >
+                                    #{tag}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </section>
 

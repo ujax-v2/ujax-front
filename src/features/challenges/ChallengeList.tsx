@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
-import { currentChallengeState } from '../../store/atoms';
+import { currentChallengeState, Challenge } from '../../store/atoms';
 import { useWorkspaceNavigate } from '../../hooks/useWorkspaceNavigate';
 import { Button, Card, Badge, Modal } from '../../components/ui/Base';
 import { Trophy, Users, Clock, Plus, Target, Calendar, Archive, Timer } from 'lucide-react';
@@ -11,7 +11,7 @@ export const ChallengeList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Mock Data
-  const [challenges, setChallenges] = useState([
+  const [challenges, setChallenges] = useState<Challenge[]>([
     {
       id: 1,
       title: "30일 알고리즘 챌린지 5기",
@@ -68,7 +68,7 @@ export const ChallengeList = () => {
 
   const handleCreateChallenge = (e: React.FormEvent) => {
     e.preventDefault();
-    const challenge = {
+    const challenge: Challenge = {
       id: challenges.length + 1,
       title: newChallenge.title,
       participants: 1,
