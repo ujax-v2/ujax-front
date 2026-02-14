@@ -72,8 +72,8 @@ export const Settings = () => {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
-                      ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100'
-                      : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100'
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -90,8 +90,8 @@ export const Settings = () => {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === tab.id
-                      ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100'
-                      : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100'
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -150,7 +150,7 @@ export const Settings = () => {
                   <div className="flex items-center justify-between py-2">
                     <div>
                       <div className="text-sm font-medium text-slate-900 dark:text-slate-200">테마</div>
-                      <div className="text-xs text-slate-500">내 기기에서 Notion의 모습을 마음껏 바꿔보세요.</div>
+                      <div className="text-xs text-slate-500">내 기기에서 UJAX의 모습을 마음껏 바꿔보세요.</div>
                     </div>
                     <select className="bg-transparent border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-sm text-slate-700 dark:text-slate-300">
                       <option>시스템 설정 사용</option>
@@ -165,7 +165,7 @@ export const Settings = () => {
                     <div className="flex items-center justify-between py-2">
                       <div>
                         <div className="text-sm font-medium text-slate-900 dark:text-slate-200">언어</div>
-                        <div className="text-xs text-slate-500">Notion에서 사용하는 언어를 변경하세요.</div>
+                        <div className="text-xs text-slate-500">UJAX에서 사용하는 언어를 변경하세요.</div>
                       </div>
                       <select className="bg-transparent border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-sm text-slate-700 dark:text-slate-300">
                         <option>한국어</option>
@@ -220,7 +220,7 @@ export const Settings = () => {
               <div className="space-y-8 animate-in fade-in duration-300">
                 <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 pb-4 border-b border-slate-200 dark:border-slate-800">연결된 계정</h2>
                 <div className="space-y-4">
-                  <p className="text-sm text-slate-500">다른 서비스와 연결하여 Notion의 기능을 확장하세요.</p>
+                  <p className="text-sm text-slate-500">다른 서비스와 연결하여 UJAX의 기능을 확장하세요.</p>
 
                   <div className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
                     <div className="flex items-center gap-3">
@@ -289,7 +289,7 @@ export const Settings = () => {
                   <div className="space-y-2">
                     <label className="block text-xs font-bold text-slate-500">도메인</label>
                     <div className="flex items-center">
-                      <span className="bg-slate-100 dark:bg-slate-800 border border-r-0 border-slate-300 dark:border-slate-700 rounded-l px-3 py-2 text-sm text-slate-500">notion.so/</span>
+                      <span className="bg-slate-100 dark:bg-slate-800 border border-r-0 border-slate-300 dark:border-slate-700 rounded-l px-3 py-2 text-sm text-slate-500">ujax.io/</span>
                       <input type="text" defaultValue="bookandpapers" className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-r px-3 py-2 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 outline-none" />
                     </div>
                   </div>
@@ -374,7 +374,7 @@ export const Settings = () => {
                     <FileUp className="w-5 h-5 text-blue-500 mt-0.5" />
                     <div>
                       <div className="text-sm font-bold text-slate-200">데이터 가져오기</div>
-                      <div className="text-xs text-slate-500 mt-1">다른 앱의 데이터를 Notion으로 쉽게 이동하세요.</div>
+                      <div className="text-xs text-slate-500 mt-1">다른 앱의 데이터를 UJAX로 쉽게 이동하세요.</div>
                     </div>
                   </div>
 
