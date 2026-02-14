@@ -3,7 +3,7 @@ import { Card, Button, Badge } from '../../components/ui/Base';
 import { Play, RotateCcw, Save, Settings, CheckCircle2, AlertCircle, Loader2, Share, ArrowLeft, Timer, ChevronDown, ChevronRight, Plus, Code2 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ideCodeState, ideLanguageState, ideOutputState, ideIsExecutingState } from '../../store/atoms';
 
 // Language ID mapping for Judge0
@@ -97,6 +97,8 @@ export const IDE = () => {
   const [output, setOutput] = useRecoilState(ideOutputState);
   const [isExecuting, setIsExecuting] = useRecoilState(ideIsExecutingState);
   const navigate = useNavigate();
+  const { problemId } = useParams();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Sections state for collapsible
   const [openSections, setOpenSections] = useState({
@@ -172,10 +174,45 @@ export const IDE = () => {
     }
   };
 
-  const handleSubmit = () => {
-    // In a real app, we would validate the solution first
-    // For now, we just navigate to the sharing page (which is the form)
-    navigate('/solutions/new');
+  const handleSubmit = async () => {
+    if (isSubmitting || isExecuting) return;
+
+    setIsSubmitting(true);
+    setOpenSections(prev => ({ ...prev, tests: true }));
+    setOutput(null);
+
+    try {
+      // Mock Submission Delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Simulate 'Accepted' result
+      const mockResponse = {
+        stdout: "",
+        stderr: null,
+        status: { id: 3, description: "Accepted" },
+        time: "0.045",
+        memory: "12480"
+      };
+
+      setOutput(mockResponse as any);
+
+      // If accepted, navigate to solutions list
+      if (mockResponse.status?.id === 3) {
+        setTimeout(() => {
+          navigate(`/problems/${problemId || '1000'}/solutions`);
+        }, 1500);
+      }
+    } catch (error) {
+      setOutput({
+        stdout: null,
+        stderr: "Submission failed.",
+        status: { id: 0, description: "Error" },
+        time: null,
+        memory: null
+      } as any);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -380,8 +417,9 @@ export const IDE = () => {
                 className="bg-emerald-600 hover:bg-emerald-700 text-white w-24"
                 size="sm"
                 onClick={handleSubmit}
+                disabled={isSubmitting || isExecuting}
               >
-                Submit
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit'}
               </Button>
             </div>
           </div>
