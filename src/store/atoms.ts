@@ -68,6 +68,8 @@ function loadUser() {
           name: parsed.name || 'User',
           email: parsed.email || '',
           avatar: parsed.avatar || '',
+          profileImageUrl: parsed.profileImageUrl || '',
+          baekjoonId: parsed.baekjoonId || '',
           accessToken: parsed.accessToken as string,
           refreshToken: parsed.refreshToken as string,
         };
@@ -77,7 +79,7 @@ function loadUser() {
     console.warn('Failed to load user session, clearing storage:', e);
     localStorage.removeItem('auth');
   }
-  return { isLoggedIn: false, name: 'Guest', email: '', avatar: '', accessToken: '', refreshToken: '' };
+  return { isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', accessToken: '', refreshToken: '' };
 }
 
 export const userState = atom({

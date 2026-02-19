@@ -61,7 +61,9 @@ export const Sidebar = () => {
       // logout API 실패해도 로컬 상태는 초기화
     }
     localStorage.removeItem('auth');
-    setUser({ isLoggedIn: false, name: 'Guest', email: '', avatar: '', accessToken: '', refreshToken: '' });
+    setUser({ isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', accessToken: '', refreshToken: '' });
+    setWorkspaces([]);
+    setCurrentWorkspaceId(0);
     navigate('/login');
   };
 

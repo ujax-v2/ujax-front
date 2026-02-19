@@ -1,8 +1,9 @@
 import React from 'react';
 import { useRecoilState, useRecoilValue, RecoilRoot } from 'recoil';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { sidebarOpenState, userState, currentWorkspaceState, workspacesState } from './store/atoms';
+import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, Workspace } from './store/atoms';
 import { Sidebar } from './components/layout/Sidebar';
+import { getWorkspaces } from './api/workspace';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { Home } from './features/home/Home';
 import { IDE } from './features/ide/IDE';
@@ -46,10 +47,38 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
 function WorkspaceScope({ children }: { children: React.ReactNode }) {
   const { wsId } = useParams();
   const [currentWsId, setCurrentWsId] = useRecoilState(currentWorkspaceState);
-  const workspaces = useRecoilValue(workspacesState);
+  const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
   const navigate = useNavigate();
+  const [loading, setLoading] = React.useState(workspaces.length === 0);
 
   const numericWsId = Number(wsId);
+
+  // 워크스페이스 목록이 비어있으면 fetch
+  React.useEffect(() => {
+    if (workspaces.length > 0) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getWorkspaces();
+        if (cancelled) return;
+        const items = (res.items ?? []).map(w => ({
+          id: w.id!,
+          name: w.name!,
+          description: w.description ?? null,
+        })) as Workspace[];
+        setWorkspaces(items);
+      } catch (err) {
+        console.error('Failed to fetch workspaces:', err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [workspaces.length, setWorkspaces]);
+
   const isMember = workspaces.some(w => w.id === numericWsId);
 
   // URL의 wsId가 변경되면 Recoil 상태도 동기화
@@ -58,6 +87,14 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
       setCurrentWsId(numericWsId);
     }
   }, [wsId, numericWsId, currentWsId, setCurrentWsId, isMember]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#0F1117]">
+        <div className="w-8 h-8 border-2 border-slate-700 border-t-emerald-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!isMember) {
     return (

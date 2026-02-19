@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
-import { userState } from '@/store/atoms';
+import { userState, workspacesState, currentWorkspaceState } from '@/store/atoms';
 import { loginApi } from '@/api/auth';
 import { Button, Card } from '@/components/ui/Base';
 import { Mail, Lock, MessageCircle } from 'lucide-react';
@@ -14,6 +14,8 @@ interface LoginProps {
 export const Login = ({ oauthError, onClearError }: LoginProps) => {
   const navigate = useNavigate();
   const setUser = useSetRecoilState(userState);
+  const setWorkspaces = useSetRecoilState(workspacesState);
+  const setCurrentWsId = useSetRecoilState(currentWorkspaceState);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -52,6 +54,8 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
         name,
         email,
         avatar: '',
+        profileImageUrl: '',
+        baekjoonId: '',
         accessToken: accessToken!,
         refreshToken: refreshToken!,
       };
@@ -59,7 +63,9 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
       // Save to local storage
       localStorage.setItem('auth', JSON.stringify(userData));
 
-      // Update Recoil state immediately
+      // 이전 세션 워크스페이스 초기화 후 유저 상태 설정
+      setWorkspaces([]);
+      setCurrentWsId(0);
       setUser(userData);
 
       setLoading(false);
