@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { isCreateWorkspaceModalOpenState, workspacesState, currentWorkspaceState } from '@/store/atoms';
+import { createWorkspace } from '@/api/workspace';
 import { Button } from '../ui/Base';
 import { X, Check } from 'lucide-react';
 import { createPortal } from 'react-dom';
@@ -13,33 +14,45 @@ export const CreateWorkspaceModal = () => {
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleCreate = () => {
-    if (!name) return;
+  const handleCreate = async () => {
+    if (!name || isSubmitting) return;
 
-    // Simulate creation
-    const newWorkspace = {
-      id: `ws-${Date.now()}`,
-      name: name,
-      icon: name.charAt(0).toUpperCase(),
-      role: 'owner',
-      members: 1
-    };
-    setWorkspaces([...workspaces, newWorkspace]);
-    setCurrentWorkspaceId(newWorkspace.id);
+    setIsSubmitting(true);
+    setError('');
 
-    // Show success message
-    setShowSuccess(true);
+    try {
+      const res = await createWorkspace({
+        name,
+        description: description || null,
+      });
 
-    // Close after delay
-    setTimeout(() => {
-      setShowSuccess(false);
-      setIsOpen(false);
-      setName('');
-      // 새 WS의 대시보드로 이동
-      navigate(`/ws/${newWorkspace.id}/dashboard`);
-    }, 2000);
+      const newWorkspace = {
+        id: res.id!,
+        name: res.name!,
+        description: res.description ?? null,
+      };
+      setWorkspaces([...workspaces, newWorkspace]);
+      setCurrentWorkspaceId(newWorkspace.id);
+
+      setShowSuccess(true);
+
+      setTimeout(() => {
+        setShowSuccess(false);
+        setIsOpen(false);
+        setName('');
+        setDescription('');
+        navigate(`/ws/${newWorkspace.id}/dashboard`);
+      }, 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '워크스페이스 생성에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -89,13 +102,29 @@ export const CreateWorkspaceModal = () => {
             />
           </div>
 
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-300">설명 <span className="text-slate-500">(선택)</span></label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+              placeholder="워크스페이스에 대한 간단한 설명을 입력하세요"
+            />
+          </div>
+
+          {error && (
+            <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2">
+              {error}
+            </div>
+          )}
 
           <Button
             onClick={handleCreate}
-            disabled={!name}
+            disabled={!name || isSubmitting}
             className="w-full h-12 text-base font-semibold bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            생성하기
+            {isSubmitting ? '생성 중...' : '생성하기'}
           </Button>
 
           <p className="text-center text-xs text-slate-500 mt-4">

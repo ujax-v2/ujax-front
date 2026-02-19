@@ -116,7 +116,7 @@ export const WorkspaceExplore = () => {
     }, [submittedQuery]);
 
     // 이미 참여 중인 WS인지 확인
-    const isJoined = (wsId: string) => myWorkspaces.some(w => w.id === wsId);
+    const isJoined = (wsId: string) => myWorkspaces.some(w => String(w.id) === wsId);
 
     const handleJoin = (wsId: string, wsName: string) => {
         if (isJoined(wsId)) {

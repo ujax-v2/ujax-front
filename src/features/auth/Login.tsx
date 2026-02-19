@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
-import { userState } from '@/store/atoms';
+import { userState, workspacesState, currentWorkspaceState } from '@/store/atoms';
 import { loginApi } from '@/api/auth';
 import { Button, Card } from '@/components/ui/Base';
 import { Mail, Lock, MessageCircle } from 'lucide-react';
@@ -14,6 +14,8 @@ interface LoginProps {
 export const Login = ({ oauthError, onClearError }: LoginProps) => {
   const navigate = useNavigate();
   const setUser = useSetRecoilState(userState);
+  const setWorkspaces = useSetRecoilState(workspacesState);
+  const setCurrentWsId = useSetRecoilState(currentWorkspaceState);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -30,12 +32,18 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
     setLoading(true);
     try {
       const result = await loginApi(email, password);
-      const { accessToken, refreshToken, user } = result.data;
+      const { accessToken, refreshToken } = result.data;
 
       // Decode JWT to get user info fallback
       let name = email;
       try {
-        const payload = JSON.parse(atob(accessToken.split('.')[1]));
+        const base64 = accessToken!.split('.')[1];
+        const binaryStr = atob(base64);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        const payload = JSON.parse(new TextDecoder().decode(bytes));
         name = payload.name || email;
       } catch (e) {
         // ignore jwt parse error if any
@@ -43,17 +51,21 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
 
       const userData = {
         isLoggedIn: true,
-        name: user?.name || name,
-        email: user?.email || email,
-        avatar: user?.avatar || '',
-        accessToken,
-        refreshToken
+        name,
+        email,
+        avatar: '',
+        profileImageUrl: '',
+        baekjoonId: '',
+        accessToken: accessToken!,
+        refreshToken: refreshToken!,
       };
 
       // Save to local storage
       localStorage.setItem('auth', JSON.stringify(userData));
 
-      // Update Recoil state immediately
+      // 이전 세션 워크스페이스 초기화 후 유저 상태 설정
+      setWorkspaces([]);
+      setCurrentWsId(0);
       setUser(userData);
 
       setLoading(false);

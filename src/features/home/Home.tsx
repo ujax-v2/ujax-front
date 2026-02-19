@@ -1,20 +1,83 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { userState, workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState } from '@/store/atoms';
+import { useRecoilValue, useRecoilState, useSetRecoilState } from 'recoil';
+import { userState, workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState, Workspace } from '@/store/atoms';
+import { getWorkspaces } from '@/api/workspace';
+import { logoutApi } from '@/api/auth';
 import { Button, Card } from '@/components/ui/Base';
-import { Code2, Users, Zap, Layout, Monitor, Search } from 'lucide-react';
+import { Code2, Users, Zap, Layout, Monitor, Search, LogOut, Settings, ChevronDown } from 'lucide-react';
 
 export const Home = () => {
     const navigate = useNavigate();
-    const user = useRecoilValue(userState);
-    const workspaces = useRecoilValue(workspacesState);
+    const [user, setUser] = useRecoilState(userState);
+    const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
     const currentWsId = useRecoilValue(currentWorkspaceState);
     const setCreateWorkspaceOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
-
     const [exploreQuery, setExploreQuery] = useState('');
+    const [loading, setLoading] = useState(user.isLoggedIn && workspaces.length === 0);
+    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+    const profileMenuRef = useRef<HTMLDivElement>(null);
 
-    // ═══ 요구사항 1: 로그인 유저 + 기존 WS 있으면 → 최근 WS 대시보드로 자동 이동 ═══
+    // 프로필 메뉴 외부 클릭 닫기
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+                setProfileMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleLogout = async () => {
+        try {
+            if (user.refreshToken) {
+                await logoutApi(user.refreshToken);
+            }
+        } catch {
+            // logout API 실패해도 로컬 상태는 초기화
+        }
+        localStorage.removeItem('auth');
+        setUser({ isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', accessToken: '', refreshToken: '' });
+        setWorkspaces([]);
+        setProfileMenuOpen(false);
+        navigate('/login');
+    };
+
+    // 로그인 상태에서 워크스페이스 목록 fetch
+    useEffect(() => {
+        if (!user.isLoggedIn) return;
+        if (workspaces.length > 0) return; // 이미 로드됨
+
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await getWorkspaces();
+                if (cancelled) return;
+                const items = (res.items ?? []).map(w => ({
+                    id: w.id!,
+                    name: w.name!,
+                    description: w.description ?? null,
+                })) as Workspace[];
+                setWorkspaces(items);
+            } catch (err) {
+                console.error('Failed to fetch workspaces:', err);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [user.isLoggedIn]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#0F1117] flex items-center justify-center">
+                <div className="text-slate-400">워크스페이스 로딩 중...</div>
+            </div>
+        );
+    }
+
+    // 로그인 유저 + 기존 WS 있으면 → 최근 WS 대시보드로 자동 이동
     if (user.isLoggedIn && workspaces.length > 0) {
         const targetWsId = currentWsId || workspaces[0].id;
         return <Navigate to={`/ws/${targetWsId}/dashboard`} replace />;
@@ -44,11 +107,43 @@ export const Home = () => {
 
                     <div className="flex items-center gap-4">
                         {user.isLoggedIn ? (
-                            <>
-                                <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden border border-slate-600">
-                                    <img src={`https://ui-avatars.com/api/?name=${user.name}&background=random`} alt="User" />
-                                </div>
-                            </>
+                            <div className="relative" ref={profileMenuRef}>
+                                <button
+                                    onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                                    className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-800/60 transition-colors"
+                                >
+                                    <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-bold border border-indigo-500">
+                                        {user.name.charAt(0)}
+                                    </div>
+                                    <span className="text-sm font-medium text-slate-200 hidden sm:block">{user.name}</span>
+                                    <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {profileMenuOpen && (
+                                    <div className="absolute right-0 top-12 w-56 bg-[#1e1e1e] border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-100">
+                                        <div className="px-4 py-3 border-b border-slate-700/50">
+                                            <div className="text-sm font-medium text-slate-200 truncate">{user.name}</div>
+                                            <div className="text-xs text-slate-500 truncate">{user.email}</div>
+                                        </div>
+                                        <div className="py-1">
+                                            <button
+                                                onClick={() => { setProfileMenuOpen(false); navigate('/settings'); }}
+                                                className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/40 transition-colors"
+                                            >
+                                                <Settings className="w-4 h-4 text-slate-400" />
+                                                설정
+                                            </button>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-400 hover:bg-slate-700/40 transition-colors"
+                                            >
+                                                <LogOut className="w-4 h-4" />
+                                                로그아웃
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         ) : (
                             <>
                                 <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={() => navigate('/login')}>
