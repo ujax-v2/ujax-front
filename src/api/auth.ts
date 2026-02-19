@@ -1,6 +1,15 @@
+import type { components } from '@ujax/api-spec/types';
 import { apiFetch } from './client';
 
-export async function loginApi(email: string, password: string) {
+export type AuthTokenResponse = components['schemas']['AuthTokenResponse'];
+export type SignupRequest = components['schemas']['SignupRequest'];
+export type LoginRequest = components['schemas']['LoginRequest'];
+
+interface ApiAuthResponse {
+  data: AuthTokenResponse;
+}
+
+export async function loginApi(email: string, password: string): Promise<ApiAuthResponse> {
   const res = await apiFetch('/api/v1/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -13,7 +22,7 @@ export async function loginApi(email: string, password: string) {
   return res.json();
 }
 
-export async function signupApi(email: string, password: string, name: string) {
+export async function signupApi(email: string, password: string, name: string): Promise<ApiAuthResponse> {
   const res = await apiFetch('/api/v1/auth/signup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -26,7 +35,7 @@ export async function signupApi(email: string, password: string, name: string) {
   return res.json();
 }
 
-export async function logoutApi(refreshToken: string) {
+export async function logoutApi(refreshToken: string): Promise<void> {
   const res = await apiFetch('/api/v1/auth/logout', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -35,5 +44,4 @@ export async function logoutApi(refreshToken: string) {
   if (!res.ok) {
     throw new Error('로그아웃에 실패했습니다.');
   }
-  return res.json();
 }

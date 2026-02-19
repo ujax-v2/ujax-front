@@ -270,7 +270,7 @@ export const Settings = () => {
                 <div className="space-y-6">
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 rounded bg-emerald-600 flex items-center justify-center text-2xl font-bold text-white">
-                      {currentWorkspace.icon}
+                      {currentWorkspace?.name?.charAt(0) ?? ''}
                     </div>
                     <div className="space-y-2">
                       <div className="text-sm font-medium text-slate-500">아이콘 변경</div>
@@ -336,8 +336,8 @@ export const Settings = () => {
                       </div>
                     </div>
 
-                    {/* Additional Members if any */}
-                    {currentWorkspace.members > 1 && (
+                    {/* Additional Members - TODO: API 연동 후 실제 멤버 목록 표시 */}
+                    {false && (
                       <div className="flex items-center justify-between py-2">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-slate-300 dark:bg-slate-700 overflow-hidden flex items-center justify-center text-xs text-white bg-indigo-500">

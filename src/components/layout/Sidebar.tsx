@@ -91,7 +91,7 @@ export const Sidebar = () => {
   };
 
   // 워크스페이스 전환 시 → 새 WS의 대시보드로 이동
-  const handleSwitchWorkspace = (id: string) => {
+  const handleSwitchWorkspace = (id: number) => {
     setCurrentWorkspaceId(id);
     setIsWorkspaceMenuOpen(false);
     navigate(`/ws/${id}/dashboard`);
@@ -109,7 +109,7 @@ export const Sidebar = () => {
         >
           <div className="flex items-center gap-2 overflow-hidden">
             <div className="w-5 h-5 rounded bg-emerald-600 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-white">
-              {currentWorkspace.icon}
+              {currentWorkspace?.name?.charAt(0) ?? ''}
             </div>
             <span className="font-semibold text-sm text-slate-200 truncate">{currentWorkspace.name}</span>
             <ChevronsUpDown className="w-3 h-3 text-slate-500" />
@@ -132,11 +132,13 @@ export const Sidebar = () => {
             <div className="p-4 bg-slate-800/30 border-b border-slate-700/50">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center text-lg font-bold text-white">
-                  {currentWorkspace.icon}
+                  {currentWorkspace?.name?.charAt(0) ?? ''}
                 </div>
                 <div className="flex-1 overflow-hidden">
-                  <div className="font-bold text-slate-200 text-sm truncate">{currentWorkspace.name}</div>
-                  <div className="text-xs text-slate-500">{currentWorkspace.members}명의 멤버</div>
+                  <div className="font-bold text-slate-200 text-sm truncate">{currentWorkspace?.name}</div>
+                  {currentWorkspace?.description && (
+                    <div className="text-xs text-slate-500 truncate">{currentWorkspace.description}</div>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2">
@@ -174,7 +176,7 @@ export const Sidebar = () => {
                 >
                   <div className="flex items-center gap-2 overflow-hidden">
                     <div className="w-6 h-6 rounded bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-300">
-                      {ws.icon}
+                      {ws.name.charAt(0)}
                     </div>
                     <span className={`text-sm truncate ${ws.id === currentWorkspaceId ? 'text-slate-100 font-medium' : 'text-slate-400'}`}>
                       {ws.name}

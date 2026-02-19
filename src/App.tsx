@@ -49,16 +49,15 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
   const workspaces = useRecoilValue(workspacesState);
   const navigate = useNavigate();
 
-  // 권한 체크: 내가 멤버인 워크스페이스인지?
-  // 실제 API 연동 시에는 여기서 BE에 권한 확인 요청을 보낼 수도 있음 (혹은 workspaces 목록 자체가 내 권한 목록임)
-  const isMember = workspaces.some(w => w.id === wsId);
+  const numericWsId = Number(wsId);
+  const isMember = workspaces.some(w => w.id === numericWsId);
 
   // URL의 wsId가 변경되면 Recoil 상태도 동기화
   React.useEffect(() => {
-    if (wsId && wsId !== currentWsId && isMember) {
-      setCurrentWsId(wsId);
+    if (wsId && numericWsId !== currentWsId && isMember) {
+      setCurrentWsId(numericWsId);
     }
-  }, [wsId, currentWsId, setCurrentWsId, isMember]);
+  }, [wsId, numericWsId, currentWsId, setCurrentWsId, isMember]);
 
   if (!isMember) {
     return (
@@ -106,7 +105,7 @@ function RedirectToWorkspace({ page }: { page: string }) {
   const workspaces = useRecoilValue(workspacesState);
 
   // 유효한 워크스페이스 ID 찾기
-  const isValid = workspaces.some(w => w.id === currentWsId);
+  const isValid = currentWsId > 0 && workspaces.some(w => w.id === currentWsId);
   const targetId = isValid ? currentWsId : (workspaces.length > 0 ? workspaces[0].id : null);
 
   if (!targetId) {
@@ -119,12 +118,14 @@ function RedirectToWorkspace({ page }: { page: string }) {
 function AppContent() {
   const [isSidebarOpen, setSidebarOpen] = useRecoilState(sidebarOpenState);
   const user = useRecoilValue(userState);
+  const workspaces = useRecoilValue(workspacesState);
   const location = useLocation();
 
   // 사이드바를 숨겨야 하는 페이지: 인증, IDE, 홈
   const isFullScreen = ['/login', '/signup', '/auth/callback', '/'].includes(location.pathname)
     || location.pathname.startsWith('/ide');
-  const showSidebar = !isFullScreen && user.isLoggedIn;
+  // 워크스페이스가 없으면 사이드바 숨김 (컨텍스트 없으므로)
+  const showSidebar = !isFullScreen && user.isLoggedIn && workspaces.length > 0;
 
   return (
     <div className="flex h-screen bg-[#0F1117] text-white font-sans overflow-hidden selection:bg-emerald-500/30">

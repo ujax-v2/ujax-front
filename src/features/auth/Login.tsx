@@ -30,12 +30,18 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
     setLoading(true);
     try {
       const result = await loginApi(email, password);
-      const { accessToken, refreshToken, user } = result.data;
+      const { accessToken, refreshToken } = result.data;
 
       // Decode JWT to get user info fallback
       let name = email;
       try {
-        const payload = JSON.parse(atob(accessToken.split('.')[1]));
+        const base64 = accessToken!.split('.')[1];
+        const binaryStr = atob(base64);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        const payload = JSON.parse(new TextDecoder().decode(bytes));
         name = payload.name || email;
       } catch (e) {
         // ignore jwt parse error if any
@@ -43,11 +49,11 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
 
       const userData = {
         isLoggedIn: true,
-        name: user?.name || name,
-        email: user?.email || email,
-        avatar: user?.avatar || '',
-        accessToken,
-        refreshToken
+        name,
+        email,
+        avatar: '',
+        accessToken: accessToken!,
+        refreshToken: refreshToken!,
       };
 
       // Save to local storage

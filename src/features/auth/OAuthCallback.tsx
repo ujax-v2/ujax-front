@@ -36,7 +36,10 @@ export const OAuthCallback = ({ onComplete }: Props) => {
     const refreshToken = params.get('refreshToken');
     if (accessToken && refreshToken) {
       try {
-        const payload = JSON.parse(atob(accessToken.split('.')[1]));
+        const binaryStr = atob(accessToken.split('.')[1]);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+        const payload = JSON.parse(new TextDecoder().decode(bytes));
         const name = payload.name || '';
         const email = payload.email || '';
         localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken, name, email }));

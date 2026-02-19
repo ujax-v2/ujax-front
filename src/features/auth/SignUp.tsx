@@ -47,12 +47,15 @@ export const SignUp = () => {
 
     try {
       const result = await signupApi(formData.email, formData.password, formData.nickname);
-      const { accessToken, refreshToken, user } = result.data;
+      const { accessToken, refreshToken } = result.data;
 
       // Decode JWT to get user info fallback
       let name = formData.nickname;
       try {
-        const payload = JSON.parse(atob(accessToken.split('.')[1]));
+        const binaryStr = atob(accessToken!.split('.')[1]);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+        const payload = JSON.parse(new TextDecoder().decode(bytes));
         name = payload.name || formData.nickname;
       } catch (e) {
         // ignore jwt parse error
@@ -60,11 +63,11 @@ export const SignUp = () => {
 
       const userData = {
         isLoggedIn: true,
-        name: user?.name || name,
-        email: user?.email || formData.email,
-        avatar: user?.avatar || '',
-        accessToken,
-        refreshToken
+        name,
+        email: formData.email,
+        avatar: '',
+        accessToken: accessToken!,
+        refreshToken: refreshToken!,
       };
 
       // Save to local storage

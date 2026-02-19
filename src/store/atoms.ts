@@ -108,17 +108,21 @@ export const currentChallengeState = atom<Challenge | null>({
   default: null,
 });
 
-export const currentWorkspaceState = atom({
+// 워크스페이스 타입 (API WorkspaceResponse 기반)
+export interface Workspace {
+  id: number;
+  name: string;
+  description: string | null;
+}
+
+export const currentWorkspaceState = atom<number>({
   key: 'currentWorkspaceState',
-  default: 'ws-1'
+  default: 0,
 });
 
-export const workspacesState = atom({
+export const workspacesState = atom<Workspace[]>({
   key: 'workspacesState',
-  default: [
-    { id: 'ws-1', name: "알고리즘 스터디", icon: "📚", role: 'owner', members: 4 },
-    { id: 'ws-2', name: "UJAX 개발팀", icon: "🚀", role: 'owner', members: 3 }
-  ]
+  default: [],
 });
 
 export const settingsTabState = atom({

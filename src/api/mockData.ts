@@ -1,13 +1,15 @@
-export const MOCK_USER = {
+import type { components } from '@ujax/api-spec/types';
+
+type UserResponse = components['schemas']['UserResponse'];
+
+export const MOCK_USER: UserResponse = {
     id: 1,
     email: 'test@example.com',
     name: '테스트 유저',
-    avatar: 'Avatar 1',
-    role: 'USER',
+    profileImageUrl: null,
+    provider: 'GOOGLE',
 };
 
-// Basic base64 encoded JSON for JWT payload: {"name":"Test User","email":"test@example.com"}
-// Using ASCII-only characters avoids 'atob' decoding issues in the frontend
 const payload = JSON.stringify({ name: 'Test User', email: 'test@example.com', sub: '1' });
 const MOCK_JWT_PAYLOAD = btoa(payload);
 const MOCK_JWT = `header.${MOCK_JWT_PAYLOAD}.signature`;
