@@ -14,3 +14,12 @@ export async function getProblemByNumber(problemNumber: number): Promise<Problem
   const res = await authFetch(`/api/v1/problems/number/${problemNumber}`);
   return res.data;
 }
+
+export async function findProblemByNumber(problemNumber: number): Promise<ProblemResponse | null> {
+  try {
+    const res = await authFetch(`/api/v1/problems/number/${problemNumber}`);
+    return res.data;
+  } catch {
+    return null;
+  }
+}
