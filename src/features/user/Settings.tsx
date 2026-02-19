@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Base';
-import { useRecoilValue, useRecoilState } from 'recoil';
+import { useRecoilValue, useRecoilState, useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 import { currentWorkspaceState, workspacesState, settingsTabState, userState } from '@/store/atoms';
-import { getMe, updateMe } from '@/api/user';
+import { getMe, updateMe, deleteMe } from '@/api/user';
+import { getWorkspaceSettings, updateWorkspace, deleteWorkspace, leaveWorkspace, getMyMembership, updateMyNickname, getWorkspaceMembers, inviteMember, updateMemberRole, removeMember } from '@/api/workspace';
+import type { WorkspaceMemberResponse } from '@/api/workspace';
 import {
   User,
   Bell,
@@ -17,6 +19,9 @@ import {
   Trello,
   Slack,
   FileUp,
+  AlertTriangle,
+  LogOut,
+  MoreHorizontal,
 } from 'lucide-react';
 
 export const Settings = () => {
@@ -24,6 +29,8 @@ export const Settings = () => {
   const [activeTab, setActiveTab] = useRecoilState(settingsTabState);
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
   const workspaces = useRecoilValue(workspacesState);
+  const setWorkspaces = useSetRecoilState(workspacesState);
+  const setCurrentWorkspaceId = useSetRecoilState(currentWorkspaceState);
   const [user, setUser] = useRecoilState(userState);
 
   const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId) || workspaces[0];
@@ -43,6 +50,56 @@ export const Settings = () => {
   const [saveResult, setSaveResult] = useState<'success' | 'error' | null>(null);
   const [saveError, setSaveError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Account deletion state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  // Workspace general settings state
+  const [wsName, setWsName] = useState('');
+  const [wsDescription, setWsDescription] = useState('');
+  const [wsMmWebhookUrl, setWsMmWebhookUrl] = useState('');
+  const [wsOriginalName, setWsOriginalName] = useState('');
+  const [wsOriginalDescription, setWsOriginalDescription] = useState('');
+  const [wsOriginalMmWebhookUrl, setWsOriginalMmWebhookUrl] = useState('');
+  const [wsNickname, setWsNickname] = useState('');
+  const [wsOriginalNickname, setWsOriginalNickname] = useState('');
+  const [wsNickSaving, setWsNickSaving] = useState(false);
+  const [wsNickSaveResult, setWsNickSaveResult] = useState<'success' | 'error' | null>(null);
+  const [wsNickSaveError, setWsNickSaveError] = useState('');
+  const [wsSaving, setWsSaving] = useState(false);
+  const [wsSaveResult, setWsSaveResult] = useState<'success' | 'error' | null>(null);
+  const [wsSaveError, setWsSaveError] = useState('');
+  const [showWsDeleteModal, setShowWsDeleteModal] = useState(false);
+  const [wsDeleteConfirmName, setWsDeleteConfirmName] = useState('');
+  const [wsDeleting, setWsDeleting] = useState(false);
+  const [wsDeleteError, setWsDeleteError] = useState('');
+  const [showWsLeaveModal, setShowWsLeaveModal] = useState(false);
+  const [wsLeaving, setWsLeaving] = useState(false);
+  const [wsLeaveError, setWsLeaveError] = useState('');
+
+  // Members tab state
+  const [members, setMembers] = useState<WorkspaceMemberResponse[]>([]);
+  const [myMemberId, setMyMemberId] = useState<number>(0);
+  const [myRole, setMyRole] = useState<string>('MEMBER');
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [memberMenuOpen, setMemberMenuOpen] = useState<number | null>(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviting, setInviting] = useState(false);
+  const [inviteError, setInviteError] = useState('');
+  const [inviteSuccess, setInviteSuccess] = useState(false);
+  const [showRemoveMemberModal, setShowRemoveMemberModal] = useState(false);
+  const [removingMember, setRemovingMember] = useState<WorkspaceMemberResponse | null>(null);
+  const [removingLoading, setRemovingLoading] = useState(false);
+  const [removeMemberError, setRemoveMemberError] = useState('');
+  const [showRoleChangeModal, setShowRoleChangeModal] = useState(false);
+  const [roleChangeMember, setRoleChangeMember] = useState<WorkspaceMemberResponse | null>(null);
+  const [roleChangeTarget, setRoleChangeTarget] = useState<string>('MEMBER');
+  const [roleChangeLoading, setRoleChangeLoading] = useState(false);
+  const [roleChangeError, setRoleChangeError] = useState('');
 
   // Load user profile on mount
   useEffect(() => {
@@ -87,6 +144,51 @@ export const Settings = () => {
       setActiveTab('profile');
     }
   }, [workspaces.length, activeTab, setActiveTab]);
+
+  // Load workspace settings + my nickname when ws-general tab is active
+  useEffect(() => {
+    if (activeTab !== 'ws-general' || !currentWorkspaceId) return;
+    getWorkspaceSettings(currentWorkspaceId).then(data => {
+      setWsName(data.name ?? '');
+      setWsDescription(data.description ?? '');
+      setWsMmWebhookUrl(data.mmWebhookUrl ?? '');
+      setWsOriginalName(data.name ?? '');
+      setWsOriginalDescription(data.description ?? '');
+      setWsOriginalMmWebhookUrl(data.mmWebhookUrl ?? '');
+    }).catch(err => {
+      console.error('Failed to load workspace settings:', err);
+    });
+    getMyMembership(currentWorkspaceId).then(data => {
+      setWsNickname(data.nickname ?? '');
+      setWsOriginalNickname(data.nickname ?? '');
+    }).catch(err => {
+      console.error('Failed to load membership:', err);
+    });
+  }, [activeTab, currentWorkspaceId]);
+
+  // Load members when ws-members tab is active
+  const loadMembers = async () => {
+    if (!currentWorkspaceId) return;
+    setMembersLoading(true);
+    try {
+      const [membersData, myData] = await Promise.all([
+        getWorkspaceMembers(currentWorkspaceId),
+        getMyMembership(currentWorkspaceId),
+      ]);
+      setMembers(membersData.items ?? []);
+      setMyMemberId(myData.workspaceMemberId ?? 0);
+      setMyRole(myData.role ?? 'MEMBER');
+    } catch (err) {
+      console.error('Failed to load members:', err);
+    } finally {
+      setMembersLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab !== 'ws-members' || !currentWorkspaceId) return;
+    loadMembers();
+  }, [activeTab, currentWorkspaceId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -157,6 +259,203 @@ export const Settings = () => {
     } finally {
       setSaving(false);
       setTimeout(() => setSaveResult(null), 3000);
+    }
+  };
+
+  /** authFetch 에러에서 detail 메시지를 추출한다 (CLAUDE.md 규칙) */
+  const extractErrorDetail = (err: any, fallback: string): string => {
+    const msg = err?.message || '';
+    const jsonMatch = msg.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[0]).detail || fallback;
+      } catch { /* ignore */ }
+    }
+    return fallback;
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await deleteMe();
+      localStorage.removeItem('auth');
+      setUser({ isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', accessToken: '', refreshToken: '' });
+      setWorkspaces([]);
+      setCurrentWorkspaceId(0);
+      navigate('/login');
+    } catch (err: any) {
+      setDeleteError(extractErrorDetail(err, '계정 삭제에 실패했습니다.'));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleWsSave = async () => {
+    if (!currentWorkspaceId) return;
+    setWsSaving(true);
+    setWsSaveResult(null);
+    setWsSaveError('');
+    try {
+      const body: Record<string, string | null> = {};
+      if (wsName !== wsOriginalName) body.name = wsName;
+      if (wsDescription !== wsOriginalDescription) body.description = wsDescription || null;
+      if (wsMmWebhookUrl !== wsOriginalMmWebhookUrl) body.mmWebhookUrl = wsMmWebhookUrl || null;
+      if (Object.keys(body).length === 0) {
+        setWsSaveResult('success');
+        setWsSaving(false);
+        setTimeout(() => setWsSaveResult(null), 3000);
+        return;
+      }
+      const updated = await updateWorkspace(currentWorkspaceId, body);
+      setWsOriginalName(updated.name ?? '');
+      setWsOriginalDescription(updated.description ?? '');
+      setWsOriginalMmWebhookUrl(wsMmWebhookUrl);
+      setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, name: updated.name ?? w.name, description: updated.description ?? null } : w));
+      setWsSaveResult('success');
+    } catch (err: any) {
+      setWsSaveResult('error');
+      setWsSaveError(extractErrorDetail(err, '저장에 실패했습니다.'));
+    } finally {
+      setWsSaving(false);
+      setTimeout(() => setWsSaveResult(null), 3000);
+    }
+  };
+
+  const handleWsNickSave = async () => {
+    if (!currentWorkspaceId) return;
+    setWsNickSaving(true);
+    setWsNickSaveResult(null);
+    setWsNickSaveError('');
+    try {
+      if (wsNickname === wsOriginalNickname) {
+        setWsNickSaveResult('success');
+        setWsNickSaving(false);
+        setTimeout(() => setWsNickSaveResult(null), 3000);
+        return;
+      }
+      const memberUpdated = await updateMyNickname(currentWorkspaceId, wsNickname);
+      setWsOriginalNickname(memberUpdated.nickname ?? '');
+      setWsNickSaveResult('success');
+    } catch (err: any) {
+      setWsNickSaveResult('error');
+      setWsNickSaveError(extractErrorDetail(err, '닉네임 저장에 실패했습니다.'));
+    } finally {
+      setWsNickSaving(false);
+      setTimeout(() => setWsNickSaveResult(null), 3000);
+    }
+  };
+
+  const handleWsDelete = async () => {
+    if (!currentWorkspaceId) return;
+    setWsDeleting(true);
+    setWsDeleteError('');
+    try {
+      await deleteWorkspace(currentWorkspaceId);
+      setWorkspaces(prev => prev.filter(w => w.id !== currentWorkspaceId));
+      const remaining = workspaces.filter(w => w.id !== currentWorkspaceId);
+      setCurrentWorkspaceId(remaining[0]?.id ?? 0);
+      setShowWsDeleteModal(false);
+      setActiveTab('profile');
+    } catch (err: any) {
+      setWsDeleteError(extractErrorDetail(err, '워크스페이스 삭제에 실패했습니다.'));
+    } finally {
+      setWsDeleting(false);
+    }
+  };
+
+  const handleWsLeave = async () => {
+    if (!currentWorkspaceId) return;
+    setWsLeaving(true);
+    setWsLeaveError('');
+    try {
+      await leaveWorkspace(currentWorkspaceId);
+      setWorkspaces(prev => prev.filter(w => w.id !== currentWorkspaceId));
+      const remaining = workspaces.filter(w => w.id !== currentWorkspaceId);
+      setCurrentWorkspaceId(remaining[0]?.id ?? 0);
+      setShowWsLeaveModal(false);
+      setActiveTab('profile');
+    } catch (err: any) {
+      setWsLeaveError(extractErrorDetail(err, '워크스페이스 나가기에 실패했습니다.'));
+    } finally {
+      setWsLeaving(false);
+    }
+  };
+
+  const handleInvite = async () => {
+    if (!currentWorkspaceId || !inviteEmail.trim()) return;
+    setInviting(true);
+    setInviteError('');
+    setInviteSuccess(false);
+    try {
+      await inviteMember(currentWorkspaceId, inviteEmail.trim());
+      setInviteSuccess(true);
+      setInviteEmail('');
+      await loadMembers();
+      setTimeout(() => { setShowInviteModal(false); setInviteSuccess(false); }, 1200);
+    } catch (err: any) {
+      setInviteError(extractErrorDetail(err, '초대에 실패했습니다.'));
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const confirmRoleChange = (member: WorkspaceMemberResponse, newRole: string) => {
+    setRoleChangeMember(member);
+    setRoleChangeTarget(newRole);
+    setRoleChangeError('');
+    setShowRoleChangeModal(true);
+  };
+
+  const handleRoleChange = async () => {
+    if (!currentWorkspaceId || !roleChangeMember) return;
+    setRoleChangeLoading(true);
+    setRoleChangeError('');
+    try {
+      await updateMemberRole(currentWorkspaceId, roleChangeMember.workspaceMemberId!, roleChangeTarget as 'OWNER' | 'ADMIN' | 'MEMBER');
+      setShowRoleChangeModal(false);
+      await loadMembers();
+    } catch (err: any) {
+      setRoleChangeError(extractErrorDetail(err, '역할 변경에 실패했습니다.'));
+    } finally {
+      setRoleChangeLoading(false);
+    }
+  };
+
+  const confirmRemoveMember = (member: WorkspaceMemberResponse) => {
+    setRemovingMember(member);
+    setRemoveMemberError('');
+    setShowRemoveMemberModal(true);
+  };
+
+  const handleRemoveMember = async () => {
+    if (!currentWorkspaceId || !removingMember) return;
+    setRemovingLoading(true);
+    setRemoveMemberError('');
+    try {
+      await removeMember(currentWorkspaceId, removingMember.workspaceMemberId!);
+      setShowRemoveMemberModal(false);
+      await loadMembers();
+    } catch (err: any) {
+      setRemoveMemberError(extractErrorDetail(err, '멤버 제거에 실패했습니다.'));
+    } finally {
+      setRemovingLoading(false);
+    }
+  };
+
+  const roleLabel = (role?: string) => {
+    switch (role) {
+      case 'OWNER': return '소유자';
+      case 'MANAGER': return '매니저';
+      default: return '멤버';
+    }
+  };
+
+  const roleBadgeClass = (role?: string) => {
+    switch (role) {
+      case 'OWNER': return 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400';
+      case 'MANAGER': return 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400';
+      default: return 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400';
     }
   };
 
@@ -279,6 +578,7 @@ export const Settings = () => {
                 </div>
 
                 <div className="space-y-4 max-w-md">
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">기본 정보</h3>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1">이메일</label>
                     <input type="email" value={email} disabled className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-500 cursor-not-allowed" />
@@ -287,24 +587,97 @@ export const Settings = () => {
                     <label className="block text-xs font-bold text-slate-500 mb-1">이름</label>
                     <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
                   </div>
+                </div>
+
+                <div className="pt-2 space-y-4 max-w-md">
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">연동 계정</h3>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1">백준 아이디</label>
                     <input type="text" value={baekjoonId} onChange={e => setBaekjoonId(e.target.value)} placeholder="백준 아이디를 입력하세요" className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+                    <p className="text-[11px] text-slate-400 mt-1">solved.ac 티어 연동에 사용됩니다.</p>
+                  </div>
+                  <div className="space-y-2 pt-2">
+                    <Button
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
+                      onClick={handleSave}
+                      disabled={saving}
+                    >
+                      {saving ? '저장 중...' : saveResult === 'success' ? '저장됨' : saveResult === 'error' ? '저장 실패' : '저장'}
+                    </Button>
+                    {saveError && (
+                      <p className="text-xs text-red-500">{saveError}</p>
+                    )}
                   </div>
                 </div>
 
-                <div className="pt-4 space-y-2">
-                  <Button
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
-                    onClick={handleSave}
-                    disabled={saving}
-                  >
-                    {saving ? '저장 중...' : saveResult === 'success' ? '저장됨' : saveResult === 'error' ? '저장 실패' : '저장'}
-                  </Button>
-                  {saveError && (
-                    <p className="text-xs text-red-500">{saveError}</p>
-                  )}
+                <div className="pt-6 border-t border-red-200 dark:border-red-500/20">
+                  <h3 className="text-sm font-bold text-red-500 mb-4">위험 구역</h3>
+                  <div className="rounded-lg border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5 p-4 flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-slate-900 dark:text-slate-200">계정 삭제</div>
+                      <div className="text-xs text-slate-500 mt-0.5">계정을 삭제하면 모든 데이터가 영구적으로 제거됩니다.</div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      className="text-red-500 hover:text-white hover:bg-red-600 border border-red-300 dark:border-red-500/30 ml-4 flex-shrink-0"
+                      onClick={() => { setShowDeleteModal(true); setDeleteConfirmEmail(''); setDeleteError(''); }}
+                    >
+                      계정 삭제
+                    </Button>
+                  </div>
                 </div>
+
+                {showDeleteModal && (
+                  <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => !deleting && setShowDeleteModal(false)}>
+                    <div className="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-2xl border border-slate-700/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
+                          <AlertTriangle className="w-5 h-5 text-red-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">계정 삭제</h3>
+                      </div>
+
+                      <p className="text-sm text-slate-500">
+                        이 작업은 되돌릴 수 없습니다. 모든 데이터가 영구 삭제됩니다.
+                      </p>
+
+                      <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1.5">
+                          확인을 위해 이메일(<span className="font-bold text-slate-700 dark:text-slate-300">{email}</span>)을 입력하세요
+                        </label>
+                        <input
+                          type="email"
+                          value={deleteConfirmEmail}
+                          onChange={e => setDeleteConfirmEmail(e.target.value)}
+                          placeholder={email}
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none"
+                          autoFocus
+                        />
+                      </div>
+
+                      {deleteError && (
+                        <p className="text-xs text-red-500 bg-red-50 dark:bg-red-500/10 rounded px-3 py-2">{deleteError}</p>
+                      )}
+
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button
+                          variant="ghost"
+                          onClick={() => setShowDeleteModal(false)}
+                          disabled={deleting}
+                        >
+                          취소
+                        </Button>
+                        <Button
+                          className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={deleteConfirmEmail !== email || deleting}
+                          onClick={handleDeleteAccount}
+                        >
+                          {deleting ? '삭제 중...' : '계정 삭제'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -326,7 +699,7 @@ export const Settings = () => {
                   </div>
 
                   <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-4">언어 및 시간</h3>
+                    <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4">언어 및 시간</h3>
 
                     <div className="flex items-center justify-between py-2">
                       <div>
@@ -433,40 +806,172 @@ export const Settings = () => {
             {activeTab === 'ws-general' && (
               <div className="space-y-8 animate-in fade-in duration-300">
                 <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 pb-4 border-b border-slate-200 dark:border-slate-800">워크스페이스 일반 설정</h2>
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded bg-emerald-600 flex items-center justify-center text-2xl font-bold text-white">
-                      {currentWorkspace?.name?.charAt(0) ?? ''}
+
+                <div className="space-y-4 max-w-md">
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">워크스페이스 정보</h3>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">이름</label>
+                    <input type="text" value={wsName} onChange={e => setWsName(e.target.value)} className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">설명</label>
+                    <input type="text" value={wsDescription} onChange={e => setWsDescription(e.target.value)} placeholder="워크스페이스 설명을 입력하세요" className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+                  </div>
+                </div>
+
+                <div className="pt-2 space-y-4 max-w-md">
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">연동</h3>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Mattermost Webhook URL</label>
+                    <input type="text" value={wsMmWebhookUrl} onChange={e => setWsMmWebhookUrl(e.target.value)} placeholder="https://mattermost.example.com/hooks/..." className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+                    <p className="text-[11px] text-slate-400 mt-1">알림을 받을 Mattermost 채널의 Webhook URL을 입력하세요.</p>
+                  </div>
+                  <div className="space-y-2 pt-2">
+                    <Button
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
+                      onClick={handleWsSave}
+                      disabled={wsSaving}
+                    >
+                      {wsSaving ? '저장 중...' : wsSaveResult === 'success' ? '저장됨' : wsSaveResult === 'error' ? '저장 실패' : '저장'}
+                    </Button>
+                    {wsSaveError && (
+                      <p className="text-xs text-red-500">{wsSaveError}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-slate-200 dark:border-slate-800 space-y-4 max-w-md">
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">내 설정</h3>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">닉네임</label>
+                    <input type="text" value={wsNickname} onChange={e => setWsNickname(e.target.value)} placeholder="이 워크스페이스에서 사용할 닉네임" className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+                    <p className="text-[11px] text-slate-400 mt-1">이 워크스페이스에서 다른 멤버에게 보이는 이름입니다.</p>
+                  </div>
+                  <div className="space-y-2 pt-2">
+                    <Button
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
+                      onClick={handleWsNickSave}
+                      disabled={wsNickSaving}
+                    >
+                      {wsNickSaving ? '저장 중...' : wsNickSaveResult === 'success' ? '저장됨' : wsNickSaveResult === 'error' ? '저장 실패' : '저장'}
+                    </Button>
+                    {wsNickSaveError && (
+                      <p className="text-xs text-red-500">{wsNickSaveError}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-red-200 dark:border-red-500/20">
+                  <h3 className="text-sm font-bold text-red-500 mb-4">위험 구역</h3>
+                  <div className="space-y-3">
+                    <div className="rounded-lg border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5 p-4 flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-medium text-slate-900 dark:text-slate-200">워크스페이스 나가기</div>
+                        <div className="text-xs text-slate-500 mt-0.5">이 워크스페이스에서 나갑니다. 다시 참여하려면 초대가 필요합니다.</div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        className="text-red-500 hover:text-white hover:bg-red-600 border border-red-300 dark:border-red-500/30 ml-4 flex-shrink-0"
+                        onClick={() => { setShowWsLeaveModal(true); setWsLeaveError(''); }}
+                      >
+                        <LogOut className="w-4 h-4 mr-1.5" />나가기
+                      </Button>
                     </div>
-                    <div className="space-y-2">
-                      <div className="text-sm font-medium text-slate-500">아이콘 변경</div>
-                      <div className="flex gap-2">
-                        <Button variant="secondary" size="sm">업로드</Button>
-                        <Button variant="secondary" size="sm">랜덤</Button>
+                    <div className="rounded-lg border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5 p-4 flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-medium text-slate-900 dark:text-slate-200">워크스페이스 삭제</div>
+                        <div className="text-xs text-slate-500 mt-0.5">워크스페이스와 모든 데이터가 영구적으로 삭제됩니다.</div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        className="text-red-500 hover:text-white hover:bg-red-600 border border-red-300 dark:border-red-500/30 ml-4 flex-shrink-0"
+                        onClick={() => { setShowWsDeleteModal(true); setWsDeleteConfirmName(''); setWsDeleteError(''); }}
+                      >
+                        삭제
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 워크스페이스 나가기 모달 */}
+                {showWsLeaveModal && (
+                  <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => !wsLeaving && setShowWsLeaveModal(false)}>
+                    <div className="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-2xl border border-slate-700/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
+                          <LogOut className="w-5 h-5 text-red-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">워크스페이스 나가기</h3>
+                      </div>
+
+                      <p className="text-sm text-slate-500">
+                        <span className="font-bold text-slate-700 dark:text-slate-300">{wsName}</span> 워크스페이스에서 나가시겠습니까? 다시 참여하려면 초대가 필요합니다.
+                      </p>
+
+                      {wsLeaveError && (
+                        <p className="text-xs text-red-500 bg-red-50 dark:bg-red-500/10 rounded px-3 py-2">{wsLeaveError}</p>
+                      )}
+
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="ghost" onClick={() => setShowWsLeaveModal(false)} disabled={wsLeaving}>취소</Button>
+                        <Button
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                          onClick={handleWsLeave}
+                          disabled={wsLeaving}
+                        >
+                          {wsLeaving ? '나가는 중...' : '나가기'}
+                        </Button>
                       </div>
                     </div>
                   </div>
+                )}
 
-                  <div className="space-y-2">
-                    <label className="block text-xs font-bold text-slate-500">워크스페이스 이름</label>
-                    <input type="text" defaultValue={currentWorkspace?.name} className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-2 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 outline-none" />
-                  </div>
+                {/* 워크스페이스 삭제 모달 */}
+                {showWsDeleteModal && (
+                  <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => !wsDeleting && setShowWsDeleteModal(false)}>
+                    <div className="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-2xl border border-slate-700/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
+                          <AlertTriangle className="w-5 h-5 text-red-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">워크스페이스 삭제</h3>
+                      </div>
 
-                  <div className="space-y-2">
-                    <label className="block text-xs font-bold text-slate-500">도메인</label>
-                    <div className="flex items-center">
-                      <span className="bg-slate-100 dark:bg-slate-800 border border-r-0 border-slate-300 dark:border-slate-700 rounded-l px-3 py-2 text-sm text-slate-500">ujax.io/</span>
-                      <input type="text" defaultValue="bookandpapers" className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-r px-3 py-2 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 outline-none" />
+                      <p className="text-sm text-slate-500">
+                        이 작업은 되돌릴 수 없습니다. 워크스페이스의 모든 데이터가 영구 삭제됩니다.
+                      </p>
+
+                      <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1.5">
+                          확인을 위해 워크스페이스 이름(<span className="font-bold text-slate-700 dark:text-slate-300">{wsName}</span>)을 입력하세요
+                        </label>
+                        <input
+                          type="text"
+                          value={wsDeleteConfirmName}
+                          onChange={e => setWsDeleteConfirmName(e.target.value)}
+                          placeholder={wsName}
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none"
+                          autoFocus
+                        />
+                      </div>
+
+                      {wsDeleteError && (
+                        <p className="text-xs text-red-500 bg-red-50 dark:bg-red-500/10 rounded px-3 py-2">{wsDeleteError}</p>
+                      )}
+
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="ghost" onClick={() => setShowWsDeleteModal(false)} disabled={wsDeleting}>취소</Button>
+                        <Button
+                          className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={wsDeleteConfirmName !== wsName || wsDeleting}
+                          onClick={handleWsDelete}
+                        >
+                          {wsDeleting ? '삭제 중...' : '워크스페이스 삭제'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
-                    <h3 className="text-xs font-bold text-red-500 uppercase mb-4">위험 구역</h3>
-                    <Button variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 w-full justify-start">
-                      워크스페이스 삭제
-                    </Button>
-                  </div>
-                </div>
+                )}
               </div>
             )}
 
@@ -477,62 +982,209 @@ export const Settings = () => {
                     <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">멤버</h2>
                     <p className="text-sm text-slate-500 mt-1">워크스페이스의 멤버를 관리하세요.</p>
                   </div>
-                  <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
+                  <Button
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+                    onClick={() => { setShowInviteModal(true); setInviteEmail(''); setInviteError(''); setInviteSuccess(false); }}
+                  >
                     <UserPlus className="w-4 h-4" /> 멤버 초대
                   </Button>
                 </div>
 
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase">워크스페이스 멤버</h3>
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">워크스페이스 멤버 ({members.length})</h3>
 
-                    {/* Member Item */}
-                    <div className="flex items-center justify-between py-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-300 dark:bg-slate-700 overflow-hidden flex items-center justify-center">
-                          {avatarSrc ? (
-                            <img src={avatarSrc} alt="Avatar" className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-xs font-bold text-slate-500">{nameInitial}</span>
-                          )}
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-slate-900 dark:text-slate-200">{name || 'User'} <span className="text-xs text-slate-400 font-normal">(나)</span></div>
-                          <div className="text-xs text-slate-500">{email}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="text-xs text-slate-500">소유자</span>
-                      </div>
-                    </div>
-
-                    {/* Additional Members - TODO: API 연동 후 실제 멤버 목록 표시 */}
-                    {false && (
-                      <div className="flex items-center justify-between py-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-slate-300 dark:bg-slate-700 overflow-hidden flex items-center justify-center text-xs text-white bg-indigo-500">
-                            JD
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-slate-900 dark:text-slate-200">John Doe</div>
-                            <div className="text-xs text-slate-500">john.doe@example.com</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-slate-500">멤버</span>
-                          <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600">제거</Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-4">게스트</h3>
+                  {membersLoading ? (
+                    <div className="text-sm text-slate-500 text-center py-8">불러오는 중...</div>
+                  ) : members.length === 0 ? (
                     <div className="text-sm text-slate-500 bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg text-center">
-                      아직 초대된 게스트가 없습니다.
+                      멤버가 없습니다.
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden divide-y divide-slate-200 dark:divide-slate-700">
+                      {members.map(member => {
+                        const isMe = member.workspaceMemberId === myMemberId;
+                        const role = member.role as string;
+                        const canManage = (myRole === 'OWNER' || myRole === 'MANAGER') && !isMe && role !== 'OWNER';
+                        const menuOpen = memberMenuOpen === member.workspaceMemberId;
+                        return (
+                          <div key={member.workspaceMemberId} className="flex items-center justify-between py-3 px-4 bg-white dark:bg-[#1e1e1e] hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                                <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                                  {(member.nickname ?? '?').charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-slate-900 dark:text-slate-200">
+                                  {member.nickname ?? '(닉네임 없음)'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${roleBadgeClass(role)}`}>
+                                {roleLabel(role)}
+                              </span>
+                              {canManage && (
+                                <div className="relative">
+                                  <button
+                                    onClick={() => setMemberMenuOpen(menuOpen ? null : member.workspaceMemberId!)}
+                                    className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                  >
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </button>
+                                  {menuOpen && (
+                                    <>
+                                      <div className="fixed inset-0 z-[150]" onClick={() => setMemberMenuOpen(null)} />
+                                      <div className="absolute right-0 top-full mt-1 z-[151] w-48 bg-white dark:bg-[#252525] rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-1">
+                                        {role !== 'MANAGER' && (
+                                          <button
+                                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                            onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'MANAGER'); }}
+                                          >
+                                            매니저로 변경
+                                          </button>
+                                        )}
+                                        {role !== 'MEMBER' && (
+                                          <button
+                                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                            onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'MEMBER'); }}
+                                          >
+                                            멤버로 변경
+                                          </button>
+                                        )}
+                                        {myRole === 'OWNER' && (
+                                          <button
+                                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                            onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'OWNER'); }}
+                                          >
+                                            소유자로 변경
+                                          </button>
+                                        )}
+                                        <div className="border-t border-slate-200 dark:border-slate-700 my-1" />
+                                        <button
+                                          className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                          onClick={() => { setMemberMenuOpen(null); confirmRemoveMember(member); }}
+                                        >
+                                          워크스페이스에서 제거
+                                        </button>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* 초대 모달 */}
+                {/* 초대 모달 */}
+                {showInviteModal && (
+                  <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => !inviting && setShowInviteModal(false)}>
+                    <div className="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-2xl border border-slate-700/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center">
+                          <UserPlus className="w-5 h-5 text-emerald-600" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">멤버 초대</h3>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1.5">이메일 주소</label>
+                        <input
+                          type="email"
+                          value={inviteEmail}
+                          onChange={e => setInviteEmail(e.target.value)}
+                          placeholder="example@email.com"
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                          autoFocus
+                          onKeyDown={e => e.key === 'Enter' && inviteEmail.trim() && handleInvite()}
+                        />
+                      </div>
+
+                      {inviteError && (
+                        <p className="text-xs text-red-500 bg-red-50 dark:bg-red-500/10 rounded px-3 py-2">{inviteError}</p>
+                      )}
+                      {inviteSuccess && (
+                        <p className="text-xs text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 rounded px-3 py-2">초대가 완료되었습니다.</p>
+                      )}
+
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="ghost" onClick={() => setShowInviteModal(false)} disabled={inviting}>취소</Button>
+                        <Button
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          onClick={handleInvite}
+                          disabled={!inviteEmail.trim() || inviting}
+                        >
+                          {inviting ? '초대 중...' : '초대하기'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {/* 역할 변경 확인 모달 */}
+                {showRoleChangeModal && roleChangeMember && (
+                  <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => !roleChangeLoading && setShowRoleChangeModal(false)}>
+                    <div className="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-2xl border border-slate-700/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">역할 변경</h3>
+                      <p className="text-sm text-slate-500">
+                        <span className="font-bold text-slate-700 dark:text-slate-300">{roleChangeMember.nickname}</span>의 역할을{' '}
+                        <span className="font-bold text-slate-700 dark:text-slate-300">{roleLabel(roleChangeTarget)}</span>(으)로 변경하시겠습니까?
+                      </p>
+
+                      {roleChangeError && (
+                        <p className="text-xs text-red-500 bg-red-50 dark:bg-red-500/10 rounded px-3 py-2">{roleChangeError}</p>
+                      )}
+
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="ghost" onClick={() => setShowRoleChangeModal(false)} disabled={roleChangeLoading}>취소</Button>
+                        <Button
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          onClick={handleRoleChange}
+                          disabled={roleChangeLoading}
+                        >
+                          {roleChangeLoading ? '변경 중...' : '변경'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 멤버 제거 확인 모달 */}
+                {showRemoveMemberModal && removingMember && (
+                  <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => !removingLoading && setShowRemoveMemberModal(false)}>
+                    <div className="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-2xl border border-slate-700/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
+                          <AlertTriangle className="w-5 h-5 text-red-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">멤버 제거</h3>
+                      </div>
+                      <p className="text-sm text-slate-500">
+                        <span className="font-bold text-slate-700 dark:text-slate-300">{removingMember.nickname}</span>을(를) 워크스페이스에서 제거하시겠습니까? 이 멤버는 더 이상 워크스페이스에 접근할 수 없습니다.
+                      </p>
+
+                      {removeMemberError && (
+                        <p className="text-xs text-red-500 bg-red-50 dark:bg-red-500/10 rounded px-3 py-2">{removeMemberError}</p>
+                      )}
+
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="ghost" onClick={() => setShowRemoveMemberModal(false)} disabled={removingLoading}>취소</Button>
+                        <Button
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                          onClick={handleRemoveMember}
+                          disabled={removingLoading}
+                        >
+                          {removingLoading ? '제거 중...' : '제거'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
