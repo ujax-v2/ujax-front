@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
-import { navigationState, userState } from '../../store/atoms';
-import { signupApi } from '../../api/auth';
-import { Button, Card } from '../../components/ui/Base';
+import { userState } from '@/store/atoms';
+import { signupApi } from '@/api/auth';
+import { Button, Card } from '@/components/ui/Base';
 import { Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export const SignUp = () => {
-  const setPage = useSetRecoilState(navigationState);
+  const navigate = useNavigate();
   const setUser = useSetRecoilState(userState);
   const [formData, setFormData] = useState({
     email: '',
@@ -18,7 +19,7 @@ export const SignUp = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validate = (name, value) => {
+  const validate = (name: string, value: string) => {
     if (name === 'password') {
       return value.length < 8 ? 'Password must be at least 8 characters' : '';
     }
@@ -28,11 +29,57 @@ export const SignUp = () => {
     return '';
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     const error = validate(name, value);
     setErrors(prev => ({ ...prev, [name]: error }));
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (errors.email || errors.password || !formData.email || !formData.password || !formData.nickname) {
+      return;
+    }
+
+    setApiError('');
+    setLoading(true);
+
+    try {
+      const result = await signupApi(formData.email, formData.password, formData.nickname);
+      const { accessToken, refreshToken, user } = result.data;
+
+      // Decode JWT to get user info fallback
+      let name = formData.nickname;
+      try {
+        const payload = JSON.parse(atob(accessToken.split('.')[1]));
+        name = payload.name || formData.nickname;
+      } catch (e) {
+        // ignore jwt parse error
+      }
+
+      const userData = {
+        isLoggedIn: true,
+        name: user?.name || name,
+        email: user?.email || formData.email,
+        avatar: user?.avatar || '',
+        accessToken,
+        refreshToken
+      };
+
+      // Save to local storage
+      localStorage.setItem('auth', JSON.stringify(userData));
+
+      // Update Recoil state immediately
+      setUser(userData);
+
+      navigate('/');
+    } catch (err: any) {
+      console.error('Signup error', err);
+      setApiError(err.message || '회원가입에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,13 +90,13 @@ export const SignUp = () => {
           <p className="text-slate-400 text-sm">Join our community of developers.</p>
         </div>
 
-        <form className="space-y-4">
+        <form onSubmit={handleSignup} className="space-y-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-slate-400">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input 
-                type="email" 
+              <input
+                type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
@@ -64,8 +111,8 @@ export const SignUp = () => {
             <label className="text-xs font-medium text-slate-400">Nickname</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 name="nickname"
                 value={formData.nickname}
                 onChange={handleChange}
@@ -79,8 +126,8 @@ export const SignUp = () => {
             <label className="text-xs font-medium text-slate-400">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input 
-                type="password" 
+              <input
+                type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
@@ -88,7 +135,7 @@ export const SignUp = () => {
                 placeholder="••••••••"
               />
             </div>
-            
+
             {/* Password Validation Feedback Area */}
             <div className="grid grid-cols-2 gap-2 mt-2">
               <div className={`text-xs flex items-center gap-1 ${formData.password.length >= 8 ? 'text-emerald-500' : 'text-slate-600'}`}>
@@ -103,24 +150,8 @@ export const SignUp = () => {
           {apiError && <p className="text-sm text-red-400">{apiError}</p>}
 
           <Button
+            type="submit"
             disabled={loading}
-            onClick={async () => {
-              setApiError('');
-              setLoading(true);
-              try {
-                const result = await signupApi(formData.email, formData.password, formData.nickname);
-                const { accessToken, refreshToken } = result.data;
-                const payload = JSON.parse(atob(accessToken.split('.')[1]));
-                const name = payload.name || formData.nickname;
-                localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken, name, email: formData.email }));
-                setUser({ isLoggedIn: true, name, email: formData.email, avatar: name, accessToken, refreshToken });
-                setPage('dashboard');
-              } catch (err: any) {
-                setApiError(err.message || '회원가입에 실패했습니다.');
-              } finally {
-                setLoading(false);
-              }
-            }}
             className="w-full bg-emerald-600 hover:bg-emerald-700 py-2.5 mt-2"
           >
             {loading ? '가입 중...' : 'Sign Up'}
@@ -129,7 +160,7 @@ export const SignUp = () => {
 
         <div className="mt-6 text-center text-sm text-slate-400">
           Already have an account?{' '}
-          <button onClick={() => setPage('login')} className="text-emerald-500 hover:text-emerald-400 font-medium">
+          <button onClick={() => navigate('/login')} className="text-emerald-500 hover:text-emerald-400 font-medium">
             Log In
           </button>
         </div>

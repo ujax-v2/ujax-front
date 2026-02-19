@@ -1,32 +1,31 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Card, Button, Badge } from '../../components/ui/Base';
-import { 
-  Activity, 
-  CheckCircle2, 
-  Clock, 
-  Trophy, 
+import { Card, Button, Badge } from '@/components/ui/Base';
+import {
+  Activity,
+  CheckCircle2,
+  Clock,
+  Trophy,
   MoreHorizontal,
-  Moon,
-  Sun,
   Megaphone,
   HelpCircle,
   TrendingUp
 } from 'lucide-react';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
-import { navigationState, communityTabState, workspacesState, currentWorkspaceState } from '../../store/atoms';
+import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
+import { communityTabState, workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState } from '@/store/atoms';
 
 // Contribution Graph Component
 const ContributionGraph = () => {
   // Simulate data: 52 weeks * 7 days
   const weeks = 20;
   const days = 7;
-  
+
   // State for Tooltip
   const [hoverInfo, setHoverInfo] = useState({ show: false, x: 0, y: 0, count: 0, date: '' });
-  
+
   // Helper to generate a fake date based on indices (just for demo)
-  const getDate = (w, d) => {
+  const getDate = (w: number, d: number) => {
     const date = new Date();
     date.setDate(date.getDate() - ((weeks - w) * 7 + (6 - d)));
     return date.toISOString().split('T')[0];
@@ -34,18 +33,19 @@ const ContributionGraph = () => {
 
   // Random activity level 0-4
   const activityData = useMemo(() => {
-    return Array.from({ length: weeks }).map((_, weekIndex) => 
+    return Array.from({ length: weeks }).map((_, weekIndex) =>
       Array.from({ length: days }).map((_, dayIndex) => {
         const level = Math.random() > 0.7 ? Math.floor(Math.random() * 5) : 0;
         const count = level === 0 ? 0 : level * 2 + Math.floor(Math.random() * 3);
+        // @ts-ignore
         const dateStr = getDate(weekIndex, dayIndex);
         return { level, count, dateStr };
       })
     );
   }, [weeks, days]);
 
-  const getActivityColor = (level) => {
-    switch(level) {
+  const getActivityColor = (level: number) => {
+    switch (level) {
       case 0: return 'bg-slate-800/50';
       case 1: return 'bg-emerald-900/40';
       case 2: return 'bg-emerald-700/60';
@@ -57,13 +57,15 @@ const ContributionGraph = () => {
 
   return (
     <div className="w-full overflow-x-auto pb-2 relative">
-       {/* Floating Tooltip */}
-       {hoverInfo.show && createPortal(
-        <div 
+      {/* Floating Tooltip */}
+      {hoverInfo.show && createPortal(
+        <div
           className="fixed z-[9999] px-3 py-2 bg-slate-800 text-xs text-white rounded shadow-xl border border-slate-700 pointer-events-none transform -translate-x-1/2 -translate-y-full mt-[-8px]"
+          // @ts-ignore
           style={{ left: hoverInfo.x, top: hoverInfo.y }}
         >
           <div className="font-bold text-slate-200">{hoverInfo.count} problems solved</div>
+          {/* @ts-ignore */}
           <div className="text-slate-500">{hoverInfo.date}</div>
           <div className="absolute bottom-[-5px] left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 border-r border-b border-slate-700 transform rotate-45"></div>
         </div>,
@@ -74,21 +76,23 @@ const ContributionGraph = () => {
         {activityData.map((week, weekIndex) => (
           <div key={weekIndex} className="flex flex-col gap-1">
             {week.map((day, dayIndex) => (
-               <div 
-                 key={`${weekIndex}-${dayIndex}`}
-                 className={`w-3 h-3 rounded-sm ${getActivityColor(day.level)} transition-colors hover:ring-1 hover:ring-white/50 cursor-pointer`}
-                 onMouseEnter={(e) => {
-                   const rect = e.target.getBoundingClientRect();
-                   setHoverInfo({
-                     show: true,
-                     x: rect.left + rect.width / 2,
-                     y: rect.top,
-                     count: day.count,
-                     date: day.dateStr
-                   });
-                 }}
-                 onMouseLeave={() => setHoverInfo({ ...hoverInfo, show: false })}
-               />
+              <div
+                key={`${weekIndex}-${dayIndex}`}
+                className={`w-3 h-3 rounded-sm ${getActivityColor(day.level)} transition-colors hover:ring-1 hover:ring-white/50 cursor-pointer`}
+                onMouseEnter={(e) => {
+                  const rect = (e.target as HTMLElement).getBoundingClientRect();
+                  setHoverInfo({
+                    show: true,
+                    x: rect.left + rect.width / 2,
+                    y: rect.top,
+                    // @ts-ignore
+                    count: day.count,
+                    // @ts-ignore
+                    date: day.dateStr // Use dateStr here instead of count
+                  });
+                }}
+                onMouseLeave={() => setHoverInfo({ ...hoverInfo, show: false })}
+              />
             ))}
           </div>
         ))}
@@ -107,14 +111,33 @@ const ContributionGraph = () => {
 };
 
 export const Dashboard = () => {
-  const setPage = useSetRecoilState(navigationState);
+  const { navigate, toWs } = useWorkspaceNavigate();
   const setCommunityTab = useSetRecoilState(communityTabState);
   const workspaces = useRecoilValue(workspacesState);
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
   const setWorkspaces = useSetRecoilState(workspacesState);
   const setCurrentWorkspaceId = useSetRecoilState(currentWorkspaceState);
+  const setCreateWorkspaceOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
 
-  const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId) || workspaces[0];
+  const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
+
+  if (!currentWorkspace) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-[#0F1117] text-slate-400 p-8">
+        <div className="text-center space-y-4">
+          <p className="text-lg">선택된 워크스페이스가 없습니다.</p>
+          <Button onClick={() => setCreateWorkspaceOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            새 워크스페이스 생성하기
+          </Button>
+          <div className="mt-4">
+            <Button variant="ghost" onClick={() => navigate('/explore')} className="text-slate-500 hover:text-slate-300">
+              워크스페이스 탐색하기
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const notices = [
     { id: 1, title: '시스템 점검 안내 (02/10 02:00 ~ 04:00)', date: '2024.02.08', author: 'Admin' },
@@ -125,7 +148,7 @@ export const Dashboard = () => {
   return (
     <div className="flex-1 overflow-y-auto bg-[#0F1117] p-8 pb-24 relative">
       <div className="max-w-7xl mx-auto space-y-8">
-        
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -133,9 +156,7 @@ export const Dashboard = () => {
             <p className="text-slate-400 mt-1">오늘도 즐거운 코딩 되세요!</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-yellow-400 transition-colors">
-              <Sun className="w-5 h-5" />
-            </button>
+            {/* 테마 토글은 기능 구현 후 추가 예정 */}
           </div>
         </div>
 
@@ -153,7 +174,7 @@ export const Dashboard = () => {
                   <div className="text-slate-400">Avg Accuracy: <span className="text-slate-200 font-bold">87%</span></div>
                 </div>
               </div>
-              
+
               <ContributionGraph />
             </Card>
 
@@ -202,10 +223,10 @@ export const Dashboard = () => {
                 ))}
               </div>
               <div className="p-3 border-t border-slate-800 text-center">
-                 <button 
+                <button
                   onClick={() => {
                     setCommunityTab('notices');
-                    setPage('community');
+                    toWs('community');
                   }}
                   className="text-xs text-slate-400 hover:text-emerald-500 font-medium"
                 >

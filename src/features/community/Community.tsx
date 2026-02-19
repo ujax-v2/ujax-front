@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useRecoilState } from 'recoil';
-import { communityTabState } from '../../store/atoms';
-import { Button, Badge } from '../../components/ui/Base';
-import { 
+import { communityTabState } from '@/store/atoms';
+import { Button, Badge } from '@/components/ui/Base';
+import {
   MessageCircle,
   Megaphone,
   PenSquare,
@@ -26,7 +26,7 @@ const FreeBoard = () => {
             <h2 className="text-xl font-bold text-slate-100">자유 게시판</h2>
             <p className="text-slate-400 text-sm mt-1">자유롭게 이야기를 나누어 보세요.</p>
           </div>
-          <Button className="bg-emerald-600 hover:bg-emerald-700 gap-2">
+          <Button className="bg-emerald-600 hover:bg-emerald-700 gap-2" onClick={() => alert('글쓰기 기능은 준비 중입니다.')}>
             <PenSquare className="w-4 h-4" /> 글쓰기
           </Button>
         </div>
@@ -85,8 +85,8 @@ const NoticeBoard = () => {
 
         <div className="space-y-4">
           {notices.map(notice => (
-            <div 
-              key={notice.id} 
+            <div
+              key={notice.id}
               className="p-6 bg-slate-900/50 border border-slate-800 rounded-xl hover:border-emerald-500/50 hover:bg-slate-800/50 transition-all cursor-pointer"
             >
               <div className="flex items-center gap-2 mb-2">
@@ -124,11 +124,10 @@ export const Community = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                activeTab === tab.id
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all ${activeTab === tab.id
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-              }`}
+                }`}
             >
               <tab.icon className="w-4 h-4" />
               {tab.label}
