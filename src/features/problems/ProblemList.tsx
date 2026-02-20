@@ -12,9 +12,9 @@ export const ProblemList = () => {
 
   // Mock data for Boxes
   const [boxes, setBoxes] = useState([
-    { id: 1, title: '코딩테스트 기초 100제', count: 15, category: 'Basic', color: 'bg-emerald-500' },
-    { id: 2, title: '삼성 SW 역량 테스트 기출', count: 8, category: 'Advanced', color: 'bg-blue-500' },
-    { id: 3, title: '카카오 블라인드 2024', count: 5, category: 'Intermediate', color: 'bg-yellow-500' },
+    { id: 1, title: '코딩테스트 기초 100제', count: 15, category: '기초', color: 'bg-emerald-500' },
+    { id: 2, title: '삼성 SW 역량 테스트 기출', count: 8, category: '심화', color: 'bg-blue-500' },
+    { id: 3, title: '카카오 블라인드 2024', count: 5, category: '중급', color: 'bg-yellow-500' },
   ]);
 
   // Mock data for problems inside a box
@@ -38,7 +38,7 @@ export const ProblemList = () => {
   };
 
   // Create Box Form State
-  const [newBox, setNewBox] = useState({ title: '', category: 'Algorithm' });
+  const [newBox, setNewBox] = useState({ title: '', category: '알고리즘' });
 
   const handleCreateBox = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +51,7 @@ export const ProblemList = () => {
     };
     setBoxes([...boxes, box]);
     setIsModalOpen(false);
-    setNewBox({ title: '', category: 'Algorithm' });
+    setNewBox({ title: '', category: '알고리즘' });
   };
 
   // View: Problem Box List
@@ -125,7 +125,7 @@ export const ProblemList = () => {
                 onChange={(e) => setNewBox({ ...newBox, category: e.target.value })}
                 className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500"
               >
-                <option value="Algorithm">알고리즘</option>
+                <option value="알고리즘">알고리즘</option>
                 <option value="Interview">면접 대비</option>
                 <option value="CS">CS 지식</option>
                 <option value="Language">언어 학습</option>
@@ -215,7 +215,7 @@ export const ProblemList = () => {
                   </div>
                   <div className="text-center">
                     {problem.solved ? (
-                      <span className="text-emerald-500 text-xs font-bold">Solved</span>
+                      <span className="text-emerald-500 text-xs font-bold">해결됨</span>
                     ) : (
                       <span className="text-slate-600 text-xs">-</span>
                     )}
