@@ -29,7 +29,7 @@ const mockProblems = [
 
 // Contribution Graph Component
 const ContributionGraph = () => {
-  const weeks = 20;
+  const weeks = 39;
   const days = 7;
 
   const [hoverInfo, setHoverInfo] = useState({ show: false, x: 0, y: 0, count: 0, date: '' });
@@ -77,7 +77,7 @@ const ContributionGraph = () => {
         document.body
       )}
 
-      <div className="flex gap-[4px] min-w-fit">
+      <div className="flex w-full justify-between min-w-fit">
         {activityData.map((week, weekIndex) => (
           <div key={weekIndex} className="flex flex-col gap-[4px]">
             {week.map((day, dayIndex) => (
@@ -178,7 +178,7 @@ export const Dashboard = () => {
           {/* 랭킹 */}
           <section className="col-span-1 md:col-span-1">
             <Card
-              className="bg-[#151922] border-slate-800 p-4 cursor-pointer hover:border-slate-600 transition-colors h-full flex flex-col justify-center min-h-[170px]"
+              className="bg-[#151922] border-slate-800 p-4 cursor-pointer hover:border-slate-600 transition-colors h-full flex flex-col justify-center min-h-[130px]"
               onClick={() => setIsRankingModalOpen(true)}
             >
               <div className="space-y-3">
@@ -202,46 +202,46 @@ export const Dashboard = () => {
 
           {/* 참석율 */}
           <section className="col-span-1 md:col-span-1">
-            <Card className="bg-[#151922] border-slate-800 p-6 h-full flex flex-col justify-center relative min-h-[170px]">
+            <Card className="bg-[#151922] border-slate-800 p-5 h-full flex flex-col justify-center relative min-h-[130px]">
               <h3 className="text-sm text-slate-400 mb-2">참석율</h3>
-              <div className="text-4xl font-extrabold text-white tracking-tight mb-2">92%</div>
+              <div className="text-3xl font-extrabold text-white tracking-tight mb-1">92%</div>
               <p className="text-xs text-slate-500 mt-auto">직전 4주 기준</p>
             </Card>
           </section>
 
           {/* 정답율 */}
           <section className="col-span-1 md:col-span-1">
-            <Card className="bg-[#151922] border-slate-800 p-6 h-full flex flex-col justify-center relative min-h-[170px]">
+            <Card className="bg-[#151922] border-slate-800 p-5 h-full flex flex-col justify-center relative min-h-[130px]">
               <h3 className="text-sm text-slate-400 mb-2">정답율</h3>
-              <div className="text-4xl font-extrabold text-white tracking-tight mb-2">68%</div>
+              <div className="text-3xl font-extrabold text-white tracking-tight mb-1">68%</div>
               <p className="text-xs text-slate-500 mt-auto">제출 기준</p>
             </Card>
           </section>
 
           {/* 총 푼 문제 */}
           <section className="col-span-1 md:col-span-1">
-            <Card className="bg-[#151922] border-slate-800 p-6 h-full flex flex-col relative min-h-[170px]">
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-2.5 bg-emerald-500/10 rounded-lg">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+            <Card className="bg-[#151922] border-slate-800 p-5 h-full flex flex-col relative min-h-[130px]">
+              <div className="flex justify-between items-start mb-3">
+                <div className="p-2 bg-emerald-500/10 rounded-lg">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                 </div>
-                <Badge variant="success" className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">+12%</Badge>
+                <Badge variant="success" className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]">+12%</Badge>
               </div>
-              <div className="text-3xl font-bold text-white mb-1">1,284</div>
+              <div className="text-2xl font-bold text-white mb-1">1,284</div>
               <div className="text-xs text-slate-400 mt-auto">총 해결 문제</div>
             </Card>
           </section>
 
           {/* 총 코딩 시간 */}
           <section className="col-span-1 md:col-span-1">
-            <Card className="bg-[#151922] border-slate-800 p-6 h-full flex flex-col relative min-h-[170px]">
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-2.5 bg-blue-500/10 rounded-lg">
-                  <Clock className="w-5 h-5 text-blue-500" />
+            <Card className="bg-[#151922] border-slate-800 p-5 h-full flex flex-col relative min-h-[130px]">
+              <div className="flex justify-between items-start mb-3">
+                <div className="p-2 bg-blue-500/10 rounded-lg">
+                  <Clock className="w-4 h-4 text-blue-500" />
                 </div>
-                <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border border-blue-500/20">Active</Badge>
+                <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px]">Active</Badge>
               </div>
-              <div className="text-3xl font-bold text-white mb-1">24h<span className="text-xl ml-1 text-slate-400">12m</span></div>
+              <div className="text-2xl font-bold text-white mb-1">24h<span className="text-lg ml-1 text-slate-400">12m</span></div>
               <div className="text-xs text-slate-400 mt-auto">총 코딩 시간</div>
             </Card>
           </section>
