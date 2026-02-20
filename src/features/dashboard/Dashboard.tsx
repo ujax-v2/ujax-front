@@ -253,7 +253,7 @@ export const Dashboard = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-slate-200">팀 전체 활동</h2>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             <Card className="bg-[#151922] border-slate-800 p-4 lg:col-span-3 w-full overflow-hidden flex items-center justify-center">
               <ContributionGraph />
             </Card>
@@ -265,6 +265,18 @@ export const Dashboard = () => {
               <Card className="bg-[#151922] border-slate-800 p-5 flex-1 flex flex-col justify-center min-h-[100px]">
                 <h3 className="text-sm text-slate-400 mb-2">평균 정답률</h3>
                 <div className="text-2xl font-bold text-emerald-400">87<span className="text-sm ml-1 text-emerald-500/50 font-normal">%</span></div>
+              </Card>
+            </div>
+            <div className="flex flex-col gap-4 lg:col-span-1">
+              <Card className="bg-[#151922] border-slate-800 p-5 flex-1 flex flex-col justify-center min-h-[100px]">
+                <h3 className="text-xs text-slate-400 mb-1">가장 많은 풀이</h3>
+                <div className="text-base font-bold text-slate-100 line-clamp-1">숨바꼭질</div>
+                <div className="text-xs text-indigo-400 mt-1">14명 성공</div>
+              </Card>
+              <Card className="bg-[#151922] border-slate-800 p-5 flex-1 flex flex-col justify-center min-h-[100px]">
+                <h3 className="text-xs text-slate-400 mb-1">최저 정답률</h3>
+                <div className="text-base font-bold text-slate-100 line-clamp-1">미로 탐색</div>
+                <div className="text-xs text-rose-400 mt-1">정답률 12%</div>
               </Card>
             </div>
           </div>
