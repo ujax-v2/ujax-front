@@ -145,11 +145,11 @@ export const Dashboard = () => {
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#0B0E14] p-8 pb-8 relative font-sans text-slate-100">
-      <div className="max-w-6xl mx-auto space-y-5">
+      <div className="max-w-6xl mx-auto space-y-4">
 
         {/* 공지 섹션 */}
         <section>
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-3">
             <h2 className="text-lg font-bold text-slate-200">공지</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -249,8 +249,8 @@ export const Dashboard = () => {
         </div>
 
         {/* 잔디 (Contribution Graph) 섹션 */}
-        <section className="pt-2">
-          <div className="flex justify-between items-center mb-4">
+        <section>
+          <div className="flex justify-between items-center mb-3">
             <h2 className="text-lg font-bold text-slate-200">팀 전체 활동</h2>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -284,7 +284,7 @@ export const Dashboard = () => {
 
         {/* 이번 주 문제 섹션 */}
         <section>
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-3">
             <h2 className="text-lg font-bold text-slate-200">이번 주 문제</h2>
             <div className="flex gap-2">
               <button
