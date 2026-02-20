@@ -82,13 +82,13 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
     <div className="min-h-screen flex items-center justify-center bg-[#0F1117] p-4">
       <Card className="w-full max-w-md p-8 bg-[#141820] border-slate-800">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-slate-100 mb-2">Welcome Back</h1>
+          <h1 className="text-2xl font-bold text-slate-100 mb-2">로그인</h1>
           <p className="text-slate-400 text-sm">알고리즘 문제 풀이 플랫폼에 오신 것을 환영합니다.</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-400">Email</label>
+            <label className="text-xs font-medium text-slate-400">이메일</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
@@ -102,7 +102,7 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-400">Password</label>
+            <label className="text-xs font-medium text-slate-400">비밀번호</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
@@ -120,13 +120,13 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
           )}
 
           <Button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 py-2.5">
-            {loading ? '로그인 중...' : 'Log In'}
+            {loading ? '로그인 중...' : '로그인'}
           </Button>
         </form>
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-800"></div></div>
-          <div className="relative flex justify-center text-xs uppercase"><span className="bg-[#141820] px-2 text-slate-500">Or continue with</span></div>
+          <div className="relative flex justify-center text-xs uppercase"><span className="bg-[#141820] px-2 text-slate-500">또는 소셜 계정으로 로그인</span></div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -145,9 +145,9 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
         </div>
 
         <div className="mt-6 text-center text-sm text-slate-400">
-          Don't have an account?{' '}
+          계정이 없으신가요?{' '}
           <button onClick={() => navigate('/signup')} className="text-emerald-500 hover:text-emerald-400 font-medium">
-            Sign Up
+            회원가입
           </button>
         </div>
       </Card>

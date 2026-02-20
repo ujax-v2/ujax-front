@@ -64,7 +64,7 @@ const ContributionGraph = () => {
           // @ts-ignore
           style={{ left: hoverInfo.x, top: hoverInfo.y }}
         >
-          <div className="font-bold text-slate-200">{hoverInfo.count} problems solved</div>
+          <div className="font-bold text-slate-200">{hoverInfo.count} 문제 해결</div>
           {/* @ts-ignore */}
           <div className="text-slate-500">{hoverInfo.date}</div>
           <div className="absolute bottom-[-5px] left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 border-r border-b border-slate-700 transform rotate-45"></div>
@@ -98,13 +98,13 @@ const ContributionGraph = () => {
         ))}
       </div>
       <div className="flex items-center gap-2 mt-2 text-[10px] text-slate-500 justify-end">
-        <span>Less</span>
+        <span>적음</span>
         <div className="w-2 h-2 bg-slate-800/50 rounded-sm"></div>
         <div className="w-2 h-2 bg-emerald-900/40 rounded-sm"></div>
         <div className="w-2 h-2 bg-emerald-700/60 rounded-sm"></div>
         <div className="w-2 h-2 bg-emerald-500 rounded-sm"></div>
         <div className="w-2 h-2 bg-emerald-400 rounded-sm"></div>
-        <span>More</span>
+        <span>많은</span>
       </div>
     </div>
   );
@@ -167,11 +167,11 @@ export const Dashboard = () => {
             <Card className="p-6 bg-[#141820] border-slate-800">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-emerald-500" /> Team Activity
+                  <Activity className="w-5 h-5 text-emerald-500" /> 팀 활동 내역
                 </h3>
                 <div className="flex gap-4 text-sm">
-                  <div className="text-slate-400">Weekly Solved: <span className="text-slate-200 font-bold">42</span></div>
-                  <div className="text-slate-400">Avg Accuracy: <span className="text-slate-200 font-bold">87%</span></div>
+                  <div className="text-slate-400">주간 해결 수: <span className="text-slate-200 font-bold">42</span></div>
+                  <div className="text-slate-400">평균 정답률: <span className="text-slate-200 font-bold">87%</span></div>
                 </div>
               </div>
 
@@ -187,7 +187,7 @@ export const Dashboard = () => {
                   <Badge variant="success">+12%</Badge>
                 </div>
                 <div className="text-2xl font-bold text-slate-100 mb-1">1,284</div>
-                <div className="text-sm text-slate-400">Total Solved Problems</div>
+                <div className="text-sm text-slate-400">총 해결 문제</div>
               </Card>
 
               <Card className="p-6 bg-[#141820] border-slate-800">
@@ -198,7 +198,7 @@ export const Dashboard = () => {
                   <Badge variant="secondary">Active</Badge>
                 </div>
                 <div className="text-2xl font-bold text-slate-100 mb-1">24h 12m</div>
-                <div className="text-sm text-slate-400">Total Coding Time</div>
+                <div className="text-sm text-slate-400">총 코딩 시간</div>
               </Card>
             </div>
           </div>
@@ -230,7 +230,7 @@ export const Dashboard = () => {
                   }}
                   className="text-xs text-slate-400 hover:text-emerald-500 font-medium"
                 >
-                  View All
+                  전체 보기
                 </button>
               </div>
             </Card>

@@ -23,10 +23,10 @@ export const SignUp = () => {
 
   const validate = (name: string, value: string) => {
     if (name === 'password') {
-      return value.length < 8 ? 'Password must be at least 8 characters' : '';
+      return value.length < 8 ? '비밀번호는 8자 이상이어야 합니다' : '';
     }
     if (name === 'email') {
-      return !value.includes('@') ? 'Invalid email address' : '';
+      return !value.includes('@') ? '유효하지 않은 이메일 주소입니다' : '';
     }
     return '';
   };
@@ -95,13 +95,13 @@ export const SignUp = () => {
     <div className="min-h-screen flex items-center justify-center bg-[#0F1117] p-4">
       <Card className="w-full max-w-md p-8 bg-[#141820] border-slate-800">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-slate-100 mb-2">Create Account</h1>
-          <p className="text-slate-400 text-sm">Join our community of developers.</p>
+          <h1 className="text-2xl font-bold text-slate-100 mb-2">회원가입</h1>
+          <p className="text-slate-400 text-sm">개발자 커뮤니티에 참여하세요.</p>
         </div>
 
         <form onSubmit={handleSignup} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-400">Email</label>
+            <label className="text-xs font-medium text-slate-400">이메일</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
@@ -117,7 +117,7 @@ export const SignUp = () => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-400">Nickname</label>
+            <label className="text-xs font-medium text-slate-400">닉네임</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
@@ -132,7 +132,7 @@ export const SignUp = () => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-400">Password</label>
+            <label className="text-xs font-medium text-slate-400">비밀번호</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
@@ -148,10 +148,10 @@ export const SignUp = () => {
             {/* Password Validation Feedback Area */}
             <div className="grid grid-cols-2 gap-2 mt-2">
               <div className={`text-xs flex items-center gap-1 ${formData.password.length >= 8 ? 'text-emerald-500' : 'text-slate-600'}`}>
-                <CheckCircle2 className="w-3 h-3" /> 8+ Characters
+                <CheckCircle2 className="w-3 h-3" /> 8자 이상
               </div>
               <div className={`text-xs flex items-center gap-1 ${/[0-9]/.test(formData.password) ? 'text-emerald-500' : 'text-slate-600'}`}>
-                <CheckCircle2 className="w-3 h-3" /> Number
+                <CheckCircle2 className="w-3 h-3" /> 숫자 포함
               </div>
             </div>
           </div>
@@ -163,14 +163,14 @@ export const SignUp = () => {
             disabled={loading}
             className="w-full bg-emerald-600 hover:bg-emerald-700 py-2.5 mt-2"
           >
-            {loading ? '가입 중...' : 'Sign Up'}
+            {loading ? '가입 중...' : '가입하기'}
           </Button>
         </form>
 
         <div className="mt-6 text-center text-sm text-slate-400">
-          Already have an account?{' '}
+          이미 계정이 있으신가요?{' '}
           <button onClick={() => navigate('/login')} className="text-emerald-500 hover:text-emerald-400 font-medium">
-            Log In
+            로그인
           </button>
         </div>
       </Card>

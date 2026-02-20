@@ -147,10 +147,10 @@ export const Home = () => {
                         ) : (
                             <>
                                 <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={() => navigate('/login')}>
-                                    Log In
+                                    로그인
                                 </Button>
                                 <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => navigate('/signup')}>
-                                    Sign Up
+                                    회원가입
                                 </Button>
                             </>
                         )}
@@ -165,7 +165,7 @@ export const Home = () => {
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/10 rounded-full blur-3xl -z-10 animate-pulse" />
 
                     <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                        Code Together.<br />Grow Together.
+                        함께 코딩하고,<br />함께 성장하세요.
                     </h1>
                     <p className="text-lg md:text-xl text-slate-400 max-w-2xl mb-10 leading-relaxed">
                         실시간 알고리즘 스터디 플랫폼 UJAX에서<br className="hidden md:block" />
@@ -243,7 +243,7 @@ export const Home = () => {
                 {/* Features Section */}
                 <section className="pt-10 pb-20 bg-[#0F1117]">
                     <div className="max-w-7xl mx-auto px-6">
-                        <h2 className="text-3xl font-bold text-center mb-16">Why UJAX?</h2>
+                        <h2 className="text-3xl font-bold text-center mb-16">UJAX의 특징</h2>
 
                         <div className="grid md:grid-cols-3 gap-8">
                             <Card className="p-8 bg-[#141820] border-slate-800 hover:border-indigo-500/50 transition-colors group">
