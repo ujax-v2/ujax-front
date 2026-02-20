@@ -54,7 +54,7 @@ export const Home = () => {
             try {
                 const res = await getWorkspaces();
                 if (cancelled) return;
-                const items = (res.items ?? []).map(w => ({
+                const items = (res.items ?? []).map((w: any) => ({
                     id: w.id!,
                     name: w.name!,
                     description: w.description ?? null,
@@ -94,7 +94,7 @@ export const Home = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0F1117] text-white flex flex-col">
+        <div className="h-full overflow-y-auto overflow-x-hidden scroll-smooth bg-[#0F1117] text-white flex flex-col relative" id="home-scroll-container">
             {/* Navbar */}
             <nav className="border-b border-slate-800 bg-[#141820]/80 backdrop-blur-md sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -160,11 +160,11 @@ export const Home = () => {
 
             <main className="flex-1 flex flex-col">
                 {/* Hero Section */}
-                <section className="flex-1 flex flex-col items-center justify-center text-center px-6 pt-20 pb-0 relative overflow-hidden">
+                <section id="hero" className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center text-center px-6 relative overflow-hidden shrink-0">
                     {/* Background Gradients */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/10 rounded-full blur-3xl -z-10 animate-pulse" />
 
-                    <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                    <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 mt-[-4rem]">
                         함께 코딩하고,<br />함께 성장하세요.
                     </h1>
                     <p className="text-lg md:text-xl text-slate-400 max-w-2xl mb-10 leading-relaxed">
@@ -172,7 +172,7 @@ export const Home = () => {
                         팀원들과 함께 코드를 리뷰하고 성장하세요.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 mb-12">
+                    <div className="flex flex-col sm:flex-row gap-4 mb-4 z-10">
                         {user.isLoggedIn ? (
                             <Button
                                 className="h-12 px-8 text-lg bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-900/20"
@@ -190,15 +190,94 @@ export const Home = () => {
                             </Button>
                         )}
                     </div>
+
+                    {/* 스크롤 화살표 */}
+                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 mx-auto animate-bounce z-20">
+                        <button
+                            onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                            className="p-3 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white"
+                        >
+                            <ChevronDown className="w-6 h-6" />
+                        </button>
+                    </div>
                 </section>
 
-                {/* ═══ 요구사항 2: 글로벌 워크스페이스 탐색 섹션 ═══ */}
-                <section className="py-16 bg-[#0a0d13]">
-                    <div className="max-w-3xl mx-auto px-6 text-center">
-                        <h2 className="text-2xl md:text-3xl font-bold text-slate-100 mb-3">
+                {/* ═══ Features Section (두 번째 섹션) ═══ */}
+                <section id="features" className="min-h-screen pt-24 pb-32 bg-[#0F1117] flex flex-col justify-center relative overflow-hidden shrink-0">
+                    <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent opacity-50"></div>
+                    <div className="max-w-7xl mx-auto px-6 relative z-10 w-full mb-12">
+                        <div className="text-center mb-16 mt-[-2rem]">
+                            <h2 className="text-4xl lg:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-slate-400">
+                                왜 UJAX인가요?
+                            </h2>
+                            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+                                성장에 필요한 모든 것을 담았습니다. 압도적인 몰입감과 실용성을 바탕으로 알고리즘 스터디의 새로운 표준을 제시합니다.
+                            </p>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-8">
+                            {/* Card 1 */}
+                            <div className="group relative p-[1px] rounded-2xl bg-gradient-to-b from-slate-800 to-slate-900 hover:from-indigo-500 hover:to-purple-500 transition-all duration-500 hover:-translate-y-2 shadow-xl hover:shadow-indigo-500/25">
+                                <div className="relative h-full bg-[#141820] p-8 rounded-2xl flex flex-col items-start overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-indigo-500/30 transition-colors duration-500"></div>
+                                    <div className="w-14 h-14 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-indigo-500/20">
+                                        <Layout className="w-7 h-7 text-indigo-400 group-hover:text-indigo-300" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-4 text-slate-100 group-hover:text-white transition-colors">독립된 워크스페이스</h3>
+                                    <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">
+                                        스터디별로 완벽히 분리된 팀 공간을 제공합니다. 멤버 초대부터 문제집 공유, 공지사항 관리까지 스터디 운영이 한결 쉬워집니다.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Card 2 */}
+                            <div className="group relative p-[1px] rounded-2xl bg-gradient-to-b from-slate-800 to-slate-900 hover:from-emerald-500 hover:to-teal-500 transition-all duration-500 hover:-translate-y-2 shadow-xl hover:shadow-emerald-500/25">
+                                <div className="relative h-full bg-[#141820] p-8 rounded-2xl flex flex-col items-start overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-emerald-500/30 transition-colors duration-500"></div>
+                                    <div className="w-14 h-14 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-emerald-500/20">
+                                        <Code2 className="w-7 h-7 text-emerald-400 group-hover:text-emerald-300" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-4 text-slate-100 group-hover:text-white transition-colors">강력한 브라우저 IDE</h3>
+                                    <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">
+                                        번거로운 환경 설정 없이 브라우저에서 즉시 코딩을 시작하세요. 다크 테마, 문법 강조 및 코드 자동 완성을 지원하는 편집기를 경험할 수 있습니다.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Card 3 */}
+                            <div className="group relative p-[1px] rounded-2xl bg-gradient-to-b from-slate-800 to-slate-900 hover:from-purple-500 hover:to-pink-500 transition-all duration-500 hover:-translate-y-2 shadow-xl hover:shadow-purple-500/25">
+                                <div className="relative h-full bg-[#141820] p-8 rounded-2xl flex flex-col items-start overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-purple-500/30 transition-colors duration-500"></div>
+                                    <div className="w-14 h-14 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-purple-500/20">
+                                        <Monitor className="w-7 h-7 text-purple-400 group-hover:text-purple-300" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-4 text-slate-100 group-hover:text-white transition-colors">실시간 코드 피드백</h3>
+                                    <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">
+                                        문제 풀이 결과를 투명하게 공유하고 동료들과 의견을 나눕니다. 집단 지성을 통한 코드 리뷰로 더 우수하고 효율적인 최적의 알고리즘을 발견하세요.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 스크롤 화살표 */}
+                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 mx-auto animate-bounce z-20">
+                        <button
+                            onClick={() => document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' })}
+                            className="p-3 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white"
+                        >
+                            <ChevronDown className="w-6 h-6" />
+                        </button>
+                    </div>
+                </section>
+
+                {/* ═══ 탐색 섹션 (마지막 섹션) ═══ */}
+                <section id="explore" className="min-h-screen py-16 bg-[#0a0d13] flex flex-col justify-center shrink-0 relative">
+                    <div className="max-w-3xl mx-auto px-6 text-center w-full mt-[-2rem]">
+                        <h2 className="text-3xl md:text-4xl font-bold text-slate-100 mb-4">
                             워크스페이스 탐색
                         </h2>
-                        <p className="text-slate-400 mb-8">
+                        <p className="text-lg text-slate-400 mb-10">
                             공개 스터디를 찾아 참여하세요. 같은 목표를 가진 동료들과 함께 성장할 수 있습니다.
                         </p>
 
@@ -211,70 +290,32 @@ export const Home = () => {
                                     value={exploreQuery}
                                     onChange={(e) => setExploreQuery(e.target.value)}
                                     placeholder="스터디 이름, 태그 검색..."
-                                    className="w-full h-12 bg-[#141820] border border-slate-700 rounded-xl pl-12 pr-4 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                                    className="w-full h-14 bg-[#141820] border border-slate-700 rounded-xl pl-12 pr-4 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors shadow-lg"
                                 />
                             </div>
                             <Button
                                 type="submit"
-                                className="h-12 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+                                className="h-14 px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-lg"
                             >
                                 검색
                             </Button>
                         </form>
 
                         {/* 인기 태그 */}
-                        <div className="flex flex-wrap gap-2 justify-center mt-5">
+                        <div className="flex flex-wrap gap-3 justify-center mt-8 cursor-pointer">
                             {['알고리즘', 'SSAFY', '코테대비', 'LeetCode', '대회준비'].map(tag => (
                                 <button
                                     key={tag}
+                                    type="button"
                                     onClick={() => {
                                         setExploreQuery(tag);
                                         navigate(`/explore?q=${encodeURIComponent(tag)}`);
                                     }}
-                                    className="px-3 py-1 text-xs rounded-full bg-slate-800 text-slate-400 border border-slate-700 hover:border-indigo-500/50 hover:text-indigo-400 transition-colors"
+                                    className="px-4 py-2 text-sm rounded-full bg-slate-800 text-slate-400 border border-slate-700 hover:border-indigo-500/50 hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
                                 >
                                     #{tag}
                                 </button>
                             ))}
-                        </div>
-                    </div>
-                </section>
-
-                {/* Features Section */}
-                <section className="pt-10 pb-20 bg-[#0F1117]">
-                    <div className="max-w-7xl mx-auto px-6">
-                        <h2 className="text-3xl font-bold text-center mb-16">UJAX의 특징</h2>
-
-                        <div className="grid md:grid-cols-3 gap-8">
-                            <Card className="p-8 bg-[#141820] border-slate-800 hover:border-indigo-500/50 transition-colors group">
-                                <div className="w-12 h-12 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-6 group-hover:bg-indigo-500/20 transition-colors">
-                                    <Layout className="w-6 h-6 text-indigo-500" />
-                                </div>
-                                <h3 className="text-xl font-bold mb-3 text-slate-100">워크스페이스 기반</h3>
-                                <p className="text-slate-400 leading-relaxed">
-                                    스터디 그룹별로 독립된 공간을 제공합니다. 멤버 초대, 권한 관리, 공지사항 등 스터디 운영에 필요한 모든 기능을 지원합니다.
-                                </p>
-                            </Card>
-
-                            <Card className="p-8 bg-[#141820] border-slate-800 hover:border-emerald-500/50 transition-colors group">
-                                <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-6 group-hover:bg-emerald-500/20 transition-colors">
-                                    <Code2 className="w-6 h-6 text-emerald-500" />
-                                </div>
-                                <h3 className="text-xl font-bold mb-3 text-slate-100">강력한 IDE</h3>
-                                <p className="text-slate-400 leading-relaxed">
-                                    설치 없이 브라우저에서 바로 코딩하세요. 다양한 언어 지원과 실시간 실행 결과를 제공하는 웹 IDE가 내장되어 있습니다.
-                                </p>
-                            </Card>
-
-                            <Card className="p-8 bg-[#141820] border-slate-800 hover:border-purple-500/50 transition-colors group">
-                                <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center mb-6 group-hover:bg-purple-500/20 transition-colors">
-                                    <Monitor className="w-6 h-6 text-purple-500" />
-                                </div>
-                                <h3 className="text-xl font-bold mb-3 text-slate-100">실시간 피드백</h3>
-                                <p className="text-slate-400 leading-relaxed">
-                                    작성한 코드에 대해 즉각적인 피드백을 주고받으세요. 코드 리뷰 기능을 통해 더 나은 알고리즘 해결책을 찾아갈 수 있습니다.
-                                </p>
-                            </Card>
                         </div>
                     </div>
                 </section>
