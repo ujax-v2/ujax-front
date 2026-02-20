@@ -254,17 +254,17 @@ export const Dashboard = () => {
             <h2 className="text-lg font-bold text-slate-200">팀 전체 활동</h2>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <Card className="bg-[#151922] border-slate-800 p-6 lg:col-span-3 w-full overflow-hidden flex items-center justify-center">
+            <Card className="bg-[#151922] border-slate-800 p-4 lg:col-span-3 w-full overflow-hidden flex items-center justify-center">
               <ContributionGraph />
             </Card>
             <div className="flex flex-col gap-4 lg:col-span-1">
-              <Card className="bg-[#151922] border-slate-800 p-6 flex-1 flex flex-col justify-center">
+              <Card className="bg-[#151922] border-slate-800 p-5 flex-1 flex flex-col justify-center min-h-[100px]">
                 <h3 className="text-sm text-slate-400 mb-2">이번 달 해결</h3>
-                <div className="text-3xl font-bold text-white">42<span className="text-sm ml-1 text-slate-500 font-normal">문제</span></div>
+                <div className="text-2xl font-bold text-white">42<span className="text-xs ml-1 text-slate-500 font-normal">문제</span></div>
               </Card>
-              <Card className="bg-[#151922] border-slate-800 p-6 flex-1 flex flex-col justify-center">
+              <Card className="bg-[#151922] border-slate-800 p-5 flex-1 flex flex-col justify-center min-h-[100px]">
                 <h3 className="text-sm text-slate-400 mb-2">평균 정답률</h3>
-                <div className="text-3xl font-bold text-emerald-400">87<span className="text-base ml-1 text-emerald-500/50 font-normal">%</span></div>
+                <div className="text-2xl font-bold text-emerald-400">87<span className="text-sm ml-1 text-emerald-500/50 font-normal">%</span></div>
               </Card>
             </div>
           </div>
