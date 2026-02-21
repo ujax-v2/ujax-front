@@ -136,6 +136,7 @@ export const Profile = () => {
           </div>
         </div>
 
+        {/* ROW 1: 내 정보 상세 & 활동 지표 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 1. 내 정보 상세 (좌측 1단) */}
           <Card className="bg-[#151922] border-slate-800 p-6 relative flex flex-col lg:col-span-1">
@@ -160,115 +161,112 @@ export const Profile = () => {
             </div>
           </Card>
 
-          {/* 우측 2단 영역 (활동 지표 + 새로운 지표) */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
-            {/* 2. 활동 지표 (가로 배치) */}
-            <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col justify-center">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-base font-bold text-slate-200">활동 지표</h2>
-                <span className="text-[10px] text-slate-500">EXP & 정답률</span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                {/* Left: EXP Progress */}
-                <div className="bg-[#1b202c] p-4 rounded-xl border border-slate-800 h-full flex flex-col justify-center">
-                  <h3 className="text-xs font-bold text-slate-300 mb-3">경험치 진행률</h3>
-                  <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden mb-2">
-                    <div
-                      className="h-full bg-indigo-500 rounded-full"
-                      style={{ width: `${(user.xp / user.maxXp) * 100}%` }}
-                    ></div>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px] text-slate-400">
-                    <span>{user.xp} / {user.maxXp} XP</span>
-                    <span>{Math.round((user.xp / user.maxXp) * 100)}%</span>
-                  </div>
-                </div>
-
-                {/* Right: Accuracy Donut Chart */}
-                <div className="flex items-center justify-center relative h-[100px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={chartData}
-                        innerRadius={35}
-                        outerRadius={48}
-                        cornerRadius={4}
-                        paddingAngle={2}
-                        dataKey="value"
-                        stroke="none"
-                      >
-                        {chartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-lg font-extrabold text-white">{user.accuracy}%</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* 새로운 섹션: 주력 알고리즘 & 사용 언어 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
-              {/* 주력 알고리즘 (Radar Chart) */}
-              <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col justify-between shadow-md">
-                <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-base font-bold text-slate-200">주력 알고리즘</h2>
-                  <span className="text-[10px] text-slate-500">풀이 유형</span>
-                </div>
-                <div className="flex-1 w-full h-[240px] flex items-center justify-center mt-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={algorithmData}>
-                      <PolarGrid stroke="#334155" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                      <Radar name="User" dataKey="A" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.4} />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </div>
-              </Card>
-
-              {/* 주력 언어 (Multi-progress Bar) */}
-              <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col justify-center shadow-md">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-base font-bold text-slate-200">주력 언어</h2>
-                  <span className="text-[10px] text-slate-500">제출 언어 비중</span>
-                </div>
-
-                <div className="flex flex-col gap-6 w-full">
-                  {/* 통합 바 그래프 */}
-                  <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden flex shadow-inner">
-                    {languageData.map((lang, idx) => (
-                      <div
-                        key={idx}
-                        className="h-full transition-all duration-500 hover:brightness-110"
-                        style={{ width: `${lang.value}%`, backgroundColor: lang.color }}
-                        title={`${lang.name} ${lang.value}%`}
-                      ></div>
-                    ))}
-                  </div>
-
-                  {/* 언어별 범례(Legend) - Top 3 한줄 고정 */}
-                  <div className="flex justify-between items-center w-full gap-2">
-                    {languageData.slice(0, 3).map((lang, idx) => (
-                      <div key={idx} className="flex items-center gap-1.5 bg-[#1b202c] px-2 py-1.5 rounded-lg border border-slate-800/50 flex-1 justify-center min-w-0 overflow-hidden">
-                        <div className="w-2.5 h-2.5 rounded-full shadow-sm flex-shrink-0" style={{ backgroundColor: lang.color }}></div>
-                        <div className="flex gap-1.5 items-center truncate">
-                          <span className="text-xs font-bold text-slate-200 truncate">{lang.name}</span>
-                          <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">{lang.value}%</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Card>
+          {/* 2. 활동 지표 (우측 2단) */}
+          <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col justify-center lg:col-span-2">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base font-bold text-slate-200">활동 지표</h2>
+              <span className="text-[10px] text-slate-500">EXP & 정답률</span>
             </div>
-          </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+              {/* Left: EXP Progress */}
+              <div className="bg-[#1b202c] p-4 rounded-xl border border-slate-800 h-full flex flex-col justify-center">
+                <h3 className="text-xs font-bold text-slate-300 mb-3">경험치 진행률</h3>
+                <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden mb-2">
+                  <div
+                    className="h-full bg-indigo-500 rounded-full"
+                    style={{ width: `${(user.xp / user.maxXp) * 100}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between items-center text-[10px] text-slate-400">
+                  <span>{user.xp} / {user.maxXp} XP</span>
+                  <span>{Math.round((user.xp / user.maxXp) * 100)}%</span>
+                </div>
+              </div>
+
+              {/* Right: Accuracy Donut Chart */}
+              <div className="flex items-center justify-center relative h-[100px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      innerRadius={35}
+                      outerRadius={48}
+                      cornerRadius={4}
+                      paddingAngle={2}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-lg font-extrabold text-white">{user.accuracy}%</span>
+                </div>
+              </div>
+            </div>
+          </Card>
         </div>
 
-        {/* 3. Daily Streak */}
+        {/* ROW 2: 주력 알고리즘 & 사용 언어 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 3. 주력 알고리즘 (Radar Chart) */}
+          <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col justify-between shadow-md">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-base font-bold text-slate-200">주력 알고리즘</h2>
+              <span className="text-[10px] text-slate-500">풀이 유형</span>
+            </div>
+            <div className="w-full h-[320px] flex items-center justify-center mt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="90%" data={algorithmData}>
+                  <PolarGrid stroke="#334155" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 13, fontWeight: 'bold' }} />
+                  <Radar name="User" dataKey="A" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.5} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          {/* 4. 주력 언어 (Multi-progress Bar) */}
+          <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col justify-center shadow-md">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-base font-bold text-slate-200">주력 언어</h2>
+              <span className="text-[10px] text-slate-500">제출 언어 비중</span>
+            </div>
+
+            <div className="flex flex-col gap-6 w-full">
+              {/* 통합 바 그래프 */}
+              <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden flex shadow-inner">
+                {languageData.map((lang, idx) => (
+                  <div
+                    key={idx}
+                    className="h-full transition-all duration-500 hover:brightness-110"
+                    style={{ width: `${lang.value}%`, backgroundColor: lang.color }}
+                    title={`${lang.name} ${lang.value}%`}
+                  ></div>
+                ))}
+              </div>
+
+              {/* 언어별 범례(Legend) - Top 3 한줄 고정 */}
+              <div className="flex justify-between items-center w-full gap-2">
+                {languageData.slice(0, 3).map((lang, idx) => (
+                  <div key={idx} className="flex items-center gap-1.5 bg-[#1b202c] px-2 py-1.5 rounded-lg border border-slate-800/50 flex-1 justify-center min-w-0 overflow-hidden">
+                    <div className="w-2.5 h-2.5 rounded-full shadow-sm flex-shrink-0" style={{ backgroundColor: lang.color }}></div>
+                    <div className="flex gap-1.5 items-center truncate">
+                      <span className="text-xs font-bold text-slate-200 truncate">{lang.name}</span>
+                      <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">{lang.value}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* 5. Daily Streak */}
         <ContributionGraph title="Daily Streak" activeColorClass="emerald" />
 
         {/* 5. 힌트보기 설정 */}
