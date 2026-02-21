@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis } from 'recharts';
 import { Card, Button, Badge } from '@/components/ui/Base';
 import { useNavigate } from 'react-router-dom';
 
@@ -107,6 +107,20 @@ export const Profile = () => {
   ];
   const COLORS = ['#34D399', '#1b202c']; // emerald-400 and dark shade
 
+  const algorithmData = [
+    { subject: 'DP', A: 40, fullMark: 100 },
+    { subject: 'BFS/DFS', A: 30, fullMark: 100 },
+    { subject: '구현', A: 20, fullMark: 100 },
+    { subject: '수학', A: 10, fullMark: 100 },
+    { subject: '그리디', A: 45, fullMark: 100 },
+  ];
+
+  const languageData = [
+    { name: 'Java', value: 70, color: '#3b82f6' }, // blue-500
+    { name: 'Python', value: 25, color: '#eab308' }, // yellow-500
+    { name: 'C++', value: 5, color: '#ef4444' }, // red-500
+  ];
+
   const [hintSettings, setHintSettings] = useState<'on' | 'off'>('on');
 
   return (
@@ -196,6 +210,61 @@ export const Profile = () => {
                 </div>
               </div>
             </Card>
+
+            {/* 새로운 섹션: 주력 알고리즘 & 사용 언어 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+              {/* 주력 알고리즘 (Radar Chart) */}
+              <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col justify-between shadow-md">
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="text-base font-bold text-slate-200">주력 알고리즘</h2>
+                  <span className="text-[10px] text-slate-500">풀이 유형</span>
+                </div>
+                <div className="flex-1 w-full h-[160px] flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="65%" data={algorithmData}>
+                      <PolarGrid stroke="#334155" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                      <Radar name="User" dataKey="A" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.4} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
+
+              {/* 주력 언어 (Multi-progress Bar) */}
+              <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col justify-center shadow-md">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-base font-bold text-slate-200">주력 언어</h2>
+                  <span className="text-[10px] text-slate-500">제출 언어 비중</span>
+                </div>
+
+                <div className="flex flex-col gap-6 w-full">
+                  {/* 통합 바 그래프 */}
+                  <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden flex shadow-inner">
+                    {languageData.map((lang, idx) => (
+                      <div
+                        key={idx}
+                        className="h-full transition-all duration-500 hover:brightness-110"
+                        style={{ width: `${lang.value}%`, backgroundColor: lang.color }}
+                        title={`${lang.name} ${lang.value}%`}
+                      ></div>
+                    ))}
+                  </div>
+
+                  {/* 언어별 범례(Legend) */}
+                  <div className="flex flex-wrap gap-x-6 gap-y-3 justify-center">
+                    {languageData.map((lang, idx) => (
+                      <div key={idx} className="flex items-center gap-2.5 bg-[#1b202c] px-3 py-1.5 rounded-lg border border-slate-800/50">
+                        <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: lang.color }}></div>
+                        <div className="flex gap-2 items-center">
+                          <span className="text-xs font-bold text-slate-200">{lang.name}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">{lang.value}%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
 
