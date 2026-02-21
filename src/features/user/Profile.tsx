@@ -219,11 +219,11 @@ export const Profile = () => {
                   <h2 className="text-base font-bold text-slate-200">주력 알고리즘</h2>
                   <span className="text-[10px] text-slate-500">풀이 유형</span>
                 </div>
-                <div className="flex-1 w-full h-[160px] flex items-center justify-center">
+                <div className="flex-1 w-full h-[240px] flex items-center justify-center mt-2">
                   <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart cx="50%" cy="50%" outerRadius="65%" data={algorithmData}>
+                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={algorithmData}>
                       <PolarGrid stroke="#334155" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 11 }} />
                       <Radar name="User" dataKey="A" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.4} />
                     </RadarChart>
                   </ResponsiveContainer>
@@ -250,14 +250,14 @@ export const Profile = () => {
                     ))}
                   </div>
 
-                  {/* 언어별 범례(Legend) */}
-                  <div className="flex flex-wrap gap-x-6 gap-y-3 justify-center">
-                    {languageData.map((lang, idx) => (
-                      <div key={idx} className="flex items-center gap-2.5 bg-[#1b202c] px-3 py-1.5 rounded-lg border border-slate-800/50">
-                        <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: lang.color }}></div>
-                        <div className="flex gap-2 items-center">
-                          <span className="text-xs font-bold text-slate-200">{lang.name}</span>
-                          <span className="text-[10px] text-slate-400 font-medium">{lang.value}%</span>
+                  {/* 언어별 범례(Legend) - Top 3 한줄 고정 */}
+                  <div className="flex justify-between items-center w-full gap-2">
+                    {languageData.slice(0, 3).map((lang, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5 bg-[#1b202c] px-2 py-1.5 rounded-lg border border-slate-800/50 flex-1 justify-center min-w-0 overflow-hidden">
+                        <div className="w-2.5 h-2.5 rounded-full shadow-sm flex-shrink-0" style={{ backgroundColor: lang.color }}></div>
+                        <div className="flex gap-1.5 items-center truncate">
+                          <span className="text-xs font-bold text-slate-200 truncate">{lang.name}</span>
+                          <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">{lang.value}%</span>
                         </div>
                       </div>
                     ))}
