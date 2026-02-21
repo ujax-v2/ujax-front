@@ -158,9 +158,10 @@ function AppContent() {
   const workspaces = useRecoilValue(workspacesState);
   const location = useLocation();
 
-  // 사이드바를 숨겨야 하는 페이지: 인증, IDE, 홈
+  // 사이드바를 숨겨야 하는 페이지: 인증, IDE, 홈, 풀이 보기(solutions)
   const isFullScreen = ['/login', '/signup', '/auth/callback', '/'].includes(location.pathname)
-    || location.pathname.startsWith('/ide');
+    || location.pathname.startsWith('/ide')
+    || location.pathname.includes('/solutions');
   // 워크스페이스가 없으면 사이드바 숨김 (컨텍스트 없으므로)
   const showSidebar = !isFullScreen && user.isLoggedIn && workspaces.length > 0;
 
