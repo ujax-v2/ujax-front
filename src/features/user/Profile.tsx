@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { PieChart, Pie, Cell, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, Tooltip } from 'recharts';
 import { Card, Button, Badge } from '@/components/ui/Base';
 import { useNavigate } from 'react-router-dom';
 
@@ -188,6 +188,7 @@ export const Profile = () => {
               <div className="flex items-center justify-center relative h-[100px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
+                    <Tooltip contentStyle={{ backgroundColor: '#1b202c', borderColor: '#334155', borderRadius: '8px', color: '#f1f5f9', fontSize: '12px' }} itemStyle={{ color: '#f1f5f9', fontWeight: 'bold' }} cursor={{ fill: 'transparent' }} />
                     <Pie
                       data={chartData}
                       innerRadius={35}
@@ -224,6 +225,7 @@ export const Profile = () => {
                 <RadarChart cx="50%" cy="50%" outerRadius="90%" data={algorithmData}>
                   <PolarGrid stroke="#334155" />
                   <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 13, fontWeight: 'bold' }} />
+                  <Tooltip contentStyle={{ backgroundColor: '#1b202c', borderColor: '#334155', borderRadius: '8px', color: '#f1f5f9', fontSize: '12px' }} itemStyle={{ color: '#f1f5f9', fontWeight: 'bold' }} cursor={{ fill: 'transparent' }} />
                   <Radar name="User" dataKey="A" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.5} />
                 </RadarChart>
               </ResponsiveContainer>
@@ -240,6 +242,7 @@ export const Profile = () => {
             <div className="w-full flex-1 min-h-[250px] flex items-center justify-center mt-2 relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
+                  <Tooltip contentStyle={{ backgroundColor: '#1b202c', borderColor: '#334155', borderRadius: '8px', color: '#f1f5f9', fontSize: '12px' }} itemStyle={{ color: '#f1f5f9', fontWeight: 'bold' }} cursor={{ fill: 'transparent' }} />
                   <Pie
                     data={languageData}
                     cx="50%"
@@ -258,10 +261,10 @@ export const Profile = () => {
             </div>
 
             <div className="flex flex-col gap-6 w-full mt-4">
-              {/* 언어별 범례(Legend) - Top 3 한줄 고정 */}
-              <div className="flex justify-between items-center w-full gap-2">
-                {languageData.slice(0, 3).map((lang, idx) => (
-                  <div key={idx} className="flex items-center gap-1.5 bg-[#1b202c] px-2 py-1.5 rounded-lg border border-slate-800/50 flex-1 justify-center min-w-0 overflow-hidden">
+              {/* 언어별 범례(Legend) - 3열 Grid 전체 나열 */}
+              <div className="grid grid-cols-3 w-full gap-2">
+                {languageData.map((lang, idx) => (
+                  <div key={idx} className="flex items-center gap-1.5 bg-[#1b202c] px-2 py-1.5 rounded-lg border border-slate-800/50 justify-center min-w-0 overflow-hidden hover:bg-slate-800 hover:border-slate-600 transition-colors cursor-default">
                     <div className="w-2.5 h-2.5 rounded-full shadow-sm flex-shrink-0" style={{ backgroundColor: lang.color }}></div>
                     <div className="flex gap-1.5 items-center truncate">
                       <span className="text-xs font-bold text-slate-200 truncate">{lang.name}</span>
