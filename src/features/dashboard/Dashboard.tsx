@@ -4,7 +4,7 @@ import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState } from '@/store/atoms';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { Button, Card, Badge } from '@/components/ui/Base';
-import { ChevronLeft, ChevronRight, X, Trophy, Activity, CheckCircle2, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Trophy, Activity, CheckCircle2, Clock, UserCircle } from 'lucide-react';
 
 const mockNotices = [
   { id: 1, title: '이번 주 스터디 진행 방식 안내', author: '고스디님', date: '2025. 01. 18', type: '공지사항', content: '이번 주는 각자 온라인으로 진행됩니다. 각자 과제를 마친 뒤, 오후 2시에 화상 회의 방에 들어와 주시기 바랍니다.\\n\\n불참 시 사전에 꼭 말씀해 주세요!' },
@@ -161,11 +161,21 @@ export const Dashboard = () => {
       <div className="max-w-6xl mx-auto space-y-10">
 
         {/* 워크스페이스 헤더 (Notion Style) */}
-        <div className="border-b border-slate-800 pb-8 mt-2">
-          <h1 className="text-4xl font-extrabold text-white tracking-tight mb-3">{currentWorkspace.name}</h1>
-          <p className="text-base text-slate-400 font-medium leading-relaxed max-w-3xl">
-            {currentWorkspace.description || '알고리즘 문제 풀이와 코딩 테스트 대비를 위한 공용 스터디 워크스페이스입니다. 다같이 목표를 달성해봅시다!'}
-          </p>
+        <div className="border-b border-slate-800 pb-8 mt-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex-1">
+            <h1 className="text-4xl font-extrabold text-white tracking-tight mb-3">{currentWorkspace.name}</h1>
+            <p className="text-base text-slate-400 font-medium leading-relaxed max-w-3xl">
+              {currentWorkspace.description || '알고리즘 문제 풀이와 코딩 테스트 대비를 위한 공용 스터디 워크스페이스입니다. 다같이 목표를 달성해봅시다!'}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/profile')}
+            className="border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300 font-bold shrink-0 items-center justify-center py-2 px-4 shadow-sm transition-all"
+          >
+            <UserCircle className="w-5 h-5 mr-1" />
+            마이페이지 이동
+          </Button>
         </div>
 
         {/* 공지 및 이번 주 문제 (2열 그리드) */}
