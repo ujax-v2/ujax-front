@@ -44,7 +44,6 @@ const ContributionGraph = ({ title, activeColorClass = 'emerald' }: { title: str
     <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col relative w-full overflow-hidden">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-bold text-slate-100">{title}</h2>
-        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500 text-xs font-bold border border-yellow-500/30">권</div>
       </div>
 
       <div className="w-full relative">
@@ -123,91 +122,86 @@ export const Profile = () => {
           </div>
         </div>
 
-        {/* 1. 내 정보 상세 */}
-        <Card className="bg-[#151922] border-slate-800 p-8 relative">
-          <div className="flex justify-between items-start mb-6">
-            <h2 className="text-lg font-bold text-slate-200">내 정보 상세</h2>
-            <div className="px-3 py-1 bg-slate-800 rounded-full border border-slate-700 text-xs font-bold text-slate-300 shadow-sm">
-              LV.{user.level}
-            </div>
-          </div>
-          <div className="grid grid-cols-[100px_1fr] gap-y-4 text-sm relative">
-            <div className="text-slate-500">닉네임</div>
-            <div className="text-slate-200 font-medium">{user.nickname}</div>
-
-            <div className="text-slate-500">이메일</div>
-            <div className="text-slate-200">{user.email}</div>
-
-            <div className="text-slate-500">리워드</div>
-            <div className="text-slate-200 font-bold">{user.reward}</div>
-
-            <div className="text-slate-500">경험치</div>
-            <div className="text-slate-200">{user.xp} / {user.maxXp}</div>
-
-            <div className="text-slate-500">정답률</div>
-            <div className="text-slate-200">{user.accuracy}%</div>
-
-            {/* Floating '권' badge simulation */}
-            <div className="absolute left-[200px] bottom-[20px] w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500 text-xs font-bold border border-yellow-500/30 shadow-lg">권</div>
-          </div>
-        </Card>
-
-        {/* 2. 활동 지표 */}
-        <Card className="bg-[#151922] border-slate-800 p-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-bold text-slate-200">활동 지표</h2>
-            <span className="text-xs text-slate-500">EXP & 정답률</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            {/* Left: EXP Progress */}
-            <div className="bg-[#1b202c] p-6 rounded-xl border border-slate-800">
-              <h3 className="text-sm font-bold text-slate-200 mb-4">경험치 진행률</h3>
-              <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden mb-2">
-                <div
-                  className="h-full bg-indigo-500 rounded-full"
-                  style={{ width: `${(user.xp / user.maxXp) * 100}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-between items-center text-xs text-slate-400">
-                <span>{user.xp} / {user.maxXp}</span>
-                <span>{Math.round((user.xp / user.maxXp) * 100)}%</span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* 1. 내 정보 상세 */}
+          <Card className="bg-[#151922] border-slate-800 p-8 relative flex flex-col justify-center">
+            <div className="flex justify-between items-start mb-6">
+              <h2 className="text-lg font-bold text-slate-200">내 정보 상세</h2>
+              <div className="px-3 py-1 bg-slate-800 rounded-full border border-slate-700 text-xs font-bold text-slate-300 shadow-sm">
+                LV.{user.level}
               </div>
             </div>
+            <div className="grid grid-cols-[80px_1fr] gap-y-4 text-sm">
+              <div className="text-slate-500">닉네임</div>
+              <div className="text-slate-200 font-medium">{user.nickname}</div>
 
-            {/* Right: Accuracy Donut Chart */}
-            <div className="flex items-center justify-center relative h-[140px]">
-              <div className="absolute w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500 text-xs font-bold border border-yellow-500/30 z-10 top-0 ml-16">권</div>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    innerRadius={50}
-                    outerRadius={65}
-                    cornerRadius={5}
-                    paddingAngle={2}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-extrabold text-white">{user.accuracy}%</span>
-                <span className="text-[10px] text-slate-400 mt-1">평균 정답률</span>
+              <div className="text-slate-500">이메일</div>
+              <div className="text-slate-200">{user.email}</div>
+
+              <div className="text-slate-500">리워드</div>
+              <div className="text-slate-200 font-bold">{user.reward}</div>
+
+              <div className="text-slate-500">경험치</div>
+              <div className="text-slate-200">{user.xp} / {user.maxXp}</div>
+
+              <div className="text-slate-500">정답률</div>
+              <div className="text-slate-200">{user.accuracy}%</div>
+            </div>
+          </Card>
+
+          {/* 2. 활동 지표 */}
+          <Card className="bg-[#151922] border-slate-800 p-8 flex flex-col justify-center">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold text-slate-200">활동 지표</h2>
+              <span className="text-xs text-slate-500">EXP & 정답률</span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 items-center">
+              {/* Top: EXP Progress */}
+              <div className="bg-[#1b202c] p-5 rounded-xl border border-slate-800">
+                <h3 className="text-sm font-bold text-slate-200 mb-3">경험치 진행률</h3>
+                <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden mb-2">
+                  <div
+                    className="h-full bg-indigo-500 rounded-full"
+                    style={{ width: `${(user.xp / user.maxXp) * 100}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between items-center text-xs text-slate-400">
+                  <span>{user.xp} / {user.maxXp}</span>
+                  <span>{Math.round((user.xp / user.maxXp) * 100)}%</span>
+                </div>
+              </div>
+
+              {/* Bottom: Accuracy Donut Chart */}
+              <div className="flex items-center justify-center relative h-[120px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      innerRadius={45}
+                      outerRadius={60}
+                      cornerRadius={5}
+                      paddingAngle={2}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-xl font-extrabold text-white">{user.accuracy}%</span>
+                  <span className="text-[10px] text-slate-400 mt-1">평균 정답률</span>
+                </div>
               </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
 
-        {/* 3. Daily Streak (종합) */}
-        <ContributionGraph title="Daily Streak (종합)" activeColorClass="emerald" />
-
-        {/* 4. Daily Streak (현재 워크스페이스) */}
-        <ContributionGraph title="Daily Streak (Ujax 워크스페이스)" activeColorClass="indigo" />
+        {/* 3. Daily Streak */}
+        <ContributionGraph title="Daily Streak" activeColorClass="emerald" />
 
         {/* 5. 힌트보기 설정 */}
         <Card className="bg-[#151922] border-slate-800 p-8 flex justify-between items-center">
