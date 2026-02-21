@@ -122,24 +122,24 @@ export const Profile = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* 1. 내 정보 상세 */}
-          <Card className="bg-[#151922] border-slate-800 p-8 relative flex flex-col justify-center">
-            <div className="flex justify-between items-start mb-6">
-              <h2 className="text-lg font-bold text-slate-200">내 정보 상세</h2>
-              <div className="px-3 py-1 bg-slate-800 rounded-full border border-slate-700 text-xs font-bold text-slate-300 shadow-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* 1. 내 정보 상세 (좌측 1단) */}
+          <Card className="bg-[#151922] border-slate-800 p-6 relative flex flex-col lg:col-span-1">
+            <div className="flex justify-between items-start mb-5">
+              <h2 className="text-base font-bold text-slate-200">내 정보 상세</h2>
+              <div className="px-2.5 py-1 bg-slate-800 rounded-full border border-slate-700 text-[10px] font-bold text-slate-300 shadow-sm">
                 LV.{user.level}
               </div>
             </div>
-            <div className="grid grid-cols-[80px_1fr] gap-y-4 text-sm">
+            <div className="grid grid-cols-[60px_1fr] gap-y-3 text-xs">
               <div className="text-slate-500">닉네임</div>
               <div className="text-slate-200 font-medium">{user.nickname}</div>
 
               <div className="text-slate-500">이메일</div>
-              <div className="text-slate-200">{user.email}</div>
+              <div className="text-slate-200 truncate pr-2">{user.email}</div>
 
               <div className="text-slate-500">리워드</div>
-              <div className="text-slate-200 font-bold">{user.reward}</div>
+              <div className="text-slate-200 font-bold text-indigo-400">{user.reward}</div>
 
               <div className="text-slate-500">경험치</div>
               <div className="text-slate-200">{user.xp} / {user.maxXp}</div>
@@ -149,55 +149,81 @@ export const Profile = () => {
             </div>
           </Card>
 
-          {/* 2. 활동 지표 */}
-          <Card className="bg-[#151922] border-slate-800 p-8 flex flex-col justify-center">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold text-slate-200">활동 지표</h2>
-              <span className="text-xs text-slate-500">EXP & 정답률</span>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 items-center">
-              {/* Top: EXP Progress */}
-              <div className="bg-[#1b202c] p-5 rounded-xl border border-slate-800">
-                <h3 className="text-sm font-bold text-slate-200 mb-3">경험치 진행률</h3>
-                <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden mb-2">
-                  <div
-                    className="h-full bg-indigo-500 rounded-full"
-                    style={{ width: `${(user.xp / user.maxXp) * 100}%` }}
-                  ></div>
-                </div>
-                <div className="flex justify-between items-center text-xs text-slate-400">
-                  <span>{user.xp} / {user.maxXp}</span>
-                  <span>{Math.round((user.xp / user.maxXp) * 100)}%</span>
-                </div>
+          {/* 우측 2단 영역 (활동 지표 + 새로운 지표) */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            {/* 2. 활동 지표 (가로 배치) */}
+            <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col justify-center">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-base font-bold text-slate-200">활동 지표</h2>
+                <span className="text-[10px] text-slate-500">EXP & 정답률</span>
               </div>
 
-              {/* Bottom: Accuracy Donut Chart */}
-              <div className="flex items-center justify-center relative h-[120px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      innerRadius={45}
-                      outerRadius={60}
-                      cornerRadius={5}
-                      paddingAngle={2}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-xl font-extrabold text-white">{user.accuracy}%</span>
-                  <span className="text-[10px] text-slate-400 mt-1">평균 정답률</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                {/* Left: EXP Progress */}
+                <div className="bg-[#1b202c] p-4 rounded-xl border border-slate-800 h-full flex flex-col justify-center">
+                  <h3 className="text-xs font-bold text-slate-300 mb-3">경험치 진행률</h3>
+                  <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden mb-2">
+                    <div
+                      className="h-full bg-indigo-500 rounded-full"
+                      style={{ width: `${(user.xp / user.maxXp) * 100}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px] text-slate-400">
+                    <span>{user.xp} / {user.maxXp} XP</span>
+                    <span>{Math.round((user.xp / user.maxXp) * 100)}%</span>
+                  </div>
+                </div>
+
+                {/* Right: Accuracy Donut Chart */}
+                <div className="flex items-center justify-center relative h-[100px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={chartData}
+                        innerRadius={35}
+                        outerRadius={48}
+                        cornerRadius={4}
+                        paddingAngle={2}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {chartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-lg font-extrabold text-white">{user.accuracy}%</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+
+            {/* 새로운 섹션: 최근 해결한 문제 */}
+            <Card className="bg-[#151922] border-slate-800 p-6 flex-1 flex flex-col">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-base font-bold text-slate-200">최근 푼 문제</h2>
+                <span className="text-[10px] text-indigo-400 font-medium cursor-pointer hover:underline">더보기</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="bg-[#1b202c] border border-slate-800 p-3 rounded-lg flex items-center justify-between hover:border-slate-600 transition-colors cursor-pointer">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-slate-400 mb-1">백준 25643</span>
+                    <span className="text-sm font-bold text-slate-200">문자열 탑 쌓기</span>
+                  </div>
+                  <Badge variant="success" className="text-[10px] bg-emerald-500/10 text-emerald-400">Bronze I</Badge>
+                </div>
+                <div className="bg-[#1b202c] border border-slate-800 p-3 rounded-lg flex items-center justify-between hover:border-slate-600 transition-colors cursor-pointer">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-slate-400 mb-1">백준 3052</span>
+                    <span className="text-sm font-bold text-slate-200">나머지</span>
+                  </div>
+                  <Badge variant="success" className="text-[10px] bg-yellow-500/10 text-yellow-500">Bronze II</Badge>
+                </div>
+              </div>
+            </Card>
+          </div>
         </div>
 
         {/* 3. Daily Streak */}
