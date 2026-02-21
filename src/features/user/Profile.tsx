@@ -230,26 +230,34 @@ export const Profile = () => {
             </div>
           </Card>
 
-          {/* 4. 주력 언어 (Multi-progress Bar) */}
-          <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col justify-center shadow-md">
-            <div className="flex justify-between items-center mb-6">
+          {/* 4. 주력 언어 (Pie Chart) */}
+          <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col justify-between shadow-md">
+            <div className="flex justify-between items-center mb-2">
               <h2 className="text-base font-bold text-slate-200">주력 언어</h2>
               <span className="text-[10px] text-slate-500">제출 언어 비중</span>
             </div>
 
-            <div className="flex flex-col gap-6 w-full">
-              {/* 통합 바 그래프 */}
-              <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden flex shadow-inner">
-                {languageData.map((lang, idx) => (
-                  <div
-                    key={idx}
-                    className="h-full transition-all duration-500 hover:brightness-110"
-                    style={{ width: `${lang.value}%`, backgroundColor: lang.color }}
-                    title={`${lang.name} ${lang.value}%`}
-                  ></div>
-                ))}
-              </div>
+            <div className="w-full flex-1 min-h-[250px] flex items-center justify-center mt-2 relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={languageData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius="90%"
+                    dataKey="value"
+                    stroke="#151922"
+                    strokeWidth={2}
+                  >
+                    {languageData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
 
+            <div className="flex flex-col gap-6 w-full mt-4">
               {/* 언어별 범례(Legend) - Top 3 한줄 고정 */}
               <div className="flex justify-between items-center w-full gap-2">
                 {languageData.slice(0, 3).map((lang, idx) => (
