@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, Tooltip } from 'recharts';
 import { Card, Button, Badge } from '@/components/ui/Base';
 import { useNavigate } from 'react-router-dom';
-
+import { useRecoilValue } from 'recoil';
+import { userState } from '@/store/atoms';
 // 잔디(Contribution) 그래프 컴포넌트
 const ContributionGraph = ({ title, activeColorClass = 'emerald' }: { title: string, activeColorClass?: string }) => {
   const weeks = 39;
@@ -89,16 +90,17 @@ const ContributionGraph = ({ title, activeColorClass = 'emerald' }: { title: str
 
 export const Profile = () => {
   const navigate = useNavigate();
+  const currentUser = useRecoilValue(userState);
 
-  // Mock User Data
+  // User Data from state (fallback for mockup metrics)
   const user = {
-    nickname: 'test2',
-    email: 'test2@kosta.com',
-    reward: '10,000원',
-    xp: 1240,
+    nickname: currentUser.name || '알려지지 않은 유저',
+    email: currentUser.email || '이메일 정보 없음',
+    reward: '0원',
+    xp: 0,
     maxXp: 2000,
-    accuracy: 74,
-    level: 3
+    accuracy: 0,
+    level: 1
   };
 
   const chartData = [
