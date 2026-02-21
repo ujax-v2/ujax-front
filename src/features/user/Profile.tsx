@@ -1,156 +1,235 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Card, Button, Badge } from '@/components/ui/Base';
 import { useNavigate } from 'react-router-dom';
-import {
-  Settings,
-  MapPin,
-  Link as LinkIcon,
-  Twitter,
-  Github,
-  Flame,
-  CheckCircle2,
-  Coins,
-  CalendarDays,
-  Edit2
-} from 'lucide-react';
+
+// 잔디(Contribution) 그래프 컴포넌트
+const ContributionGraph = ({ title, activeColorClass = 'emerald' }: { title: string, activeColorClass?: string }) => {
+  const weeks = 39;
+  const days = 7;
+
+  const [hoverInfo, setHoverInfo] = useState({ show: false, x: 0, y: 0, count: 0, date: '' });
+
+  const getDate = (w: number, d: number) => {
+    const date = new Date();
+    date.setDate(date.getDate() - ((weeks - w) * 7 + (6 - d)));
+    return date.toISOString().split('T')[0];
+  };
+
+  const activityData = useMemo(() => {
+    return Array.from({ length: weeks }).map((_, weekIndex) =>
+      Array.from({ length: days }).map((_, dayIndex) => {
+        const level = Math.random() > 0.8 ? Math.floor(Math.random() * 5) : 0;
+        const count = level === 0 ? 0 : level * 2 + Math.floor(Math.random() * 3);
+        const dateStr = getDate(weekIndex, dayIndex);
+        return { level, count, dateStr };
+      })
+    );
+  }, [weeks, days]);
+
+  const getActivityColor = (level: number) => {
+    const isEmerald = activeColorClass === 'emerald';
+    switch (level) {
+      case 0: return 'bg-[#1e2330]';
+      case 1: return isEmerald ? 'bg-emerald-900/40' : 'bg-indigo-900/40';
+      case 2: return isEmerald ? 'bg-emerald-700/60' : 'bg-indigo-700/60';
+      case 3: return isEmerald ? 'bg-emerald-500' : 'bg-indigo-500';
+      case 4: return isEmerald ? 'bg-emerald-400' : 'bg-indigo-400';
+      default: return 'bg-[#1e2330]';
+    }
+  };
+
+  return (
+    <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col relative w-full overflow-hidden">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-bold text-slate-100">{title}</h2>
+        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500 text-xs font-bold border border-yellow-500/30">권</div>
+      </div>
+
+      <div className="w-full relative">
+        {hoverInfo.show && createPortal(
+          <div
+            className="fixed z-[9999] px-3 py-2 bg-[#1b202c] text-xs text-white rounded shadow-xl border border-slate-700 pointer-events-none transform -translate-x-1/2 -translate-y-full mt-[-8px]"
+            style={{ left: hoverInfo.x, top: hoverInfo.y }}
+          >
+            <div className="font-bold text-slate-200">{hoverInfo.count} 문제 해결</div>
+            <div className="text-slate-500">{hoverInfo.date}</div>
+            <div className="absolute bottom-[-5px] left-1/2 -translate-x-1/2 w-2 h-2 bg-[#1b202c] border-r border-b border-slate-700 transform rotate-45"></div>
+          </div>,
+          document.body
+        )}
+
+        <div className="flex w-full justify-between min-w-fit">
+          {activityData.map((week, weekIndex) => (
+            <div key={weekIndex} className="flex flex-col gap-[4px]">
+              {week.map((day, dayIndex) => (
+                <div
+                  key={`${weekIndex}-${dayIndex}`}
+                  className={`w-[14px] h-[14px] rounded-[3px] ${getActivityColor(day.level)} transition-colors hover:ring-1 hover:ring-white/50 cursor-pointer`}
+                  onMouseEnter={(e) => {
+                    const rect = (e.target as HTMLElement).getBoundingClientRect();
+                    setHoverInfo({
+                      show: true,
+                      x: rect.left + rect.width / 2,
+                      y: rect.top,
+                      count: day.count,
+                      date: day.dateStr
+                    });
+                  }}
+                  onMouseLeave={() => setHoverInfo({ ...hoverInfo, show: false })}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+};
 
 export const Profile = () => {
   const navigate = useNavigate();
 
-  // Mock Data
+  // Mock User Data
   const user = {
-    name: '지훈 성',
-    username: 'felix_dev',
-    bio: 'Frontend Developer | Algorithm Enthusiast',
-    level: 15,
-    xp: 2450,
-    nextLevelXp: 3000,
-    location: 'Seoul, Korea',
-    website: 'https://felix.dev',
-    stats: {
-      streak: 42,
-      solved: 315,
-      points: 12500
-    }
+    nickname: 'test2',
+    email: 'test2@kosta.com',
+    reward: '10,000원',
+    xp: 1240,
+    maxXp: 2000,
+    accuracy: 74,
+    level: 3
   };
 
-  // Activity Graph Mock
-  const activity = Array.from({ length: 12 }).map((_, i) => ({
-    month: i + 1,
-    count: Math.floor(Math.random() * 50) + 10
-  }));
+  const chartData = [
+    { name: 'Correct', value: user.accuracy },
+    { name: 'Incorrect', value: 100 - user.accuracy },
+  ];
+  const COLORS = ['#34D399', '#1b202c']; // emerald-400 and dark shade
+
+  const [hintSettings, setHintSettings] = useState<'on' | 'off'>('on');
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#0F1117] p-8">
+    <div className="flex-1 overflow-y-auto bg-[#0a0c10] p-8 pb-12 font-sans text-slate-100">
       <div className="max-w-4xl mx-auto space-y-6">
 
-        {/* Profile Header */}
-        <Card className="p-8 bg-[#141820] border-slate-800 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-emerald-900/40 to-slate-900/40"></div>
+        {/* Header Title */}
+        <div className="flex justify-between items-center mb-2">
+          <h1 className="text-2xl font-extrabold text-slate-100 tracking-tight">내 프로필 (My Page)</h1>
+          <div className="flex gap-3">
+            <Button variant="outline" className="text-sm font-medium border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white" onClick={() => navigate('/settings')}>개인정보 변경</Button>
+            <Button variant="outline" className="text-sm font-medium border-slate-700 text-slate-300 hover:bg-red-900/40 hover:text-red-400 hover:border-red-900/50">회원 탈퇴</Button>
+          </div>
+        </div>
 
-          <div className="relative flex flex-col md:flex-row gap-6 items-end -mt-4">
-            <div className="w-32 h-32 rounded-2xl bg-slate-800 border-4 border-[#141820] overflow-hidden shadow-xl">
-              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Profile" className="w-full h-full object-cover" />
-            </div>
-
-            <div className="flex-1 mb-2">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h1 className="text-3xl font-bold text-slate-100">{user.name}</h1>
-                  <p className="text-slate-400 font-medium">@{user.username}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="secondary" className="gap-2">
-                    <Edit2 className="w-4 h-4" /> Edit Profile
-                  </Button>
-                  <Button variant="secondary" onClick={() => navigate('/settings')}>
-                    <Settings className="w-4 h-4" /> Settings
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-400">
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" /> {user.location}
-                </div>
-                <div className="flex items-center gap-1 hover:text-emerald-500 cursor-pointer">
-                  <LinkIcon className="w-4 h-4" /> {user.website}
-                </div>
-                <div className="flex gap-3 ml-2">
-                  <Github className="w-4 h-4 hover:text-white cursor-pointer" />
-                  <Twitter className="w-4 h-4 hover:text-blue-400 cursor-pointer" />
-                </div>
-              </div>
+        {/* 1. 내 정보 상세 */}
+        <Card className="bg-[#151922] border-slate-800 p-8 relative">
+          <div className="flex justify-between items-start mb-6">
+            <h2 className="text-lg font-bold text-slate-200">내 정보 상세</h2>
+            <div className="px-3 py-1 bg-slate-800 rounded-full border border-slate-700 text-xs font-bold text-slate-300 shadow-sm">
+              LV.{user.level}
             </div>
           </div>
+          <div className="grid grid-cols-[100px_1fr] gap-y-4 text-sm relative">
+            <div className="text-slate-500">닉네임</div>
+            <div className="text-slate-200 font-medium">{user.nickname}</div>
 
-          <div className="mt-8 pt-8 border-t border-slate-800">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-bold text-slate-300">Level {user.level}</span>
-              <span className="text-sm text-slate-500">{user.xp} / {user.nextLevelXp} XP</span>
+            <div className="text-slate-500">이메일</div>
+            <div className="text-slate-200">{user.email}</div>
+
+            <div className="text-slate-500">리워드</div>
+            <div className="text-slate-200 font-bold">{user.reward}</div>
+
+            <div className="text-slate-500">경험치</div>
+            <div className="text-slate-200">{user.xp} / {user.maxXp}</div>
+
+            <div className="text-slate-500">정답률</div>
+            <div className="text-slate-200">{user.accuracy}%</div>
+
+            {/* Floating '권' badge simulation */}
+            <div className="absolute left-[200px] bottom-[20px] w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500 text-xs font-bold border border-yellow-500/30 shadow-lg">권</div>
+          </div>
+        </Card>
+
+        {/* 2. 활동 지표 */}
+        <Card className="bg-[#151922] border-slate-800 p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-bold text-slate-200">활동 지표</h2>
+            <span className="text-xs text-slate-500">EXP & 정답률</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Left: EXP Progress */}
+            <div className="bg-[#1b202c] p-6 rounded-xl border border-slate-800">
+              <h3 className="text-sm font-bold text-slate-200 mb-4">경험치 진행률</h3>
+              <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden mb-2">
+                <div
+                  className="h-full bg-indigo-500 rounded-full"
+                  style={{ width: `${(user.xp / user.maxXp) * 100}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-between items-center text-xs text-slate-400">
+                <span>{user.xp} / {user.maxXp}</span>
+                <span>{Math.round((user.xp / user.maxXp) * 100)}%</span>
+              </div>
             </div>
-            <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-emerald-500"
-                style={{ width: `${(user.xp / user.nextLevelXp) * 100}%` }}
-              ></div>
+
+            {/* Right: Accuracy Donut Chart */}
+            <div className="flex items-center justify-center relative h-[140px]">
+              <div className="absolute w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500 text-xs font-bold border border-yellow-500/30 z-10 top-0 ml-16">권</div>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    innerRadius={50}
+                    outerRadius={65}
+                    cornerRadius={5}
+                    paddingAngle={2}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-2xl font-extrabold text-white">{user.accuracy}%</span>
+                <span className="text-[10px] text-slate-400 mt-1">평균 정답률</span>
+              </div>
             </div>
           </div>
         </Card>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="p-6 bg-[#141820] border-slate-800 flex items-center gap-4">
-            <div className="p-3 rounded-full bg-orange-500/10 text-orange-500">
-              <Flame className="w-6 h-6 fill-current" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-slate-100">{user.stats.streak} Days</div>
-              <div className="text-xs text-slate-500">Current Streak</div>
-            </div>
-          </Card>
+        {/* 3. Daily Streak (종합) */}
+        <ContributionGraph title="Daily Streak (종합)" activeColorClass="emerald" />
 
-          <Card className="p-6 bg-[#141820] border-slate-800 flex items-center gap-4">
-            <div className="p-3 rounded-full bg-emerald-500/10 text-emerald-500">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-slate-100">{user.stats.solved}</div>
-              <div className="text-xs text-slate-500">Problems Solved</div>
-            </div>
-          </Card>
+        {/* 4. Daily Streak (현재 워크스페이스) */}
+        <ContributionGraph title="Daily Streak (Ujax 워크스페이스)" activeColorClass="indigo" />
 
-          <Card className="p-6 bg-[#141820] border-slate-800 flex items-center gap-4">
-            <div className="p-3 rounded-full bg-yellow-500/10 text-yellow-500">
-              <Coins className="w-6 h-6 fill-current" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-slate-100">{user.stats.points.toLocaleString()}</div>
-              <div className="text-xs text-slate-500">Reward Points</div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Contribution Activity (Grass Graph Placeholder) */}
-        <Card className="p-6 bg-[#141820] border-slate-800">
-          <h3 className="text-lg font-bold text-slate-200 mb-6 flex items-center gap-2">
-            <CalendarDays className="w-5 h-5 text-slate-500" /> Solving Activity
-          </h3>
-          {/* Simple visualization of monthly activity */}
-          <div className="flex items-end justify-between h-32 gap-2">
-            {activity.map((item, idx) => (
-              <div key={idx} className="flex-1 flex flex-col items-center gap-2 group">
-                <div
-                  className="w-full bg-emerald-500/20 rounded-t-sm hover:bg-emerald-500/50 transition-colors relative"
-                  style={{ height: `${(item.count / 60) * 100}%` }}
-                >
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                    {item.count} solved
-                  </div>
-                </div>
-                <span className="text-xs text-slate-600 font-mono">{item.month}월</span>
+        {/* 5. 힌트보기 설정 */}
+        <Card className="bg-[#151922] border-slate-800 p-8 flex justify-between items-center">
+          <div>
+            <h2 className="text-lg font-bold text-slate-200">힌트보기 설정</h2>
+          </div>
+          <div className="flex items-center gap-6">
+            <span className="text-xs text-slate-500 mr-2">문제 풀이 시 힌트 표시 여부</span>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${hintSettings === 'on' ? 'border-indigo-500' : 'border-slate-600'}`}>
+                {hintSettings === 'on' && <div className="w-2 h-2 rounded-full bg-indigo-500"></div>}
               </div>
-            ))}
+              <span className={`text-sm font-bold ${hintSettings === 'on' ? 'text-slate-200' : 'text-slate-500'}`}>On</span>
+              <input type="radio" className="hidden" checked={hintSettings === 'on'} onChange={() => setHintSettings('on')} />
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${hintSettings === 'off' ? 'border-indigo-500' : 'border-slate-600'}`}>
+                {hintSettings === 'off' && <div className="w-2 h-2 rounded-full bg-indigo-500"></div>}
+              </div>
+              <span className={`text-sm font-bold ${hintSettings === 'off' ? 'text-slate-200' : 'text-slate-500'}`}>Off</span>
+              <input type="radio" className="hidden" checked={hintSettings === 'off'} onChange={() => setHintSettings('off')} />
+            </label>
           </div>
         </Card>
 
