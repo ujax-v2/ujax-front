@@ -143,9 +143,6 @@ export const Profile = () => {
 
               <div className="text-slate-500">경험치</div>
               <div className="text-slate-200">{user.xp} / {user.maxXp}</div>
-
-              <div className="text-slate-500">정답률</div>
-              <div className="text-slate-200">{user.accuracy}%</div>
             </div>
           </Card>
 
@@ -196,30 +193,6 @@ export const Profile = () => {
                   <div className="absolute flex flex-col items-center justify-center pointer-events-none">
                     <span className="text-lg font-extrabold text-white">{user.accuracy}%</span>
                   </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* 새로운 섹션: 최근 해결한 문제 */}
-            <Card className="bg-[#151922] border-slate-800 p-6 flex-1 flex flex-col">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-base font-bold text-slate-200">최근 푼 문제</h2>
-                <span className="text-[10px] text-indigo-400 font-medium cursor-pointer hover:underline">더보기</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="bg-[#1b202c] border border-slate-800 p-3 rounded-lg flex items-center justify-between hover:border-slate-600 transition-colors cursor-pointer">
-                  <div className="flex flex-col">
-                    <span className="text-xs text-slate-400 mb-1">백준 25643</span>
-                    <span className="text-sm font-bold text-slate-200">문자열 탑 쌓기</span>
-                  </div>
-                  <Badge variant="success" className="text-[10px] bg-emerald-500/10 text-emerald-400">Bronze I</Badge>
-                </div>
-                <div className="bg-[#1b202c] border border-slate-800 p-3 rounded-lg flex items-center justify-between hover:border-slate-600 transition-colors cursor-pointer">
-                  <div className="flex flex-col">
-                    <span className="text-xs text-slate-400 mb-1">백준 3052</span>
-                    <span className="text-sm font-bold text-slate-200">나머지</span>
-                  </div>
-                  <Badge variant="success" className="text-[10px] bg-yellow-500/10 text-yellow-500">Bronze II</Badge>
                 </div>
               </div>
             </Card>
