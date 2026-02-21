@@ -12,13 +12,28 @@ const mockNotices = [
   { id: 3, title: '게시판 이용 규칙', author: '박민수', date: '2025. 01. 10', type: '규칙', content: '서로를 존중하고 예의를 지켜주세요.' },
 ];
 
-const mockRankings = [
-  { id: 1, name: '고스디님', count: 18 },
-  { id: 2, name: '이서형', count: 15 },
-  { id: 3, name: '박민수', count: 12 },
-  { id: 4, name: '김지우', count: 10 },
-  { id: 5, name: '최유진', count: 9 },
-  { id: 6, name: '정하늘', count: 7 },
+const mockRankingsLevel = [
+  { id: 1, name: '고스디님', count: 'LV.42' },
+  { id: 2, name: '이서형', count: 'LV.39' },
+  { id: 3, name: '박민수', count: 'LV.35' },
+  { id: 4, name: '김지우', count: 'LV.30' },
+  { id: 5, name: '최유진', count: 'LV.28' },
+];
+
+const mockRankingsSolved = [
+  { id: 1, name: '고스디님', count: '1,284 문제' },
+  { id: 2, name: '이서형', count: '1,102 문제' },
+  { id: 3, name: '박민수', count: '942 문제' },
+  { id: 4, name: '김지우', count: '730 문제' },
+  { id: 5, name: '최유진', count: '612 문제' },
+];
+
+const mockRankingsComments = [
+  { id: 1, name: '정하늘', count: '142 개' },
+  { id: 2, name: '박민수', count: '128 개' },
+  { id: 3, name: '최유진', count: '94 개' },
+  { id: 4, name: '고스디님', count: '63 개' },
+  { id: 5, name: '이서형', count: '55 개' },
 ];
 
 const mockProblems = [
@@ -120,14 +135,12 @@ export const Dashboard = () => {
   const setCreateWorkspaceOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
 
   const [selectedNotice, setSelectedNotice] = useState<any>(null);
-  const [isRankingModalOpen, setIsRankingModalOpen] = useState(false);
-  const [problemScrollIndex, setProblemScrollIndex] = useState(0);
 
   const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
 
   if (!currentWorkspace) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-[#0B0E14] text-slate-400 p-8">
+      <div className="flex-1 flex flex-col items-center justify-center bg-[#0a0c10] text-slate-400 p-8">
         <div className="text-center space-y-4">
           <p className="text-lg">선택된 워크스페이스가 없습니다.</p>
           <Button onClick={() => setCreateWorkspaceOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white">
@@ -144,194 +157,192 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#0B0E14] p-8 pb-8 relative font-sans text-slate-100">
-      <div className="max-w-6xl mx-auto space-y-4">
+    <div className="flex-1 overflow-y-auto bg-[#0a0c10] p-8 pb-12 relative font-sans text-slate-100">
+      <div className="max-w-6xl mx-auto space-y-10">
 
-        {/* 공지 섹션 */}
-        <section>
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-bold text-slate-200">공지</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {mockNotices.map(notice => (
-              <Card
-                key={notice.id}
-                className="bg-[#151922] border-slate-800 p-5 cursor-pointer hover:border-slate-600 transition-colors"
-                onClick={() => setSelectedNotice(notice)}
-              >
-                <h3 className="text-base font-semibold mb-6 line-clamp-1">{notice.title}</h3>
-                <div className="flex items-center justify-between text-xs text-slate-500">
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-400">{notice.author}</span>
-                    <span>{notice.date}</span>
+        {/* 워크스페이스 헤더 (Notion Style) */}
+        <div className="border-b border-slate-800 pb-8 mt-2">
+          <h1 className="text-4xl font-extrabold text-white tracking-tight mb-3">{currentWorkspace.name}</h1>
+          <p className="text-base text-slate-400 font-medium leading-relaxed max-w-3xl">
+            {currentWorkspace.description || '알고리즘 문제 풀이와 코딩 테스트 대비를 위한 공용 스터디 워크스페이스입니다. 다같이 목표를 달성해봅시다!'}
+          </p>
+        </div>
+
+        {/* 공지 및 이번 주 문제 (2열 그리드) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+          {/* 최근 공지사항 */}
+          <section className="flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-slate-200 flex items-center gap-2">
+                <span className="w-1.5 h-6 bg-indigo-500 rounded-full"></span>
+                최근 공지사항
+              </h2>
+              <span className="text-xs text-indigo-400 font-medium cursor-pointer hover:underline">더보기</span>
+            </div>
+            <div className="flex flex-col gap-3 flex-1">
+              {mockNotices.map(notice => (
+                <Card
+                  key={notice.id}
+                  className="bg-[#151922] border-slate-800 p-5 cursor-pointer hover:border-slate-600 transition-colors flex flex-col justify-between"
+                  onClick={() => setSelectedNotice(notice)}
+                >
+                  <h3 className="text-sm font-bold text-slate-200 mb-4 truncate">{notice.title}</h3>
+                  <div className="flex items-center justify-between text-[10px] text-slate-500">
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400 font-medium">{notice.author}</span>
+                      <span>{notice.date}</span>
+                    </div>
+                    <span className="px-2 py-0.5 bg-[#1e2330] border border-slate-700 rounded text-slate-300">{notice.type}</span>
                   </div>
-                  <span className="px-2 py-0.5 bg-[#1B202D] border border-slate-800 rounded-md text-slate-300">{notice.type}</span>
-                </div>
+                </Card>
+              ))}
+            </div>
+          </section>
+
+          {/* 이번 주 스터디 문제 */}
+          <section className="flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-slate-200 flex items-center gap-2">
+                <span className="w-1.5 h-6 bg-emerald-500 rounded-full"></span>
+                이번 주 과제
+              </h2>
+              <span className="text-xs text-emerald-400 font-medium cursor-pointer hover:underline">과제 보러가기</span>
+            </div>
+            <div className="flex flex-col gap-3 flex-1">
+              {mockProblems.slice(0, 3).map((problem) => (
+                <Card key={problem.id} className="bg-[#151922] border-slate-800 p-4 flex flex-col justify-between cursor-pointer hover:border-slate-600 transition-colors">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-bold text-slate-200 truncate">{problem.title}</h3>
+                    <div className="flex gap-1">
+                      <span className="px-2 py-0.5 text-[10px] font-medium bg-slate-800 text-slate-300 rounded border border-slate-700">{problem.source}</span>
+                      <span className="px-2 py-0.5 text-[10px] font-medium bg-emerald-900/30 text-emerald-400 rounded border border-emerald-800/50">{problem.difficulty}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="flex gap-1">
+                      {problem.tags.map(tag => (
+                        <span key={tag} className="text-[10px] text-slate-500">#{tag}</span>
+                      ))}
+                    </div>
+                    <span className="text-[10px] text-slate-400">{problem.date}</span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        {/* 팀 전체 활동 (잔디) */}
+        <section>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-slate-200 flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
+              활동 로그
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <Card className="bg-[#151922] border-slate-800 p-6 lg:col-span-3 w-full overflow-hidden flex items-center justify-center shadow-md">
+              <ContributionGraph />
+            </Card>
+            <div className="flex flex-col gap-6 lg:col-span-1">
+              <Card className="bg-[#151922] border-slate-800 p-6 flex-1 flex flex-col justify-center shadow-md">
+                <h3 className="text-sm font-medium text-slate-400 mb-2">이번 달 해결</h3>
+                <div className="text-3xl font-extrabold text-white tracking-tight">342<span className="text-sm ml-1 text-slate-500 font-medium">문제</span></div>
+                <div className="text-xs text-emerald-400 mt-2 font-bold">+15% (상승곡선 유지 중)</div>
               </Card>
-            ))}
+              <Card className="bg-[#151922] border-slate-800 p-6 flex-1 flex flex-col justify-center shadow-md">
+                <h3 className="text-sm font-medium text-slate-400 mb-2">전체 평균 정답률</h3>
+                <div className="text-3xl font-extrabold text-white tracking-tight">87<span className="text-sm ml-1 text-slate-500 font-medium">%</span></div>
+                <div className="text-xs text-blue-400 mt-2 font-bold">오답 노트 적극 활용 요망</div>
+              </Card>
+            </div>
           </div>
         </section>
 
-        {/* 1단 통계 묶음: 랭킹, 출석률, 제출율 + 총 해결 문제, 총 코딩 시간 */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {/* 워크스페이스 명예의 전당 (Top 5 랭킹 3종) */}
+        <section>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-slate-200 flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-yellow-500 rounded-full"></span>
+              명예의 전당
+            </h2>
+            <span className="text-xs text-slate-500 font-medium">Top 5 순위표</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-          {/* 랭킹 */}
-          <section className="col-span-1 md:col-span-1">
-            <Card
-              className="bg-[#151922] border-slate-800 p-4 cursor-pointer hover:border-slate-600 transition-colors h-full flex flex-col justify-center min-h-[130px]"
-              onClick={() => setIsRankingModalOpen(true)}
-            >
-              <div className="space-y-3">
-                {mockRankings.slice(0, 3).map((rank, idx) => (
-                  <div key={rank.id} className="flex items-center justify-between p-2 rounded-lg bg-[#0F1117]">
+            {/* 레벨 랭킹 */}
+            <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col shadow-md">
+              <h3 className="text-sm font-bold text-slate-300 mb-5 flex items-center gap-2">
+                <Trophy className="w-4 h-4 text-yellow-500" />
+                경험치 (LV) TOP 5
+              </h3>
+              <div className="flex flex-col gap-3">
+                {mockRankingsLevel.map((rank, idx) => (
+                  <div key={rank.id} className="flex items-center justify-between p-2.5 rounded-lg bg-[#1b202c] border border-slate-800/50 hover:bg-slate-800/80 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-yellow-500/10 text-yellow-500' :
-                        idx === 1 ? 'bg-slate-300/10 text-slate-300' :
-                          'bg-amber-700/10 text-amber-500'
+                      <div className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-yellow-500/20 text-yellow-500' :
+                        idx === 1 ? 'bg-slate-300/20 text-slate-300' :
+                          idx === 2 ? 'bg-amber-700/20 text-amber-500' : 'bg-slate-800 text-slate-400'
                         }`}>
                         {idx + 1}
                       </div>
-                      <span className="text-sm font-medium">{rank.name}</span>
+                      <span className="text-sm font-medium text-slate-200">{rank.name}</span>
                     </div>
-                    <span className="text-xs text-emerald-400 font-medium bg-emerald-400/10 px-2 py-1 rounded-full">{rank.count} 문제</span>
+                    <span className="text-xs font-bold text-indigo-400">{rank.count}</span>
                   </div>
                 ))}
               </div>
             </Card>
-          </section>
 
-          {/* 참석율 */}
-          <section className="col-span-1 md:col-span-1">
-            <Card className="bg-[#151922] border-slate-800 p-5 h-full flex flex-col justify-center relative min-h-[130px]">
-              <h3 className="text-sm text-slate-400 mb-2">참석율</h3>
-              <div className="text-3xl font-extrabold text-white tracking-tight mb-1">92%</div>
-              <p className="text-xs text-slate-500 mt-auto">직전 4주 기준</p>
-            </Card>
-          </section>
-
-          {/* 정답율 */}
-          <section className="col-span-1 md:col-span-1">
-            <Card className="bg-[#151922] border-slate-800 p-5 h-full flex flex-col justify-center relative min-h-[130px]">
-              <h3 className="text-sm text-slate-400 mb-2">정답율</h3>
-              <div className="text-3xl font-extrabold text-white tracking-tight mb-1">68%</div>
-              <p className="text-xs text-slate-500 mt-auto">제출 기준</p>
-            </Card>
-          </section>
-
-          {/* 총 푼 문제 */}
-          <section className="col-span-1 md:col-span-1">
-            <Card className="bg-[#151922] border-slate-800 p-5 h-full flex flex-col relative min-h-[130px]">
-              <div className="flex justify-between items-start mb-3">
-                <div className="p-2 bg-emerald-500/10 rounded-lg">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                </div>
-                <Badge variant="success" className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]">+12%</Badge>
+            {/* 문제 풀이 랭킹 */}
+            <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col shadow-md">
+              <h3 className="text-sm font-bold text-slate-300 mb-5 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-emerald-500" />
+                풀이 수 TOP 5
+              </h3>
+              <div className="flex flex-col gap-3">
+                {mockRankingsSolved.map((rank, idx) => (
+                  <div key={rank.id} className="flex items-center justify-between p-2.5 rounded-lg bg-[#1b202c] border border-slate-800/50 hover:bg-slate-800/80 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-emerald-500/20 text-emerald-500' :
+                        idx === 1 ? 'bg-slate-300/20 text-slate-300' :
+                          idx === 2 ? 'bg-amber-700/20 text-amber-500' : 'bg-slate-800 text-slate-400'
+                        }`}>
+                        {idx + 1}
+                      </div>
+                      <span className="text-sm font-medium text-slate-200">{rank.name}</span>
+                    </div>
+                    <span className="text-xs font-bold text-emerald-400">{rank.count}</span>
+                  </div>
+                ))}
               </div>
-              <div className="text-2xl font-bold text-white mb-1">1,284</div>
-              <div className="text-xs text-slate-400 mt-auto">총 해결 문제</div>
             </Card>
-          </section>
 
-          {/* 총 코딩 시간 */}
-          <section className="col-span-1 md:col-span-1">
-            <Card className="bg-[#151922] border-slate-800 p-5 h-full flex flex-col relative min-h-[130px]">
-              <div className="flex justify-between items-start mb-3">
-                <div className="p-2 bg-blue-500/10 rounded-lg">
-                  <Clock className="w-4 h-4 text-blue-500" />
-                </div>
-                <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px]">Active</Badge>
+            {/* 댓글 랭킹 */}
+            <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col shadow-md">
+              <h3 className="text-sm font-bold text-slate-300 mb-5 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                멘토링 기여 TOP 5
+              </h3>
+              <div className="flex flex-col gap-3">
+                {mockRankingsComments.map((rank, idx) => (
+                  <div key={rank.id} className="flex items-center justify-between p-2.5 rounded-lg bg-[#1b202c] border border-slate-800/50 hover:bg-slate-800/80 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-blue-500/20 text-blue-500' :
+                        idx === 1 ? 'bg-slate-300/20 text-slate-300' :
+                          idx === 2 ? 'bg-amber-700/20 text-amber-500' : 'bg-slate-800 text-slate-400'
+                        }`}>
+                        {idx + 1}
+                      </div>
+                      <span className="text-sm font-medium text-slate-200">{rank.name}</span>
+                    </div>
+                    <span className="text-xs font-bold text-blue-400">{rank.count}</span>
+                  </div>
+                ))}
               </div>
-              <div className="text-2xl font-bold text-white mb-1">24h<span className="text-lg ml-1 text-slate-400">12m</span></div>
-              <div className="text-xs text-slate-400 mt-auto">총 코딩 시간</div>
             </Card>
-          </section>
 
-        </div>
-
-        {/* 잔디 (Contribution Graph) 섹션 */}
-        <section>
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-bold text-slate-200">팀 전체 활동</h2>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            <Card className="bg-[#151922] border-slate-800 p-4 lg:col-span-3 w-full overflow-hidden flex items-center justify-center">
-              <ContributionGraph />
-            </Card>
-            <div className="flex flex-col gap-4 lg:col-span-1">
-              <Card className="bg-[#151922] border-slate-800 p-5 flex-1 flex flex-col justify-center min-h-[100px]">
-                <h3 className="text-sm text-slate-400 mb-2">이번 달 해결</h3>
-                <div className="text-2xl font-bold text-white">42<span className="text-xs ml-1 text-slate-500 font-normal">문제</span></div>
-              </Card>
-              <Card className="bg-[#151922] border-slate-800 p-5 flex-1 flex flex-col justify-center min-h-[100px]">
-                <h3 className="text-sm text-slate-400 mb-2">평균 정답률</h3>
-                <div className="text-2xl font-bold text-emerald-400">87<span className="text-sm ml-1 text-emerald-500/50 font-normal">%</span></div>
-              </Card>
-            </div>
-            <div className="flex flex-col gap-4 lg:col-span-1">
-              <Card className="bg-[#151922] border-slate-800 p-5 flex-1 flex flex-col justify-center min-h-[100px]">
-                <h3 className="text-xs text-slate-400 mb-1">가장 많은 풀이</h3>
-                <div className="text-base font-bold text-slate-100 line-clamp-1">숨바꼭질</div>
-                <div className="text-xs text-indigo-400 mt-1">14명 성공</div>
-              </Card>
-              <Card className="bg-[#151922] border-slate-800 p-5 flex-1 flex flex-col justify-center min-h-[100px]">
-                <h3 className="text-xs text-slate-400 mb-1">최저 정답률</h3>
-                <div className="text-base font-bold text-slate-100 line-clamp-1">미로 탐색</div>
-                <div className="text-xs text-rose-400 mt-1">정답률 12%</div>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* 이번 주 문제 섹션 */}
-        <section>
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-bold text-slate-200">이번 주 문제</h2>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setProblemScrollIndex(Math.max(0, problemScrollIndex - 1))}
-                className="w-7 h-7 rounded-sm bg-[#1B202D] border border-slate-800 hover:bg-slate-800 flex items-center justify-center transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4 text-slate-400" />
-              </button>
-              <button
-                onClick={() => setProblemScrollIndex(Math.min(mockProblems.length - 2, problemScrollIndex + 1))}
-                className="w-7 h-7 rounded-sm bg-[#1B202D] border border-slate-800 hover:bg-slate-800 flex items-center justify-center transition-colors"
-              >
-                <ChevronRight className="w-4 h-4 text-slate-400" />
-              </button>
-            </div>
-          </div>
-
-          <div className="flex gap-4 overflow-hidden relative" style={{ scrollBehavior: 'smooth' }}>
-            {mockProblems.slice(problemScrollIndex, problemScrollIndex + 2).map((problem, idx) => (
-              <Card key={problem.id} className="bg-[#151922] border-slate-800 p-5 flex-1 min-w-[300px]">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex gap-2">
-                    <span className="px-2 py-0.5 text-[10px] font-medium bg-[#1e2330] text-slate-300 rounded-sm border border-slate-800">{problem.source}</span>
-                    <span className="px-2 py-0.5 text-[10px] font-medium bg-[#1e2330] text-emerald-400 rounded-sm border border-slate-800">{problem.difficulty}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-base font-bold text-slate-200">{problem.title}</h3>
-                  <div className="flex gap-1">
-                    {problem.tags.map(tag => (
-                      <span key={tag} className="px-2 py-0.5 text-[10px] bg-slate-800/50 text-slate-400 rounded-sm border border-slate-700/50">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-xs text-slate-500 mt-2">
-                  <div className="flex gap-4">
-                    <span>{problem.date}</span>
-                    <span>제출자 {problem.submitters}명</span>
-                  </div>
-                  <span>제시자 {problem.author}</span>
-                </div>
-              </Card>
-            ))}
           </div>
         </section>
 
@@ -361,45 +372,6 @@ export const Dashboard = () => {
           </div>
         </div>
       )}
-
-      {/* 모달: 전체 랭킹 */}
-      {isRankingModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#151922] border border-slate-700 rounded-xl w-full max-w-sm shadow-2xl relative animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
-            <button
-              onClick={() => setIsRankingModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <div className="p-5 border-b border-slate-800 shrink-0">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-yellow-500" />
-                전체 랭킹
-              </h3>
-              <p className="text-xs text-slate-400 mt-1">문제 풀이 수 기준</p>
-            </div>
-            <div className="p-4 flex flex-col gap-2 overflow-y-auto">
-              {mockRankings.map((rank) => (
-                <div key={rank.id} className="flex items-center justify-between p-3 rounded-xl bg-[#0F1117] border border-slate-800 hover:border-slate-700 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${rank.id === 1 ? 'bg-yellow-500 text-white shadow-[0_0_10px_rgba(234,179,8,0.3)]' :
-                      rank.id === 2 ? 'bg-slate-300 text-slate-800 shadow-[0_0_10px_rgba(203,213,225,0.3)]' :
-                        rank.id === 3 ? 'bg-amber-700 text-white shadow-[0_0_10px_rgba(180,83,9,0.3)]' :
-                          'bg-slate-800 text-slate-400'
-                      }`}>
-                      {rank.id}
-                    </div>
-                    <span className="font-medium text-slate-200">{rank.name}</span>
-                  </div>
-                  <span className="text-sm text-emerald-400 font-bold bg-emerald-400/10 px-3 py-1 rounded-full">{rank.count} 문제</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 };
