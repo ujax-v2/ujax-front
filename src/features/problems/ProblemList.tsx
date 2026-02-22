@@ -57,49 +57,56 @@ export const ProblemList = () => {
   // View: Problem Box List
   if (!currentBox) {
     return (
-      <div className="flex-1 overflow-y-auto bg-[#0F1117] p-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-100">나의 문제집</h1>
-              <p className="text-slate-400 mt-1">풀고 싶은 문제들을 그룹으로 관리해보세요.</p>
+      <div className="flex-1 overflow-y-auto bg-[#0a0c10] p-8 pb-12 font-sans text-slate-100 relative">
+        <div className="max-w-6xl mx-auto space-y-10">
+
+          {/* 워크스페이스 헤더 (Notion Style) */}
+          <div className="border-b border-slate-800 pb-8 mt-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-4xl font-extrabold text-white tracking-tight mb-3">나의 문제집</h1>
+              <p className="text-base text-slate-400 font-medium leading-relaxed max-w-3xl">
+                풀고 싶은 문제들을 테마별 그룹으로 분류하여 체계적으로 학습하고 관리해보세요.
+              </p>
             </div>
-            <Button className="gap-2" onClick={() => setIsModalOpen(true)}>
-              <FolderPlus className="w-4 h-4" /> 문제집 생성
+            <Button
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shrink-0 items-center justify-center py-2 px-4 shadow-sm transition-all"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <FolderPlus className="w-5 h-5 mr-1" /> 문제집 생성
             </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {boxes.map((box) => (
-              <div
+              <Card
                 key={box.id}
                 onClick={() => setCurrentBox(box)}
-                className="group bg-slate-900/50 border border-slate-800 rounded-xl p-6 cursor-pointer hover:bg-slate-800/50 hover:border-slate-700 transition-all"
+                className="group bg-[#151922] border-slate-800 p-6 cursor-pointer hover:border-slate-600 transition-all shadow-md flex flex-col"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`w-10 h-10 rounded-lg ${box.color} bg-opacity-20 flex items-center justify-center`}>
-                    <Folder className={`w-5 h-5 ${box.color.replace('bg-', 'text-')}`} />
+                <div className="flex justify-between items-start mb-6">
+                  <div className={`w-12 h-12 rounded-xl ${box.color} bg-opacity-10 flex items-center justify-center shadow-inner`}>
+                    <Folder className={`w-6 h-6 ${box.color.replace('bg-', 'text-')}`} />
                   </div>
-                  <button className="text-slate-500 hover:text-slate-300">
-                    <MoreVertical className="w-4 h-4" />
+                  <button className="text-slate-500 hover:text-slate-300 transition-colors p-1" onClick={(e) => e.stopPropagation()}>
+                    <MoreVertical className="w-5 h-5" />
                   </button>
                 </div>
-                <h3 className="text-lg font-semibold text-slate-200 mb-1 group-hover:text-white">{box.title}</h3>
-                <div className="flex justify-between items-center text-sm text-slate-500">
-                  <span>{box.count} 문제</span>
-                  <span className="text-xs bg-slate-800 px-2 py-0.5 rounded">{box.category}</span>
+                <h3 className="text-xl font-bold text-slate-200 mb-2 group-hover:text-white line-clamp-1">{box.title}</h3>
+                <div className="flex justify-between items-center text-sm text-slate-500 mt-auto pt-4 border-t border-slate-800/50">
+                  <span className="font-medium">{box.count} 문제</span>
+                  <Badge variant="secondary" className="bg-[#1b202c] border border-slate-700 text-slate-300 px-2.5 py-1 text-xs">{box.category}</Badge>
                 </div>
-              </div>
+              </Card>
             ))}
 
             <button
               onClick={() => toWs('problems/new')}
-              className="border border-dashed border-slate-800 rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-slate-500 hover:text-emerald-500 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all min-h-[160px]"
+              className="border-2 border-dashed border-slate-800 rounded-xl p-6 flex flex-col items-center justify-center gap-4 text-slate-500 hover:text-emerald-500 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all min-h-[180px]"
             >
-              <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-emerald-500/20">
+              <div className="w-12 h-12 rounded-full bg-[#1b202c] border border-slate-800 flex items-center justify-center group-hover:bg-emerald-500/20 group-hover:border-emerald-500/30 transition-all shadow-inner">
                 <Plus className="w-6 h-6" />
               </div>
-              <span className="font-medium">문제 등록하기</span>
+              <span className="font-bold text-sm">문제 등록하기</span>
             </button>
           </div>
         </div>
@@ -143,88 +150,96 @@ export const ProblemList = () => {
 
   // View: Problems Inside a Box
   return (
-    <div className="flex-1 overflow-y-auto bg-[#0F1117] p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="flex-1 overflow-y-auto bg-[#0a0c10] p-8 pb-12 font-sans text-slate-100 relative">
+      <div className="max-w-6xl mx-auto space-y-8">
+
         {/* Navigation & Header */}
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
-            <button onClick={() => setCurrentBox(null)} className="hover:text-slate-300">문제집</button>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 text-sm text-slate-500 font-medium tracking-wide">
+            <button onClick={() => setCurrentBox(null)} className="hover:text-slate-300 transition-colors">문제집</button>
             <span className="text-slate-700">/</span>
-            <span className="text-slate-300">{currentBox.title}</span>
+            <span className="text-slate-300 font-semibold">{currentBox.title}</span>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="border-b border-slate-800 pb-8 mt-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setCurrentBox(null)}
-                className="p-2 -ml-2 text-slate-400 hover:text-slate-100 rounded-lg hover:bg-slate-800 transition-colors"
+                className="p-2 -ml-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-all"
               >
                 <ArrowLeft className="w-6 h-6" />
               </button>
-              <h1 className="text-2xl font-bold text-slate-100">{currentBox.title}</h1>
+              <h1 className="text-3xl font-extrabold text-white tracking-tight">{currentBox.title}</h1>
             </div>
-            <Button variant="primary" className="gap-2" onClick={() => toWs('problems/new')}>
-              <Plus className="w-4 h-4" /> 문제 가져오기
+            <Button
+              className="bg-emerald-600 border border-emerald-500 text-white font-bold hover:bg-emerald-700 shrink-0 shadow-sm transition-all"
+              onClick={() => toWs('problems/new')}
+            >
+              <Plus className="w-4 h-4 mr-1" /> 문제 가져오기
             </Button>
           </div>
+        </div>
 
-          {/* Search & Filter Bar */}
-          <div className="flex gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-              <input
-                type="text"
-                placeholder="문제 검색..."
-                className="w-full h-12 bg-slate-900 border border-slate-800 rounded-lg pl-10 pr-4 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
-              />
-            </div>
-          </div>
-
-          {/* Problem List */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden">
-            <div className="grid grid-cols-[80px_1fr_120px_200px_100px] gap-4 p-4 border-b border-slate-800 bg-[#141820] text-sm font-semibold text-slate-400">
-              <div className="text-center">#</div>
-              <div>제목</div>
-              <div>난이도</div>
-              <div>알고리즘 분류</div>
-              <div className="text-center">상태</div>
-            </div>
-
-            <div className="divide-y divide-slate-800/50">
-              {problems.map((problem) => (
-                <div
-                  key={problem.id}
-                  onClick={() => navigate(`/ide/${problem.id}`)}
-                  className="grid grid-cols-[80px_1fr_120px_200px_100px] gap-4 p-4 items-center hover:bg-slate-800/30 transition-colors cursor-pointer group"
-                >
-                  <div className="text-center text-slate-500 font-mono">{problem.id}</div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-slate-200 font-medium group-hover:text-emerald-400 transition-colors">{problem.title}</span>
-                  </div>
-                  <div>
-                    <span className={`px-2 py-1 rounded text-xs font-bold border ${getDifficultyColor(problem.difficulty)}`}>
-                      {problem.difficulty} {problem.tier}
-                    </span>
-                  </div>
-                  <div className="flex gap-2 flex-wrap">
-                    {problem.tags.map(tag => (
-                      <span key={tag} className="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-xs border border-slate-700">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="text-center">
-                    {problem.solved ? (
-                      <span className="text-emerald-500 text-xs font-bold">해결됨</span>
-                    ) : (
-                      <span className="text-slate-600 text-xs">-</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Search & Filter Bar */}
+        <div className="flex gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+            <input
+              type="text"
+              placeholder="문제 검색..."
+              className="w-full h-12 bg-[#151922] border border-slate-800 rounded-xl pl-12 pr-4 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 transition-all shadow-sm"
+            />
           </div>
         </div>
+
+        {/* Problem List */}
+        <Card className="bg-[#151922] border-slate-800 overflow-hidden shadow-md">
+          <div className="overflow-x-auto">
+            <div className="min-w-[800px]">
+              <div className="grid grid-cols-[80px_1fr_120px_200px_100px] gap-4 p-4 border-b border-slate-800 bg-[#0f1117] text-sm font-bold text-slate-400">
+                <div className="text-center">#</div>
+                <div>제목</div>
+                <div>난이도</div>
+                <div>알고리즘 분류</div>
+                <div className="text-center">상태</div>
+              </div>
+
+              <div className="divide-y divide-slate-800/50">
+                {problems.map((problem) => (
+                  <div
+                    key={problem.id}
+                    onClick={() => navigate(`/ide/${problem.id}`)}
+                    className="grid grid-cols-[80px_1fr_120px_200px_100px] gap-4 p-4 items-center hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                  >
+                    <div className="text-center text-slate-500 font-mono text-xs">{problem.id}</div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-200 font-bold group-hover:text-emerald-400 transition-colors">{problem.title}</span>
+                    </div>
+                    <div>
+                      <span className={`px-2 py-1 rounded text-xs font-extrabold border shadow-sm ${getDifficultyColor(problem.difficulty)}`}>
+                        {problem.difficulty} {problem.tier}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      {problem.tags.map(tag => (
+                        <span key={tag} className="px-2 py-0.5 rounded bg-[#1b202c] text-slate-400 text-[10px] font-bold border border-slate-700/50">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="text-center">
+                      {problem.solved ? (
+                        <span className="text-emerald-500 text-[11px] font-extrabold bg-emerald-500/10 px-2 py-1.5 rounded-full border border-emerald-500/20">해결됨</span>
+                      ) : (
+                        <span className="text-slate-600 text-[11px] font-bold">-</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );
