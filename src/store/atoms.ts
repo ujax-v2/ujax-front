@@ -87,10 +87,6 @@ export const userState = atom({
   default: loadUser(),
 });
 
-export const communityTabState = atom({
-  key: 'communityTabState',
-  default: 'notices',
-});
 
 // 챌린지 타입
 export interface Challenge {
