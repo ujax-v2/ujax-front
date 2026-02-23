@@ -208,29 +208,31 @@ export const Sidebar = () => {
       </div>
 
       {/* Main Navigation — 워크스페이스 스코프 메뉴 */}
-      <div className="flex-1 px-2 space-y-0.5 overflow-y-auto">
-        <div className="mb-2 px-2 pt-2">
-          <div className="text-[11px] font-bold text-slate-500 mb-1 px-2 uppercase tracking-wider">메뉴</div>
-          {menuItems.map((item) => (
-            <button
-              key={item.subpath}
-              onClick={() => navigate(getWsPath(item.subpath))}
-              className={cn(
-                'w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors group',
-                isMenuActive(item.subpath)
-                  ? 'bg-slate-800 text-slate-100'
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
-              )}
-            >
-              <item.icon className={cn("w-4 h-4", isMenuActive(item.subpath) ? "text-slate-100" : "text-slate-500 group-hover:text-slate-400")} />
-              <span className="flex-1 text-left">{item.label}</span>
-            </button>
-          ))}
+      <div className="flex-1 px-2 py-4 overflow-y-auto flex flex-col gap-6">
+        <div>
+          <div className="text-xs font-bold text-slate-400 mb-2 px-2 tracking-widest uppercase">메뉴</div>
+          <div className="space-y-0.5">
+            {menuItems.map((item) => (
+              <button
+                key={item.subpath}
+                onClick={() => navigate(getWsPath(item.subpath))}
+                className={cn(
+                  'w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors group',
+                  isMenuActive(item.subpath)
+                    ? 'bg-slate-800 text-slate-100'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+                )}
+              >
+                <item.icon className={cn("w-4 h-4", isMenuActive(item.subpath) ? "text-slate-100" : "text-slate-500 group-hover:text-slate-400")} />
+                <span className="flex-1 text-left">{item.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* 탐색 섹션 (글로벌) */}
-        <div className="mb-2 px-2">
-          <div className="text-[11px] font-bold text-slate-500 mb-1 px-2 uppercase tracking-wider">탐색</div>
+        <div>
+          <div className="text-xs font-bold text-slate-400 mb-2 px-2 tracking-widest uppercase">탐색</div>
           <button
             onClick={() => navigate('/explore')}
             className={cn(
