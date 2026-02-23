@@ -11,6 +11,7 @@ import { ProblemList } from './features/problems/ProblemList';
 import { Profile } from './features/user/Profile';
 import { Settings } from './features/user/Settings';
 import { Community } from './features/community/Community';
+import { PostCreate } from './features/community/PostCreate';
 import { Login } from './features/auth/Login';
 import { SignUp } from './features/auth/SignUp';
 import { OAuthCallback } from './features/auth/OAuthCallback';
@@ -64,7 +65,7 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
       try {
         const res = await getWorkspaces();
         if (cancelled) return;
-        const items = (res.items ?? []).map(w => ({
+        const items = (res.items ?? []).map((w: any) => ({
           id: w.id!,
           name: w.name!,
           description: w.description ?? null,
@@ -202,6 +203,9 @@ function AppContent() {
           } />
           <Route path="/ws/:wsId/community" element={
             <ProtectedRoute><WorkspaceScope><Community /></WorkspaceScope></ProtectedRoute>
+          } />
+          <Route path="/ws/:wsId/community/new" element={
+            <ProtectedRoute><WorkspaceScope><PostCreate /></WorkspaceScope></ProtectedRoute>
           } />
           <Route path="/ws/:wsId/challenges" element={
             <ProtectedRoute><WorkspaceScope><ChallengeList /></WorkspaceScope></ProtectedRoute>
