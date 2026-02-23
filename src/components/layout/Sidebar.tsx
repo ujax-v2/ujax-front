@@ -209,8 +209,8 @@ export const Sidebar = () => {
 
       {/* Main Navigation — 워크스페이스 스코프 메뉴 */}
       <div className="flex-1 px-2 space-y-0.5 overflow-y-auto">
-        <div className="mb-2 px-2 pt-2">
-          <div className="text-[11px] font-bold text-slate-500 mb-1 px-2 uppercase tracking-wider">메뉴</div>
+        <div className="mb-6 px-2 pt-4">
+          <div className="text-xs font-bold text-slate-400 mb-2 px-2 tracking-wide">메뉴</div>
           {menuItems.map((item) => (
             <button
               key={item.subpath}
@@ -229,8 +229,8 @@ export const Sidebar = () => {
         </div>
 
         {/* 탐색 섹션 (글로벌) */}
-        <div className="mb-2 px-2">
-          <div className="text-[11px] font-bold text-slate-500 mb-1 px-2 uppercase tracking-wider">탐색</div>
+        <div className="mb-4 px-2 pt-6 border-t border-slate-800/50 mt-4">
+          <div className="text-xs font-bold text-slate-400 mb-2 px-2 tracking-wide">탐색</div>
           <button
             onClick={() => navigate('/explore')}
             className={cn(
