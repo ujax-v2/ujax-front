@@ -282,7 +282,7 @@ export const PostDetail = () => {
           <div className="border-t border-slate-800" />
 
           {/* 본문 마크다운 */}
-          <div className="px-7 py-6">
+          <div className="px-7 pt-4 pb-6">
             <div className="prose prose-invert max-w-none
               prose-headings:text-slate-100 prose-headings:font-bold prose-headings:tracking-tight
               prose-h1:text-2xl prose-h1:mt-8 prose-h1:mb-4

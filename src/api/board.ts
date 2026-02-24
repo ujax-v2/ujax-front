@@ -1,21 +1,90 @@
 import type { components } from '@ujax/api-spec/types';
 import { authFetch } from './client';
 
-// ──── api-spec 타입 re-export ────
+// ──── api-spec에서 가져올 수 있는 타입 ────
 
-export type PageInfo = components['schemas']['PageInfo'];
-export type BoardType = components['schemas']['BoardType'];
-export type BoardAuthorResponse = components['schemas']['BoardAuthorResponse'];
-export type BoardListItemResponse = components['schemas']['BoardListItemResponse'];
-export type BoardListResponse = components['schemas']['BoardListResponse'];
-export type BoardDetailResponse = components['schemas']['BoardDetailResponse'];
-export type BoardLikeStatusResponse = components['schemas']['BoardLikeStatusResponse'];
 export type CreateBoardRequest = components['schemas']['CreateBoardRequest'];
 export type UpdateBoardRequest = components['schemas']['UpdateBoardRequest'];
-export type CommentResponse = components['schemas']['CommentResponse'];
-export type CommentListResponse = components['schemas']['CommentListResponse'];
+export type PinBoardRequest = components['schemas']['PinBoardRequest'];
+export type CreateCommentRequest = components['schemas']['CreateCommentRequest'];
 
+// BoardLikeStatus는 api-spec에 data 필드가 상세하게 정의되어 있음
+type ApiBoardLikeStatus = components['schemas']['ApiResponse-BoardLikeStatus'];
+export type BoardLikeStatusResponse = ApiBoardLikeStatus['data'];
+
+// ──── 응답 data 내부 타입 (백엔드 subsectionWithPath 사용으로 api-spec에 미포함) ────
+
+export type BoardType = 'FREE' | 'NOTICE' | 'QNA' | 'DATA';
 export type MemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+
+export interface BoardAuthorResponse {
+  workspaceMemberId: number;
+  nickname: string;
+}
+
+export interface BoardListItemResponse {
+  boardId: number;
+  workspaceId: number;
+  type: BoardType;
+  pinned: boolean;
+  title: string;
+  preview: string;
+  viewCount: number;
+  likeCount: number;
+  commentCount: number;
+  myLike: boolean;
+  author: BoardAuthorResponse;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BoardDetailResponse {
+  boardId: number;
+  workspaceId: number;
+  type: BoardType;
+  pinned: boolean;
+  title: string;
+  content: string;
+  viewCount: number;
+  likeCount: number;
+  commentCount: number;
+  myLike: boolean;
+  author: BoardAuthorResponse;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BoardListResponse {
+  items: BoardListItemResponse[];
+  page: {
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    first: boolean;
+    last: boolean;
+  };
+}
+
+export interface CommentResponse {
+  boardCommentId: number;
+  boardId: number;
+  content: string;
+  author: BoardAuthorResponse;
+  createdAt: string;
+}
+
+export interface CommentListResponse {
+  items: CommentResponse[];
+  page: {
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    first: boolean;
+    last: boolean;
+  };
+}
 
 // ──── 태그 라벨 매핑 ────
 

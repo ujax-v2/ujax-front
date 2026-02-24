@@ -1,7 +1,8 @@
 import type { components } from '@ujax/api-spec/types';
 import { authFetch } from './client';
 
-export type UserResponse = components['schemas']['UserResponse'];
+type ApiUser = components['schemas']['ApiResponse-UserResponse'];
+export type UserResponse = ApiUser['data'];
 export type UserUpdateRequest = components['schemas']['UserUpdateRequest'];
 
 export async function getMe(): Promise<UserResponse> {

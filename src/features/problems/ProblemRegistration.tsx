@@ -69,7 +69,7 @@ export const ProblemRegistration = () => {
       return;
     }
     // TODO: API 연동 시 실제 등록 로직 추가
-    alert(`문제 "${problem.problemNum}. ${problem.title}"이(가) 등록되었습니다.`);
+    alert(`문제 "${problem.problemNumber}. ${problem.title}"이(가) 등록되었습니다.`);
     toWs('problems');
   };
 
@@ -90,7 +90,7 @@ export const ProblemRegistration = () => {
     }
   };
 
-  const tags = problem?.tags?.map((t: any) => t.name).join(', ') || '';
+  const tags = problem?.algorithmTags?.map((t) => t.name).join(', ') || '';
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#0F1117] p-8 pb-24">
