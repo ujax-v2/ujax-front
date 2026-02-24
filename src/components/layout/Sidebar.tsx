@@ -141,9 +141,6 @@ export const Sidebar = () => {
                 </div>
                 <div className="flex-1 overflow-hidden">
                   <div className="font-bold text-slate-200 text-sm truncate">{currentWorkspace?.name}</div>
-                  {currentWorkspace?.description && (
-                    <div className="text-xs text-slate-500 truncate">{currentWorkspace.description}</div>
-                  )}
                 </div>
               </div>
               <div className="flex gap-2">

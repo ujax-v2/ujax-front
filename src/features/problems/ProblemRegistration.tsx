@@ -90,7 +90,7 @@ export const ProblemRegistration = () => {
     }
   };
 
-  const tags = problem?.algorithmTags?.map((t) => t.name).join(', ') || '';
+  const tags = problem?.algorithmTags?.map((t: any) => t.name).join(', ') || '';
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#0F1117] p-8 pb-24">

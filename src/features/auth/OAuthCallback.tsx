@@ -44,10 +44,21 @@ export const OAuthCallback = ({ onComplete }: Props) => {
         const payload = JSON.parse(new TextDecoder().decode(bytes));
         const name = payload.name || '';
         const email = payload.email || '';
-        localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken, name, email }));
+        const provider = payload.provider || ''; // Assuming provider is also in payload
+        localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken, name, email, provider })); // Added provider to localStorage
         setWorkspaces([]);
         setCurrentWsId(0);
-        setUser({ isLoggedIn: true, name, email, avatar: name, profileImageUrl: '', baekjoonId: '', accessToken, refreshToken });
+        setUser({
+          isLoggedIn: true,
+          name,
+          email,
+          avatar: name, // or payload.avatar if available
+          profileImageUrl: payload.profileImageUrl || '', // Assuming profileImageUrl is in payload
+          baekjoonId: payload.baekjoonId || '', // Assuming baekjoonId is in payload
+          provider,
+          accessToken,
+          refreshToken,
+        });
 
         navigate('/', { replace: true });
         if (onComplete) onComplete();

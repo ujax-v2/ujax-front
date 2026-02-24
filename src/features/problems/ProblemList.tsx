@@ -12,9 +12,9 @@ export const ProblemList = () => {
 
   // Mock data for Boxes
   const [boxes, setBoxes] = useState([
-    { id: 1, title: '코딩테스트 기초 100제', count: 15, category: '기초', color: 'bg-emerald-500' },
-    { id: 2, title: '삼성 SW 역량 테스트 기출', count: 8, category: '심화', color: 'bg-blue-500' },
-    { id: 3, title: '카카오 블라인드 2024', count: 5, category: '중급', color: 'bg-yellow-500' },
+    { id: 1, title: '코딩테스트 기초 100제', count: 15, category: '기초', color: 'bg-emerald-500', description: '기본적인 문법과 자료구조를 익히기 위한 필수 문제들입니다.' },
+    { id: 2, title: '삼성 SW 역량 테스트 기출', count: 8, category: '심화', color: 'bg-blue-500', description: '삼성전자 구현 및 시뮬레이션 기출을 모아두었습니다.' },
+    { id: 3, title: '카카오 블라인드 2024', count: 5, category: '중급', color: 'bg-yellow-500', description: '카카오 블라인드 채용 코딩테스트 문자열, 구현 대비 문제집입니다.' },
   ]);
 
   // Mock data for problems inside a box
@@ -38,7 +38,7 @@ export const ProblemList = () => {
   };
 
   // Create Box Form State
-  const [newBox, setNewBox] = useState({ title: '', category: '알고리즘' });
+  const [newBox, setNewBox] = useState({ title: '', category: '알고리즘', description: '' });
 
   const handleCreateBox = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,11 +47,12 @@ export const ProblemList = () => {
       title: newBox.title,
       category: newBox.category,
       count: 0,
-      color: 'bg-purple-500'
+      color: 'bg-purple-500',
+      description: newBox.description
     };
     setBoxes([...boxes, box]);
     setIsModalOpen(false);
-    setNewBox({ title: '', category: '알고리즘' });
+    setNewBox({ title: '', category: '알고리즘', description: '' });
   };
 
   // View: Problem Box List
@@ -83,10 +84,7 @@ export const ProblemList = () => {
                 onClick={() => setCurrentBox(box)}
                 className="group bg-[#151922] border-slate-800 p-6 cursor-pointer hover:border-slate-600 transition-all shadow-md flex flex-col"
               >
-                <div className="flex justify-between items-start mb-6">
-                  <div className={`w-12 h-12 rounded-xl ${box.color} bg-opacity-10 flex items-center justify-center shadow-inner`}>
-                    <Folder className={`w-6 h-6 ${box.color.replace('bg-', 'text-')}`} />
-                  </div>
+                <div className="flex justify-end items-start mb-2">
                   <button className="text-slate-500 hover:text-slate-300 transition-colors p-1" onClick={(e) => e.stopPropagation()}>
                     <MoreVertical className="w-5 h-5" />
                   </button>
@@ -126,6 +124,15 @@ export const ProblemList = () => {
               />
             </div>
             <div className="space-y-1">
+              <label className="text-sm font-medium text-slate-400">설명</label>
+              <textarea
+                value={newBox.description}
+                onChange={(e) => setNewBox({ ...newBox, description: e.target.value })}
+                placeholder="문제집에 대한 설명을 적어주세요."
+                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500 min-h-[80px]"
+              />
+            </div>
+            <div className="space-y-1">
               <label className="text-sm font-medium text-slate-400">분류</label>
               <select
                 value={newBox.category}
@@ -161,22 +168,27 @@ export const ProblemList = () => {
             <span className="text-slate-300 font-semibold">{currentBox.title}</span>
           </div>
 
-          <div className="border-b border-slate-800 pb-8 mt-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setCurrentBox(null)}
-                className="p-2 -ml-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-all"
+          <div className="border-b border-slate-800 pb-8 mt-4">
+            <div className="flex justify-between items-center gap-4">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setCurrentBox(null)}
+                  className="p-2 -ml-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-all"
+                >
+                  <ArrowLeft className="w-6 h-6" />
+                </button>
+                <h1 className="text-3xl font-extrabold text-white tracking-tight">{currentBox.title}</h1>
+              </div>
+              <Button
+                className="bg-emerald-600 border border-emerald-500 text-white font-bold hover:bg-emerald-700 shrink-0 shadow-sm transition-all"
+                onClick={() => toWs('problems/new')}
               >
-                <ArrowLeft className="w-6 h-6" />
-              </button>
-              <h1 className="text-3xl font-extrabold text-white tracking-tight">{currentBox.title}</h1>
+                <Plus className="w-4 h-4 mr-1" /> 문제 가져오기
+              </Button>
             </div>
-            <Button
-              className="bg-emerald-600 border border-emerald-500 text-white font-bold hover:bg-emerald-700 shrink-0 shadow-sm transition-all"
-              onClick={() => toWs('problems/new')}
-            >
-              <Plus className="w-4 h-4 mr-1" /> 문제 가져오기
-            </Button>
+            {currentBox.description && (
+              <p className="text-slate-400 text-sm mt-4 leading-relaxed">{currentBox.description}</p>
+            )}
           </div>
         </div>
 
