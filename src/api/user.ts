@@ -19,6 +19,15 @@ export async function updateMe(data: UserUpdateRequest): Promise<UserResponse> {
   return res.data;
 }
 
+export async function getProfileImagePresignedUrl(fileSize: number, contentType: string) {
+  const res = await authFetch('/api/v1/users/me/profile-image/presigned-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fileSize, contentType }),
+  });
+  return res.data as { presignedUrl: string; imageUrl: string };
+}
+
 export async function deleteMe(): Promise<void> {
   await authFetch('/api/v1/users/me', {
     method: 'DELETE',
