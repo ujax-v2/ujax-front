@@ -1,9 +1,10 @@
 import type { components } from '@ujax/api-spec/types';
 import { authFetch } from './client';
 
-export type ProblemResponse = components['schemas']['ProblemResponse'];
-export type SampleResponse = components['schemas']['SampleResponse'];
-export type AlgorithmTagResponse = components['schemas']['AlgorithmTagResponse'];
+type ApiProblem = components['schemas']['ApiResponse-ProblemResponse'];
+export type ProblemResponse = ApiProblem['data'];
+export type SampleResponse = ProblemResponse['samples'][number];
+export type AlgorithmTagResponse = ProblemResponse['algorithmTags'][number];
 
 export async function getProblemById(problemId: number): Promise<ProblemResponse> {
   const res = await authFetch(`/api/v1/problems/${problemId}`);

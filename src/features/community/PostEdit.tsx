@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Card, Button } from '@/components/ui/Base';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { useRecoilValue } from 'recoil';
 import { currentWorkspaceState } from '@/store/atoms';
-import { createBoard, LABEL_TO_BOARD_TYPE } from '@/api/board';
+import { getBoardDetail, updateBoard, BOARD_TYPE_LABEL, LABEL_TO_BOARD_TYPE } from '@/api/board';
 import type { MemberRole } from '@/api/board';
 import { getMyMembership } from '@/api/workspace';
 import ReactMarkdown from 'react-markdown';
@@ -26,6 +27,7 @@ import {
   Quote,
   Minus,
   Loader2,
+  Save,
   Pin,
   PinOff,
 } from 'lucide-react';
@@ -46,30 +48,55 @@ const TOOLBAR_ACTIONS = [
   { icon: Image, label: '이미지', insert: '![대체텍스트](url)', type: 'insert' as const },
 ];
 
-export const PostCreate = () => {
+export const PostEdit = () => {
+  const { boardId } = useParams<{ boardId: string }>();
   const { toWs } = useWorkspaceNavigate();
   const wsId = useRecoilValue(currentWorkspaceState);
+
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('자유');
   const [activeTab, setActiveTab] = useState<EditorTab>('write');
   const [pinned, setPinned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [myRole, setMyRole] = useState<MemberRole>('MEMBER');
 
-  // 내 역할 조회 → OWNER만 공지 태그 노출
+  const numericBoardId = Number(boardId);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // 기존 게시물 데이터 + 내 역할 로드
   useEffect(() => {
-    if (!wsId) return;
-    getMyMembership(wsId).then(data => {
-      if (data.role) setMyRole(data.role as MemberRole);
-    }).catch(() => { /* 권한 조회 실패 시 기본 MEMBER */ });
-  }, [wsId]);
+    if (!wsId || !numericBoardId) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const [detail, membership] = await Promise.all([
+          getBoardDetail(wsId, numericBoardId),
+          getMyMembership(wsId),
+        ]);
+        if (cancelled) return;
+
+        setTitle(detail.title ?? '');
+        setContent(detail.content ?? '');
+        if (detail.type) setSelectedTag(BOARD_TYPE_LABEL[detail.type]);
+        setPinned(detail.pinned ?? false);
+        if (membership.role) setMyRole(membership.role as MemberRole);
+      } catch {
+        if (!cancelled) setError('게시물을 불러올 수 없습니다.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [wsId, numericBoardId]);
 
   const availableTags = myRole === 'OWNER'
     ? ['자유', '질문', '자료', '공지']
     : ['자유', '질문', '자료'];
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   const IMAGE_URL_RE = /^https?:\/\/\S+\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?\S*)?$/i;
   const GENERAL_URL_RE = /^https?:\/\/\S+$/i;
@@ -78,7 +105,6 @@ export const PostCreate = () => {
     const pasted = e.clipboardData.getData('text/plain').trim();
     if (!pasted) return;
 
-    // 이미지 URL이면 ![이미지](url) 로 변환
     if (IMAGE_URL_RE.test(pasted)) {
       e.preventDefault();
       const textarea = textareaRef.current!;
@@ -95,7 +121,6 @@ export const PostCreate = () => {
       return;
     }
 
-    // 일반 URL이면 [링크](url) 로 변환
     if (GENERAL_URL_RE.test(pasted) && !pasted.includes('\n')) {
       e.preventDefault();
       const textarea = textareaRef.current!;
@@ -106,7 +131,6 @@ export const PostCreate = () => {
       const md = `[${label}](${pasted})`;
       const newContent = content.substring(0, start) + md + content.substring(end);
       setContent(newContent);
-      // 라벨 텍스트를 선택 상태로 (바로 수정 가능하게)
       const labelStart = start + 1;
       const labelEnd = labelStart + label.length;
       requestAnimationFrame(() => {
@@ -140,7 +164,6 @@ export const PostCreate = () => {
     }
 
     setContent(newContent);
-    // 커서 위치 복원
     requestAnimationFrame(() => {
       textarea.focus();
       textarea.setSelectionRange(cursorPos, cursorPos);
@@ -167,13 +190,13 @@ export const PostCreate = () => {
 
     try {
       const boardType = LABEL_TO_BOARD_TYPE[selectedTag];
-      await createBoard(wsId, {
+      await updateBoard(wsId, numericBoardId, {
         type: boardType,
         title: title.trim(),
         content: content.trim(),
-        ...(boardType === 'NOTICE' && pinned ? { pinned: true } : {}),
+        ...(boardType === 'NOTICE' ? { pinned } : {}),
       });
-      toWs('community');
+      toWs(`community/${numericBoardId}`);
     } catch (err: any) {
       const msg = err?.message || '';
       const jsonMatch = msg.match(/\{[\s\S]*\}/);
@@ -195,6 +218,14 @@ export const PostCreate = () => {
   const charCount = content.length;
   const charOver = charCount > 2000;
 
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-[#0F1117] h-full">
+        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 p-8 overflow-y-auto bg-[#0F1117] h-full">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -202,14 +233,14 @@ export const PostCreate = () => {
         {/* Header */}
         <div className="flex items-center gap-4 border-b border-slate-800 pb-6">
           <button
-            onClick={() => toWs('community')}
+            onClick={() => toWs(`community/${numericBoardId}`)}
             className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-full transition-colors focus:outline-none"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">새 게시물 작성</h1>
-            <p className="text-slate-400 text-sm mt-1">마크다운 문법을 지원합니다. 팀원들에게 유용한 정보를 공유하거나 질문해보세요.</p>
+            <h1 className="text-2xl font-extrabold text-white tracking-tight">게시물 수정</h1>
+            <p className="text-slate-400 text-sm mt-1">마크다운 문법을 지원합니다.</p>
           </div>
         </div>
 
@@ -237,7 +268,7 @@ export const PostCreate = () => {
                 ))}
               </div>
               {/* 공지 선택 시 고정 토글 */}
-              {selectedTag === '공지' && (
+              {selectedTag === '공지' && myRole === 'OWNER' && (
                 <button
                   type="button"
                   onClick={() => setPinned(!pinned)}
@@ -330,7 +361,7 @@ export const PostCreate = () => {
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   onPaste={handlePaste}
-                  placeholder="마크다운으로 작성해보세요...&#10;&#10;# 제목&#10;## 소제목&#10;**굵게** *기울임* `코드`&#10;- 목록 항목&#10;```python&#10;print('Hello!')&#10;```&#10;&#10;이미지 URL 붙여넣기 시 자동 변환됩니다."
+                  placeholder="마크다운으로 작성해보세요..."
                   className="w-full min-h-[400px] bg-slate-900/30 p-5 text-slate-200 text-sm font-mono placeholder:text-slate-600 focus:outline-none resize-y leading-relaxed"
                 />
               ) : (
@@ -374,7 +405,7 @@ export const PostCreate = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => toWs('community')}
+                onClick={() => toWs(`community/${numericBoardId}`)}
                 className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
               >
                 취소
@@ -385,9 +416,9 @@ export const PostCreate = () => {
                 className="bg-emerald-600 hover:bg-emerald-700 font-bold px-6 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> 작성 중...</>
+                  <><Loader2 className="w-4 h-4 animate-spin" /> 저장 중...</>
                 ) : (
-                  <><PenSquare className="w-4 h-4" /> 작성 완료</>
+                  <><Save className="w-4 h-4" /> 수정 완료</>
                 )}
               </Button>
             </div>

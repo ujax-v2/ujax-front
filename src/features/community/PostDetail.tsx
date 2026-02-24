@@ -12,9 +12,10 @@ import {
   createComment,
   deleteComment,
   deleteBoard,
+  pinBoard,
   BOARD_TYPE_LABEL,
 } from '@/api/board';
-import type { BoardDetail as BoardDetailType, CommentItem, MemberRole } from '@/api/board';
+import type { BoardDetailResponse, CommentResponse, MemberRole } from '@/api/board';
 import { getMyMembership } from '@/api/workspace';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -29,6 +30,8 @@ import {
   Loader2,
   Clock,
   User,
+  Pin,
+  PinOff,
 } from 'lucide-react';
 
 export const PostDetail = () => {
@@ -36,8 +39,8 @@ export const PostDetail = () => {
   const wsId = useRecoilValue(currentWorkspaceState);
   const { toWs } = useWorkspaceNavigate();
 
-  const [post, setPost] = useState<BoardDetailType | null>(null);
-  const [comments, setComments] = useState<CommentItem[]>([]);
+  const [post, setPost] = useState<BoardDetailResponse | null>(null);
+  const [comments, setComments] = useState<CommentResponse[]>([]);
   const [commentPage, setCommentPage] = useState(0);
   const [commentTotalPages, setCommentTotalPages] = useState(0);
   const [newComment, setNewComment] = useState('');
@@ -49,11 +52,9 @@ export const PostDetail = () => {
 
   const numericBoardId = Number(boardId);
 
-  // 게시물 상세 + 내 멤버 정보 로드
   useEffect(() => {
     if (!wsId || !numericBoardId) return;
     let cancelled = false;
-
     (async () => {
       setLoading(true);
       try {
@@ -65,46 +66,40 @@ export const PostDetail = () => {
         setPost(detail);
         if (membership.role) setMyRole(membership.role as MemberRole);
         if (membership.workspaceMemberId) setMyMemberId(membership.workspaceMemberId);
-      } catch (err: any) {
+      } catch {
         if (!cancelled) setError('게시물을 불러올 수 없습니다.');
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
-
     return () => { cancelled = true; };
   }, [wsId, numericBoardId]);
 
-  // 댓글 로드
   const loadComments = useCallback(async (page = 0) => {
     if (!wsId || !numericBoardId) return;
     try {
       const res = await getComments(wsId, numericBoardId, { page, size: 20 });
-      setComments(res.items);
-      setCommentPage(res.page.page ?? 0);
-      setCommentTotalPages(res.page.totalPages ?? 0);
+      setComments(res.items ?? []);
+      setCommentPage(res.page?.page ?? 0);
+      setCommentTotalPages(res.page?.totalPages ?? 0);
     } catch { /* ignore */ }
   }, [wsId, numericBoardId]);
 
-  useEffect(() => {
-    loadComments(0);
-  }, [loadComments]);
+  useEffect(() => { loadComments(0); }, [loadComments]);
 
-  // 좋아요 토글
   const handleLikeToggle = async () => {
     if (!post) return;
     try {
       if (post.myLike) {
         await unlikeBoard(wsId, numericBoardId);
-        setPost(prev => prev ? { ...prev, myLike: false, likeCount: prev.likeCount - 1 } : prev);
+        setPost(prev => prev ? { ...prev, myLike: false, likeCount: (prev.likeCount ?? 0) - 1 } : prev);
       } else {
         await likeBoard(wsId, numericBoardId);
-        setPost(prev => prev ? { ...prev, myLike: true, likeCount: prev.likeCount + 1 } : prev);
+        setPost(prev => prev ? { ...prev, myLike: true, likeCount: (prev.likeCount ?? 0) + 1 } : prev);
       }
     } catch { /* ignore */ }
   };
 
-  // 댓글 작성
   const handleCommentSubmit = async () => {
     if (!newComment.trim() || commentSubmitting) return;
     setCommentSubmitting(true);
@@ -112,32 +107,28 @@ export const PostDetail = () => {
       await createComment(wsId, numericBoardId, newComment.trim());
       setNewComment('');
       await loadComments(0);
-      setPost(prev => prev ? { ...prev, commentCount: prev.commentCount + 1 } : prev);
+      setPost(prev => prev ? { ...prev, commentCount: (prev.commentCount ?? 0) + 1 } : prev);
     } catch (err: any) {
       const msg = err?.message || '';
       const jsonMatch = msg.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        try {
-          const parsed = JSON.parse(jsonMatch[0]);
-          alert(parsed.detail || '댓글 작성에 실패했습니다.');
-        } catch { alert('댓글 작성에 실패했습니다.'); }
+        try { alert(JSON.parse(jsonMatch[0]).detail || '댓글 작성에 실패했습니다.'); }
+        catch { alert('댓글 작성에 실패했습니다.'); }
       } else { alert('댓글 작성에 실패했습니다.'); }
     } finally {
       setCommentSubmitting(false);
     }
   };
 
-  // 댓글 삭제
   const handleCommentDelete = async (commentId: number) => {
     if (!confirm('댓글을 삭제하시겠습니까?')) return;
     try {
       await deleteComment(wsId, numericBoardId, commentId);
       await loadComments(commentPage);
-      setPost(prev => prev ? { ...prev, commentCount: Math.max(0, prev.commentCount - 1) } : prev);
+      setPost(prev => prev ? { ...prev, commentCount: Math.max(0, (prev.commentCount ?? 0) - 1) } : prev);
     } catch { /* ignore */ }
   };
 
-  // 게시물 삭제
   const handlePostDelete = async () => {
     if (!confirm('게시물을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
     try {
@@ -147,17 +138,31 @@ export const PostDetail = () => {
       const msg = err?.message || '';
       const jsonMatch = msg.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        try {
-          const parsed = JSON.parse(jsonMatch[0]);
-          alert(parsed.detail || '삭제에 실패했습니다.');
-        } catch { alert('삭제에 실패했습니다.'); }
+        try { alert(JSON.parse(jsonMatch[0]).detail || '삭제에 실패했습니다.'); }
+        catch { alert('삭제에 실패했습니다.'); }
       } else { alert('삭제에 실패했습니다.'); }
     }
   };
 
-  const isAuthor = myMemberId !== null && post?.author.workspaceMemberId === myMemberId;
+  const handleTogglePin = async () => {
+    if (!post || post.type !== 'NOTICE') return;
+    try {
+      await pinBoard(wsId, numericBoardId, !post.pinned);
+      setPost(prev => prev ? { ...prev, pinned: !prev.pinned } : prev);
+    } catch (err: any) {
+      const msg = err?.message || '';
+      const jsonMatch = msg.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try { alert(JSON.parse(jsonMatch[0]).detail || '고정 상태 변경에 실패했습니다.'); }
+        catch { alert('고정 상태 변경에 실패했습니다.'); }
+      } else { alert('고정 상태 변경에 실패했습니다.'); }
+    }
+  };
+
+  const isAuthor = myMemberId !== null && post?.author?.workspaceMemberId === myMemberId;
   const canManage = myRole === 'OWNER' || myRole === 'ADMIN';
   const canDelete = isAuthor || canManage;
+  const canPin = myRole === 'OWNER' && post?.type === 'NOTICE';
 
   const getTagBadge = (type: string) => {
     const label = BOARD_TYPE_LABEL[type as keyof typeof BOARD_TYPE_LABEL] || type;
@@ -198,9 +203,9 @@ export const PostDetail = () => {
 
   return (
     <div className="flex-1 p-8 overflow-y-auto bg-[#0F1117] h-full">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-5">
 
-        {/* Back Button */}
+        {/* Back */}
         <button
           onClick={() => toWs('community')}
           className="flex items-center gap-2 text-slate-400 hover:text-slate-200 transition-colors text-sm"
@@ -208,171 +213,201 @@ export const PostDetail = () => {
           <ArrowLeft className="w-4 h-4" /> 목록으로
         </button>
 
-        {/* Post Header */}
-        <Card className="bg-[#141820] border-slate-800 p-6 shadow-sm">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              {getTagBadge(post.type)}
-              {post.pinned && (
-                <Badge variant="outline" className="border-yellow-500/30 text-yellow-400 bg-yellow-500/10 text-xs">고정</Badge>
-              )}
-            </div>
+        {/* ─── 게시물 본문 카드 ─── */}
+        <Card className="bg-[#141820] border-slate-800 shadow-sm overflow-hidden">
 
-            <h1 className="text-2xl font-extrabold text-white leading-tight">{post.title}</h1>
-
-            <div className="flex items-center justify-between border-t border-slate-800 pt-4">
-              <div className="flex items-center gap-4 text-sm text-slate-400">
-                <span className="flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5" /> {post.author.nickname}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" /> {formatDate(post.createdAt)}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Eye className="w-3.5 h-3.5" /> {post.viewCount}
-                </span>
+          {/* Header 영역 */}
+          <div className="px-7 pt-6 pb-5 space-y-3">
+            {/* 태그 + 고정 뱃지 + 관리 버튼 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                {getTagBadge(post.type ?? 'FREE')}
+                {post.pinned && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-yellow-500/10 text-yellow-400 text-xs font-semibold border border-yellow-500/20">
+                    <Pin className="w-3 h-3" /> 고정
+                  </span>
+                )}
               </div>
-
-              {/* 관리 버튼: 작성자 or ADMIN/OWNER */}
-              {canDelete && (
-                <div className="flex gap-2">
+              {(canDelete || canPin) && (
+                <div className="flex items-center gap-1">
+                  {canPin && (
+                    <button
+                      onClick={handleTogglePin}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-yellow-400 hover:bg-yellow-500/10 transition-colors"
+                    >
+                      {post.pinned ? <><PinOff className="w-3.5 h-3.5" /> 고정 해제</> : <><Pin className="w-3.5 h-3.5" /> 상단 고정</>}
+                    </button>
+                  )}
                   {isAuthor && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-slate-400 hover:text-slate-200 gap-1.5"
+                    <button
                       onClick={() => toWs(`community/${numericBoardId}/edit`)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
                     >
                       <Edit3 className="w-3.5 h-3.5" /> 수정
-                    </Button>
+                    </button>
                   )}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 gap-1.5"
+                  <button
                     onClick={handlePostDelete}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> 삭제
-                  </Button>
+                  </button>
                 </div>
               )}
             </div>
+
+            {/* 제목 */}
+            <h1 className="text-[1.6rem] font-extrabold text-white leading-snug tracking-tight">
+              {post.title}
+            </h1>
+
+            {/* 메타 정보 */}
+            <div className="flex items-center gap-4 text-[13px] text-slate-500">
+              <span className="flex items-center gap-1.5 font-medium text-slate-300">
+                <User className="w-3.5 h-3.5 text-slate-500" /> {post.author?.nickname}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" /> {formatDate(post.createdAt ?? '')}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Eye className="w-3.5 h-3.5" /> {post.viewCount}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <MessageCircle className="w-3.5 h-3.5" /> {post.commentCount}
+              </span>
+            </div>
           </div>
-        </Card>
 
-        {/* Post Content — Markdown */}
-        <Card className="bg-[#141820] border-slate-800 p-8 shadow-sm">
-          <div className="prose prose-invert prose-sm max-w-none
-            prose-headings:text-slate-100 prose-headings:font-bold
-            prose-p:text-slate-300 prose-p:leading-relaxed
-            prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline
-            prose-strong:text-slate-100
-            prose-code:text-emerald-300 prose-code:bg-slate-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none
-            prose-pre:bg-[#0F1117] prose-pre:border prose-pre:border-slate-800 prose-pre:rounded-lg
-            prose-blockquote:border-emerald-500/50 prose-blockquote:text-slate-400
-            prose-li:text-slate-300
-            prose-hr:border-slate-700
-            prose-img:rounded-lg
-            prose-th:text-slate-300 prose-td:text-slate-400
-          ">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
+          {/* 구분선 */}
+          <div className="border-t border-slate-800" />
+
+          {/* 본문 마크다운 */}
+          <div className="px-7 pt-4 pb-6">
+            <div className="prose prose-invert max-w-none
+              prose-headings:text-slate-100 prose-headings:font-bold prose-headings:tracking-tight
+              prose-h1:text-2xl prose-h1:mt-8 prose-h1:mb-4
+              prose-h2:text-xl prose-h2:mt-7 prose-h2:mb-3
+              prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-2
+              prose-p:text-[15px] prose-p:text-slate-300 prose-p:leading-[1.8] prose-p:my-3
+              prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline
+              prose-strong:text-slate-100 prose-strong:font-bold
+              prose-em:text-slate-300
+              prose-code:text-emerald-300 prose-code:bg-slate-800/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-[13px] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
+              prose-pre:bg-[#0D1017] prose-pre:border prose-pre:border-slate-700/50 prose-pre:rounded-xl prose-pre:my-4
+              prose-blockquote:border-l-emerald-500/40 prose-blockquote:bg-emerald-500/5 prose-blockquote:rounded-r-lg prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:text-slate-400 prose-blockquote:not-italic
+              prose-ul:my-3 prose-ol:my-3
+              prose-li:text-[15px] prose-li:text-slate-300 prose-li:leading-[1.8] prose-li:my-0.5
+              prose-hr:border-slate-700/50 prose-hr:my-6
+              prose-img:rounded-xl prose-img:border prose-img:border-slate-800
+              prose-table:text-sm
+              prose-th:text-slate-300 prose-th:bg-slate-800/50 prose-th:px-3 prose-th:py-2
+              prose-td:text-slate-400 prose-td:px-3 prose-td:py-2 prose-td:border-slate-700/50
+            ">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content ?? ''}</ReactMarkdown>
+            </div>
           </div>
-        </Card>
 
-        {/* Like Button */}
-        <div className="flex justify-center">
-          <button
-            onClick={handleLikeToggle}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all border ${
-              post.myLike
-                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
-                : 'bg-slate-800/50 text-slate-400 border-slate-700 hover:bg-slate-800 hover:text-slate-200'
-            }`}
-          >
-            <ThumbsUp className={`w-5 h-5 ${post.myLike ? 'fill-emerald-400' : ''}`} />
-            추천 {post.likeCount}
-          </button>
-        </div>
-
-        {/* Comments Section */}
-        <Card className="bg-[#141820] border-slate-800 p-6 shadow-sm space-y-5">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-emerald-500" />
-            댓글 {post.commentCount}
-          </h3>
-
-          {/* Comment Input */}
-          <div className="flex gap-3">
-            <input
-              type="text"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCommentSubmit(); } }}
-              placeholder="댓글을 입력하세요... (최대 255자)"
-              maxLength={255}
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-slate-500"
-            />
-            <Button
-              onClick={handleCommentSubmit}
-              disabled={!newComment.trim() || commentSubmitting}
-              className="bg-emerald-600 hover:bg-emerald-700 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          {/* 추천 바 — 본문 카드 하단에 자연스럽게 */}
+          <div className="border-t border-slate-800 px-7 py-4 flex items-center justify-between">
+            <button
+              onClick={handleLikeToggle}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                post.myLike
+                  ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+              }`}
             >
-              {commentSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            </Button>
+              <ThumbsUp className={`w-[18px] h-[18px] ${post.myLike ? 'fill-emerald-400' : ''}`} />
+              추천 {(post.likeCount ?? 0) > 0 && <span className="tabular-nums">{post.likeCount}</span>}
+            </button>
+            <span className="text-xs text-slate-600">
+              {post.updatedAt !== post.createdAt && `수정됨 ${formatDate(post.updatedAt ?? '')}`}
+            </span>
           </div>
+        </Card>
 
-          {/* Comment List */}
-          <div className="space-y-1 divide-y divide-slate-800/50">
-            {comments.length === 0 ? (
-              <p className="text-slate-600 text-sm py-6 text-center">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>
-            ) : (
-              comments.map(c => {
-                const isCommentAuthor = myMemberId !== null && c.author.workspaceMemberId === myMemberId;
-                const canDeleteComment = isCommentAuthor || canManage;
-                return (
-                  <div key={c.boardCommentId} className="py-3 group">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-1">
-                          <span className="text-sm font-bold text-slate-200">{c.author.nickname}</span>
-                          <span className="text-xs text-slate-600">{formatDate(c.createdAt)}</span>
+        {/* ─── 댓글 섹션 ─── */}
+        <Card className="bg-[#141820] border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-7 py-5">
+            <h3 className="text-[15px] font-bold text-white flex items-center gap-2 mb-5">
+              <MessageCircle className="w-[18px] h-[18px] text-emerald-500" />
+              댓글 <span className="text-emerald-500 tabular-nums">{post.commentCount}</span>
+            </h3>
+
+            {/* 댓글 입력 */}
+            <div className="flex gap-2.5 mb-5">
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCommentSubmit(); } }}
+                placeholder="댓글을 입력하세요..."
+                maxLength={255}
+                className="flex-1 bg-slate-900/80 border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-emerald-500/50 transition-colors placeholder:text-slate-600"
+              />
+              <Button
+                onClick={handleCommentSubmit}
+                disabled={!newComment.trim() || commentSubmitting}
+                className="bg-emerald-600 hover:bg-emerald-700 px-4 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {commentSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </Button>
+            </div>
+
+            {/* 댓글 목록 */}
+            <div className="divide-y divide-slate-800/40">
+              {comments.length === 0 ? (
+                <p className="text-slate-600 text-sm py-8 text-center">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>
+              ) : (
+                comments.map(c => {
+                  const isCommentAuthor = myMemberId !== null && c.author?.workspaceMemberId === myMemberId;
+                  const canDeleteComment = isCommentAuthor || canManage;
+                  return (
+                    <div key={c.boardCommentId} className="py-3.5 group first:pt-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2.5 mb-1.5">
+                            <span className="text-[13px] font-bold text-slate-200">{c.author?.nickname}</span>
+                            <span className="text-[11px] text-slate-600 tabular-nums">{formatDate(c.createdAt ?? '')}</span>
+                          </div>
+                          <p className="text-[14px] text-slate-300 leading-relaxed whitespace-pre-wrap break-words">{c.content}</p>
                         </div>
-                        <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap break-words">{c.content}</p>
+                        {canDeleteComment && (
+                          <button
+                            onClick={() => handleCommentDelete(c.boardCommentId!)}
+
+                            className="p-1.5 text-slate-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                            title="삭제"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
-                      {canDeleteComment && (
-                        <button
-                          onClick={() => handleCommentDelete(c.boardCommentId)}
-                          className="p-1.5 text-slate-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                          title="댓글 삭제"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
                     </div>
-                  </div>
-                );
-              })
+                  );
+                })
+              )}
+            </div>
+
+            {/* 댓글 페이지네이션 */}
+            {commentTotalPages > 1 && (
+              <div className="flex justify-center gap-1.5 pt-4 mt-2 border-t border-slate-800/40">
+                {Array.from({ length: commentTotalPages }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => loadComments(i)}
+                    className={`w-7 h-7 rounded-md text-xs font-bold transition-colors ${
+                      commentPage === i
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : 'text-slate-600 hover:bg-slate-800 hover:text-slate-400'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
-
-          {/* Comment Pagination */}
-          {commentTotalPages > 1 && (
-            <div className="flex justify-center gap-2 pt-2">
-              {Array.from({ length: commentTotalPages }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => loadComments(i)}
-                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
-                    commentPage === i
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                      : 'text-slate-500 hover:bg-slate-800 hover:text-slate-300'
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-          )}
         </Card>
       </div>
     </div>

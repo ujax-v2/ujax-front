@@ -11,6 +11,7 @@ import {
   Database,
   X,
 } from 'lucide-react';
+import { getMe } from '@/api/user';
 import { ProfileTab } from './settings/ProfileTab';
 import { GeneralTab } from './settings/GeneralTab';
 import { NotificationsTab } from './settings/NotificationsTab';
@@ -24,7 +25,34 @@ export const Settings = () => {
   const [activeTab, setActiveTab] = useRecoilState(settingsTabState);
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
   const workspaces = useRecoilValue(workspacesState);
-  const user = useRecoilValue(userState);
+  const [user, setUser] = useRecoilState(userState);
+
+  // 설정 진입 시 최신 프로필 데이터로 Recoil/localStorage 동기화
+  useEffect(() => {
+    getMe().then(data => {
+      setUser(prev => {
+        const next = {
+          ...prev,
+          name: data.name,
+          profileImageUrl: data.profileImageUrl ?? '',
+          baekjoonId: data.baekjoonId ?? '',
+        };
+        try {
+          const stored = localStorage.getItem('auth');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            localStorage.setItem('auth', JSON.stringify({
+              ...parsed,
+              name: next.name,
+              profileImageUrl: next.profileImageUrl,
+              baekjoonId: next.baekjoonId,
+            }));
+          }
+        } catch { /* ignore */ }
+        return next;
+      });
+    }).catch(() => { /* ignore - ProfileTab will also fetch */ });
+  }, [setUser]);
 
   // Reset activeTab to 'profile' if on ws-* tab and no workspaces
   useEffect(() => {

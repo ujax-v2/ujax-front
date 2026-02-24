@@ -1,15 +1,26 @@
 import type { components } from '@ujax/api-spec/types';
 import { authFetch } from './client';
 
-export type WorkspaceResponse = components['schemas']['WorkspaceResponse'];
-export type WorkspaceListResponse = components['schemas']['WorkspaceListResponse'];
-export type WorkspaceSettingsResponse = components['schemas']['WorkspaceSettingsResponse'];
-export type WorkspaceMemberResponse = components['schemas']['WorkspaceMemberResponse'];
-export type WorkspaceMemberListResponse = components['schemas']['WorkspaceMemberListResponse'];
+type ApiWorkspace = components['schemas']['ApiResponse-WorkspaceResponse'];
+export type WorkspaceResponse = ApiWorkspace['data'];
+
+type ApiWorkspaceList = components['schemas']['ApiResponse-WorkspaceList'];
+export type WorkspaceListResponse = ApiWorkspaceList['data'];
+
+type ApiWorkspaceSettings = components['schemas']['ApiResponse-WorkspaceSettings'];
+export type WorkspaceSettingsResponse = ApiWorkspaceSettings['data'];
+
+type ApiWorkspaceMember = components['schemas']['ApiResponse-WorkspaceMemberResponse'];
+export type WorkspaceMemberResponse = ApiWorkspaceMember['data'];
+
+type ApiWorkspaceMemberList = components['schemas']['ApiResponse-WorkspaceMemberList'];
+export type WorkspaceMemberListResponse = ApiWorkspaceMemberList['data'];
+
 export type CreateWorkspaceRequest = components['schemas']['CreateWorkspaceRequest'];
 export type UpdateWorkspaceRequest = components['schemas']['UpdateWorkspaceRequest'];
-export type PageInfo = components['schemas']['PageInfo'];
-export type PageResponseWorkspaceResponse = components['schemas']['PageResponseWorkspaceResponse'];
+
+type ApiWorkspaceExplore = components['schemas']['ApiResponse-WorkspaceExplore'];
+export type PageResponseWorkspaceResponse = ApiWorkspaceExplore['data'];
 
 // ──── 워크스페이스 CRUD ────
 
