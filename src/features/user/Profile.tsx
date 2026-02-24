@@ -137,6 +137,7 @@ export const Profile = () => {
 
   const totalSolved = tierSolveData.reduce((acc, cur) => acc + cur.count, 0);
   const bestLanguage = [...languageData].sort((a, b) => b.value - a.value)[0].name;
+  const currentStreak = 14;
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#0a0c10] p-8 pb-12 font-sans text-slate-100">
@@ -175,6 +176,9 @@ export const Profile = () => {
 
               <div className="text-slate-500">해결 문제 수</div>
               <div className="text-slate-200 font-bold text-emerald-400">{totalSolved} 문제</div>
+
+              <div className="text-slate-500">연속 출석</div>
+              <div className="text-slate-200 font-bold text-blue-400">{currentStreak} 일</div>
             </div>
           </Card>
 
