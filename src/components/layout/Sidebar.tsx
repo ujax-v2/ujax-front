@@ -62,7 +62,7 @@ export const Sidebar = () => {
       // logout API 실패해도 로컬 상태는 초기화
     }
     localStorage.removeItem('auth');
-    setUser({ isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', accessToken: '', refreshToken: '' });
+    setUser({ isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '' });
     setWorkspaces([]);
     setCurrentWorkspaceId(0);
     navigate('/login');
@@ -72,7 +72,7 @@ export const Sidebar = () => {
   // 실제 navigate 시 /ws/:wsId/ 접두사를 붙여줌
   const menuItems = [
     { type: 'ws', subpath: 'dashboard', label: '워크스페이스', icon: LayoutDashboard },
-    { type: 'global', path: '/profile', label: '마이페이지 이동', icon: UserCircle },
+    { type: 'global', path: '/profile', label: '마이페이지', icon: UserCircle },
     { type: 'ws', subpath: 'problems', label: '문제', icon: BookOpen },
     { type: 'ws', subpath: 'community', label: '커뮤니티', icon: Users },
   ];

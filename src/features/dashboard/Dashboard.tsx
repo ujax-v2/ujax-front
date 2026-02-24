@@ -13,11 +13,11 @@ const mockNotices = [
 ];
 
 const mockRankingsLevel = [
-  { id: 1, name: '고스디님', count: 'LV.42' },
-  { id: 2, name: '이서형', count: 'LV.39' },
-  { id: 3, name: '박민수', count: 'LV.35' },
-  { id: 4, name: '김지우', count: 'LV.30' },
-  { id: 5, name: '최유진', count: 'LV.28' },
+  { id: 1, name: '고스디님', count: '98.5 %' },
+  { id: 2, name: '이서형', count: '94.2 %' },
+  { id: 3, name: '박민수', count: '91.8 %' },
+  { id: 4, name: '김지우', count: '88.4 %' },
+  { id: 5, name: '최유진', count: '85.1 %' },
 ];
 
 const mockRankingsSolved = [
@@ -29,11 +29,11 @@ const mockRankingsSolved = [
 ];
 
 const mockRankingsComments = [
-  { id: 1, name: '정하늘', count: '142 개' },
-  { id: 2, name: '박민수', count: '128 개' },
-  { id: 3, name: '최유진', count: '94 개' },
-  { id: 4, name: '고스디님', count: '63 개' },
-  { id: 5, name: '이서형', count: '55 개' },
+  { id: 1, name: '정하늘', count: '142 일' },
+  { id: 2, name: '박민수', count: '128 일' },
+  { id: 3, name: '최유진', count: '94 일' },
+  { id: 4, name: '고스디님', count: '63 일' },
+  { id: 5, name: '이서형', count: '55 일' },
 ];
 
 const mockProblems = [
@@ -198,7 +198,7 @@ export const Dashboard = () => {
             <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col shadow-md">
               <h3 className="text-sm font-bold text-slate-300 mb-5 flex items-center gap-2">
                 <Trophy className="w-4 h-4 text-yellow-500" />
-                경험치 (LV) TOP 5
+                정답률 TOP 5
               </h3>
               <div className="flex flex-col gap-3">
                 {mockRankingsLevel.map((rank, idx) => (
@@ -242,11 +242,11 @@ export const Dashboard = () => {
               </div>
             </Card>
 
-            {/* 댓글 랭킹 */}
+            {/* 잔디 랭킹 */}
             <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col shadow-md">
               <h3 className="text-sm font-bold text-slate-300 mb-5 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-blue-500" />
-                멘토링 기여 TOP 5
+                연속 잔디 (일) TOP 5
               </h3>
               <div className="flex flex-col gap-3">
                 {mockRankingsComments.map((rank, idx) => (
