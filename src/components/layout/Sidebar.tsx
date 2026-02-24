@@ -23,7 +23,8 @@ import {
   Settings,
   UserPlus,
   MoreHorizontal,
-  Compass
+  Compass,
+  UserCircle
 } from 'lucide-react';
 import { cn } from '../ui/Base';
 
@@ -70,9 +71,10 @@ export const Sidebar = () => {
   // 메뉴 항목의 path는 wsId 없이 상대 경로만 정의
   // 실제 navigate 시 /ws/:wsId/ 접두사를 붙여줌
   const menuItems = [
-    { subpath: 'dashboard', label: '워크스페이스', icon: LayoutDashboard },
-    { subpath: 'problems', label: '문제', icon: BookOpen },
-    { subpath: 'community', label: '커뮤니티', icon: Users },
+    { type: 'ws', subpath: 'dashboard', label: '워크스페이스', icon: LayoutDashboard },
+    { type: 'global', path: '/profile', label: '마이페이지 이동', icon: UserCircle },
+    { type: 'ws', subpath: 'problems', label: '문제', icon: BookOpen },
+    { type: 'ws', subpath: 'community', label: '커뮤니티', icon: Users },
   ];
 
   // wsId 포함된 전체 경로 생성
@@ -82,8 +84,9 @@ export const Sidebar = () => {
   };
 
   // 현재 URL이 해당 메뉴의 활성 상태인지 확인
-  const isMenuActive = (subpath: string) => {
-    const fullPath = getWsPath(subpath);
+  const isMenuActive = (item: typeof menuItems[0]) => {
+    if (item.type === 'global') return location.pathname.startsWith(item.path!);
+    const fullPath = getWsPath(item.subpath!);
     return location.pathname === fullPath || location.pathname.startsWith(fullPath + '/');
   };
 
@@ -102,7 +105,7 @@ export const Sidebar = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="w-64 h-full bg-[#0F1117] border-r border-slate-800 flex flex-col flex-shrink-0 transition-all duration-300 relative z-50">
+    <div className="w-64 h-full bg-[#0a0c10] border-r border-slate-800 flex flex-col flex-shrink-0 transition-all duration-300 relative z-50">
       {/* Header with Workspace Switcher */}
       <div className="p-3 relative" ref={menuRef}>
         <div
@@ -208,22 +211,22 @@ export const Sidebar = () => {
       </div>
 
       {/* Main Navigation — 워크스페이스 스코프 메뉴 */}
-      <div className="flex-1 px-2 py-4 overflow-y-auto flex flex-col gap-6">
+      <div className="flex-1 px-2 py-4 overflow-y-auto flex flex-col">
         <div>
           <div className="text-xs font-bold text-slate-400 mb-2 px-2 tracking-widest uppercase">메뉴</div>
-          <div className="space-y-0.5">
-            {menuItems.map((item) => (
+          <div className="space-y-1">
+            {menuItems.map((item, idx) => (
               <button
-                key={item.subpath}
-                onClick={() => navigate(getWsPath(item.subpath))}
+                key={idx}
+                onClick={() => navigate(item.type === 'global' ? item.path! : getWsPath(item.subpath!))}
                 className={cn(
-                  'w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors group',
-                  isMenuActive(item.subpath)
+                  'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[15px] font-medium transition-colors group',
+                  isMenuActive(item)
                     ? 'bg-slate-800 text-slate-100'
                     : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
                 )}
               >
-                <item.icon className={cn("w-4 h-4", isMenuActive(item.subpath) ? "text-slate-100" : "text-slate-500 group-hover:text-slate-400")} />
+                <item.icon className={cn("w-5 h-5", isMenuActive(item) ? "text-slate-100" : "text-slate-500 group-hover:text-slate-400")} />
                 <span className="flex-1 text-left">{item.label}</span>
               </button>
             ))}
@@ -231,18 +234,18 @@ export const Sidebar = () => {
         </div>
 
         {/* 탐색 섹션 (글로벌) */}
-        <div>
+        <div className="mt-8">
           <div className="text-xs font-bold text-slate-400 mb-2 px-2 tracking-widest uppercase">탐색</div>
           <button
             onClick={() => navigate('/explore')}
             className={cn(
-              'w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors group',
+              'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[15px] font-medium transition-colors group',
               location.pathname.startsWith('/explore')
                 ? 'bg-slate-800 text-slate-100'
                 : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
             )}
           >
-            <Compass className={cn("w-4 h-4", location.pathname.startsWith('/explore') ? "text-slate-100" : "text-slate-500 group-hover:text-slate-400")} />
+            <Compass className={cn("w-5 h-5", location.pathname.startsWith('/explore') ? "text-slate-100" : "text-slate-500 group-hover:text-slate-400")} />
             <span className="flex-1 text-left">워크스페이스 탐색</span>
           </button>
         </div>

@@ -39,15 +39,10 @@ export const CreateWorkspaceModal = () => {
       setWorkspaces([...workspaces, newWorkspace]);
       setCurrentWorkspaceId(newWorkspace.id);
 
-      setShowSuccess(true);
-
-      setTimeout(() => {
-        setShowSuccess(false);
-        setIsOpen(false);
-        setName('');
-        setDescription('');
-        navigate(`/ws/${newWorkspace.id}/dashboard`);
-      }, 2000);
+      setIsOpen(false);
+      setName('');
+      setDescription('');
+      navigate(`/ws/${newWorkspace.id}/dashboard`);
     } catch (err) {
       setError(err instanceof Error ? err.message : '워크스페이스 생성에 실패했습니다.');
     } finally {
@@ -60,21 +55,7 @@ export const CreateWorkspaceModal = () => {
   return createPortal(
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
 
-      {/* Success Notification */}
-      {showSuccess && (
-        <div className="fixed top-6 right-6 z-[210] bg-[#1e2330] border border-emerald-500/30 rounded-lg p-4 shadow-2xl flex items-start gap-3 w-80 animate-in slide-in-from-top-4 duration-300">
-          <div className="bg-emerald-500/20 p-1 rounded-full text-emerald-500 mt-0.5">
-            <Check className="w-4 h-4" />
-          </div>
-          <div className="flex-1">
-            <div className="font-bold text-slate-100 text-sm">워크스페이스가 생성되었습니다</div>
-            <div className="text-xs text-slate-400 mt-1">이제 멤버가 초대장을 통해 참여할 수 있어요.</div>
-          </div>
-          <Button size="sm" className="h-7 px-3 text-xs bg-indigo-500 hover:bg-indigo-600 text-white" onClick={() => setIsOpen(false)}>
-            확인
-          </Button>
-        </div>
-      )}
+
 
       <div className="w-full max-w-lg bg-[#141820] border border-slate-700/50 rounded-2xl shadow-2xl p-8 relative">
         <button
