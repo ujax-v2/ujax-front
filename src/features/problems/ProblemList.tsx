@@ -169,7 +169,7 @@ export const ProblemList = () => {
           </div>
 
           <div className="border-b border-slate-800 pb-8 mt-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex justify-between items-center gap-4">
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => setCurrentBox(null)}
