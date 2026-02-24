@@ -1,67 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
+import { useRecoilValue } from 'recoil';
+import { currentWorkspaceState } from '@/store/atoms';
 import { Button, Badge } from '@/components/ui/Base';
+import {
+  getBoards,
+  BOARD_TYPE_LABEL,
+  LABEL_TO_BOARD_TYPE,
+} from '@/api/board';
+import type { BoardListItem, BoardType } from '@/api/board';
 import {
   PenSquare,
   MessageCircle,
-  Megaphone,
   Eye,
   Filter,
   Check,
-  Search
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
 } from 'lucide-react';
 
-type TagType = '전체' | '공지' | '자유' | '질문' | '꿀팁';
-
-interface Post {
-  id: number;
-  title: string;
-  author: string;
-  date: string;
-  likes: number;
-  comments: number;
-  views: number;
-  tag: TagType;
-  isNotice: boolean;
-}
-
-const MOCK_POSTS: Post[] = [
-  { id: 6, title: "시스템 점검 안내 (02/10 02:00 ~ 04:00)", author: "관리자", date: "2024.02.08", likes: 10, comments: 0, views: 1250, tag: "공지", isNotice: true },
-  { id: 5, title: "새로운 챌린지 시즌 5가 시작됩니다!", author: "관리자", date: "2024.02.05", likes: 45, comments: 12, views: 3400, tag: "공지", isNotice: true },
-  { id: 4, title: "이번 주 챌린지 같이 하실 분?", author: "CodeWarrior", date: "2024.02.10", likes: 5, comments: 2, views: 42, tag: "자유", isNotice: false },
-  { id: 3, title: "BFS랑 DFS 중에 뭐가 더 어렵나요?", author: "Newbie", date: "2024.02.09", likes: 12, comments: 8, views: 150, tag: "질문", isNotice: false },
-  { id: 2, title: "취업 준비하면서 알고리즘 공부 팁 공유합니다", author: "DevMaster", date: "2024.02.08", likes: 45, comments: 15, views: 500, tag: "꿀팁", isNotice: false },
-  { id: 1, title: "파이썬 시간초과 해결 방법 좀...", author: "PyLover", date: "2024.02.08", likes: 2, comments: 4, views: 30, tag: "질문", isNotice: false },
-];
+type TagLabel = '전체' | '자유' | '질문' | '자료';
 
 export const Community = () => {
   const { toWs } = useWorkspaceNavigate();
-  const [selectedTag, setSelectedTag] = useState<TagType>('전체');
+  const wsId = useRecoilValue(currentWorkspaceState);
+
+  const [posts, setPosts] = useState<BoardListItem[]>([]);
+  const [selectedTag, setSelectedTag] = useState<TagLabel>('전체');
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  // Tag Filter Options
-  const filterTags: TagType[] = ['전체', '자유', '질문', '꿀팁'];
+  const filterTags: TagLabel[] = ['전체', '자유', '질문', '자료'];
 
-  // Filtering Logic
-  let notices = MOCK_POSTS.filter(p => p.isNotice);
-  let normalPosts = MOCK_POSTS.filter(p => !p.isNotice);
+  const fetchPosts = useCallback(async (p: number, tag: TagLabel, keyword: string) => {
+    if (!wsId) return;
+    setLoading(true);
+    try {
+      const typeParam: BoardType | undefined = tag !== '전체' ? LABEL_TO_BOARD_TYPE[tag] : undefined;
+      const res = await getBoards(wsId, {
+        type: typeParam,
+        keyword: keyword || undefined,
+        page: p,
+        size: 20,
+        sort: 'createdAt,DESC',
+        pinnedFirst: true,
+      });
+      setPosts(res.items);
+      setTotalPages(res.page.totalPages ?? 0);
+      setTotalElements(res.page.totalElements ?? 0);
+    } catch {
+      setPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [wsId]);
 
-  if (selectedTag !== '전체') {
-    normalPosts = normalPosts.filter(p => p.tag === selectedTag);
-  }
+  useEffect(() => {
+    fetchPosts(page, selectedTag, searchQuery);
+  }, [page, selectedTag, searchQuery, fetchPosts]);
 
-  if (searchQuery.trim() !== '') {
-    const q = searchQuery.toLowerCase();
-    notices = notices.filter(p => p.title.toLowerCase().includes(q));
-    normalPosts = normalPosts.filter(p => p.title.toLowerCase().includes(q));
-  }
+  const handleTagChange = (tag: TagLabel) => {
+    setSelectedTag(tag);
+    setPage(0);
+  };
 
-  const getTagBadge = (tag: TagType, isNotice: boolean) => {
-    if (isNotice) return <Badge variant="destructive" className="bg-red-500/10 text-red-500 border-red-500/20 w-12 justify-center">공지</Badge>;
-    if (tag === '자유') return <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/10 w-12 justify-center">자유</Badge>;
-    if (tag === '질문') return <Badge variant="outline" className="border-orange-500/30 text-orange-400 bg-orange-500/10 w-12 justify-center">질문</Badge>;
-    if (tag === '꿀팁') return <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 w-12 justify-center">꿀팁</Badge>;
+  const handleSearch = () => {
+    setSearchQuery(searchInput);
+    setPage(0);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleSearch();
+  };
+
+  const getTagBadge = (type: BoardType, pinned: boolean) => {
+    const label = BOARD_TYPE_LABEL[type];
+    if (type === 'NOTICE') return <Badge variant="destructive" className="bg-red-500/10 text-red-500 border-red-500/20 w-12 justify-center">{label}</Badge>;
+    if (type === 'FREE') return <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/10 w-12 justify-center">{label}</Badge>;
+    if (type === 'QNA') return <Badge variant="outline" className="border-orange-500/30 text-orange-400 bg-orange-500/10 w-12 justify-center">{label}</Badge>;
+    if (type === 'DATA') return <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 w-12 justify-center">{label}</Badge>;
     return null;
+  };
+
+  const formatDate = (iso: string) => {
+    const d = new Date(iso);
+    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
   };
 
   return (
@@ -87,11 +116,11 @@ export const Community = () => {
             {filterTags.map(tag => (
               <button
                 key={tag}
-                onClick={() => setSelectedTag(tag)}
+                onClick={() => handleTagChange(tag)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${selectedTag === tag
                   ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-sm'
                   : 'bg-slate-800/50 text-slate-400 border-transparent hover:bg-slate-700 hover:text-slate-200'
-                  }`}
+                }`}
               >
                 {selectedTag === tag && <Check className="w-3 h-3" />}
                 {tag}
@@ -104,9 +133,10 @@ export const Community = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
               type="text"
-              placeholder="게시물 제목 검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="게시물 검색..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               className="w-full bg-slate-900 border border-slate-700 rounded-lg py-1.5 pl-9 pr-4 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-slate-500"
             />
           </div>
@@ -126,47 +156,93 @@ export const Community = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50 text-sm">
-              {/* 공지사항 (항상 상단 픽스) */}
-              {notices.map(post => (
-                <tr key={`notice-${post.id}`} className="bg-red-500/5 hover:bg-red-500/10 transition-colors cursor-pointer group">
-                  <td className="p-4 text-center">{getTagBadge(post.tag, post.isNotice)}</td>
-                  <td className="p-4 text-slate-100 font-medium group-hover:text-red-400 transition-colors">
-                    {post.title}
-                    {post.comments > 0 && <span className="ml-2 text-xs text-red-500/70 font-mono">[{post.comments}]</span>}
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="p-12 text-center">
+                    <Loader2 className="w-6 h-6 mx-auto text-emerald-500 animate-spin" />
                   </td>
-                  <td className="p-4 text-slate-400">{post.author}</td>
-                  <td className="p-4 text-center text-slate-500 font-mono text-xs">{post.date}</td>
-                  <td className="p-4 text-center text-slate-500 font-mono">{post.views}</td>
-                  <td className="p-4 text-center text-emerald-500 font-bold font-mono">{post.likes}</td>
                 </tr>
-              ))}
-
-              {/* 일반 포스트 (필터링 적용) */}
-              {normalPosts.map(post => (
-                <tr key={`post-${post.id}`} className="hover:bg-slate-800/50 transition-colors cursor-pointer group">
-                  <td className="p-4 text-center">{getTagBadge(post.tag, post.isNotice)}</td>
-                  <td className="p-4 text-slate-200 group-hover:text-emerald-400 transition-colors">
-                    {post.title}
-                    {post.comments > 0 && <span className="ml-2 text-xs text-emerald-500/70 font-mono">[{post.comments}]</span>}
-                  </td>
-                  <td className="p-4 text-slate-400">{post.author}</td>
-                  <td className="p-4 text-center text-slate-500 font-mono text-xs">{post.date}</td>
-                  <td className="p-4 text-center text-slate-500 font-mono">{post.views}</td>
-                  <td className="p-4 text-center text-emerald-500 font-bold font-mono">{post.likes}</td>
-                </tr>
-              ))}
-
-              {normalPosts.length === 0 && (
+              ) : posts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-12 text-center text-slate-500">
                     <MessageCircle className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                    해당 태그의 게시글이 없습니다.
+                    게시글이 없습니다.
                   </td>
                 </tr>
+              ) : (
+                posts.map(post => {
+                  const isNotice = post.type === 'NOTICE';
+                  return (
+                    <tr
+                      key={post.boardId}
+                      onClick={() => toWs(`community/${post.boardId}`)}
+                      className={`cursor-pointer group transition-colors ${
+                        isNotice
+                          ? 'bg-red-500/5 hover:bg-red-500/10'
+                          : 'hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <td className="p-4 text-center">{getTagBadge(post.type, post.pinned)}</td>
+                      <td className={`p-4 font-medium transition-colors ${
+                        isNotice
+                          ? 'text-slate-100 group-hover:text-red-400'
+                          : 'text-slate-200 group-hover:text-emerald-400'
+                      }`}>
+                        {post.pinned && <span className="text-xs text-yellow-400 mr-2 font-mono">[고정]</span>}
+                        {post.title}
+                        {post.commentCount > 0 && (
+                          <span className={`ml-2 text-xs font-mono ${isNotice ? 'text-red-500/70' : 'text-emerald-500/70'}`}>
+                            [{post.commentCount}]
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 text-slate-400">{post.author.nickname}</td>
+                      <td className="p-4 text-center text-slate-500 font-mono text-xs">{formatDate(post.createdAt)}</td>
+                      <td className="p-4 text-center text-slate-500 font-mono">{post.viewCount}</td>
+                      <td className="p-4 text-center text-emerald-500 font-bold font-mono">{post.likeCount}</td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500">총 {totalElements}개 게시물</span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="p-2 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPage(i)}
+                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
+                    page === i
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
+                      : 'text-slate-500 hover:bg-slate-800 hover:text-slate-300'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                className="p-2 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
