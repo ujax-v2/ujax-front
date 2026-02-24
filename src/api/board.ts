@@ -1,88 +1,21 @@
 import type { components } from '@ujax/api-spec/types';
 import { authFetch } from './client';
 
-// ──── api-spec 공통 타입 ────
+// ──── api-spec 타입 re-export ────
 
 export type PageInfo = components['schemas']['PageInfo'];
+export type BoardType = components['schemas']['BoardType'];
+export type BoardAuthorResponse = components['schemas']['BoardAuthorResponse'];
+export type BoardListItemResponse = components['schemas']['BoardListItemResponse'];
+export type BoardListResponse = components['schemas']['BoardListResponse'];
+export type BoardDetailResponse = components['schemas']['BoardDetailResponse'];
+export type BoardLikeStatusResponse = components['schemas']['BoardLikeStatusResponse'];
+export type CreateBoardRequest = components['schemas']['CreateBoardRequest'];
+export type UpdateBoardRequest = components['schemas']['UpdateBoardRequest'];
+export type CommentResponse = components['schemas']['CommentResponse'];
+export type CommentListResponse = components['schemas']['CommentListResponse'];
 
-// ──── Board 로컬 타입 (api-spec에 아직 미포함) ────
-
-export type BoardType = 'FREE' | 'NOTICE' | 'QNA' | 'DATA';
 export type MemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
-
-export interface BoardAuthor {
-  workspaceMemberId: number;
-  nickname: string;
-}
-
-export interface BoardListItem {
-  boardId: number;
-  workspaceId: number;
-  type: BoardType;
-  pinned: boolean;
-  title: string;
-  preview: string;
-  viewCount: number;
-  likeCount: number;
-  commentCount: number;
-  myLike: boolean;
-  author: BoardAuthor;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface BoardDetail {
-  boardId: number;
-  workspaceId: number;
-  type: BoardType;
-  pinned: boolean;
-  title: string;
-  content: string;
-  viewCount: number;
-  likeCount: number;
-  commentCount: number;
-  myLike: boolean;
-  author: BoardAuthor;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface BoardListResponse {
-  items: BoardListItem[];
-  page: PageInfo;
-}
-
-export interface CreateBoardRequest {
-  type: BoardType;
-  title: string;
-  content: string;
-  pinned?: boolean;
-}
-
-export interface UpdateBoardRequest {
-  type?: BoardType;
-  title?: string;
-  content?: string;
-  pinned?: boolean;
-}
-
-export interface BoardLikeStatus {
-  likeCount: number;
-  myLike: boolean;
-}
-
-export interface CommentItem {
-  boardCommentId: number;
-  boardId: number;
-  content: string;
-  author: BoardAuthor;
-  createdAt: string;
-}
-
-export interface CommentListResponse {
-  items: CommentItem[];
-  page: PageInfo;
-}
 
 // ──── 태그 라벨 매핑 ────
 
@@ -129,12 +62,12 @@ export async function getBoards(
   return res.data;
 }
 
-export async function getBoardDetail(wsId: number, boardId: number): Promise<BoardDetail> {
+export async function getBoardDetail(wsId: number, boardId: number): Promise<BoardDetailResponse> {
   const res = await authFetch(`${boardBase(wsId)}/${boardId}`);
   return res.data;
 }
 
-export async function createBoard(wsId: number, data: CreateBoardRequest): Promise<BoardDetail> {
+export async function createBoard(wsId: number, data: CreateBoardRequest): Promise<BoardDetailResponse> {
   const res = await authFetch(boardBase(wsId), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -143,7 +76,7 @@ export async function createBoard(wsId: number, data: CreateBoardRequest): Promi
   return res.data;
 }
 
-export async function updateBoard(wsId: number, boardId: number, data: UpdateBoardRequest): Promise<BoardDetail> {
+export async function updateBoard(wsId: number, boardId: number, data: UpdateBoardRequest): Promise<BoardDetailResponse> {
   const res = await authFetch(`${boardBase(wsId)}/${boardId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -155,6 +88,14 @@ export async function updateBoard(wsId: number, boardId: number, data: UpdateBoa
 export async function deleteBoard(wsId: number, boardId: number): Promise<void> {
   await authFetch(`${boardBase(wsId)}/${boardId}`, {
     method: 'DELETE',
+  });
+}
+
+export async function pinBoard(wsId: number, boardId: number, pinned: boolean): Promise<void> {
+  await authFetch(`${boardBase(wsId)}/${boardId}/pin`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pinned }),
   });
 }
 
@@ -172,7 +113,7 @@ export async function unlikeBoard(wsId: number, boardId: number): Promise<void> 
   });
 }
 
-export async function getBoardLikeStatus(wsId: number, boardId: number): Promise<BoardLikeStatus> {
+export async function getBoardLikeStatus(wsId: number, boardId: number): Promise<BoardLikeStatusResponse> {
   const res = await authFetch(`${boardBase(wsId)}/${boardId}/likes`);
   return res.data;
 }
@@ -192,7 +133,7 @@ export async function getComments(
   return res.data;
 }
 
-export async function createComment(wsId: number, boardId: number, content: string): Promise<CommentItem> {
+export async function createComment(wsId: number, boardId: number, content: string): Promise<CommentResponse> {
   const res = await authFetch(`${boardBase(wsId)}/${boardId}/comments`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
