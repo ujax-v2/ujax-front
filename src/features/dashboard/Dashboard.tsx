@@ -51,6 +51,7 @@ export const Dashboard = () => {
   const setCreateWorkspaceOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
 
   const [selectedNotice, setSelectedNotice] = useState<any>(null);
+  const [activeRankingTab, setActiveRankingTab] = useState<'정답률' | '풀이 수' | '연속 출석'>('정답률');
 
   const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
 
@@ -192,81 +193,70 @@ export const Dashboard = () => {
             </h2>
             <span className="text-xs text-slate-500 font-medium">Top 5 순위표</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-            {/* 레벨 랭킹 */}
-            <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col shadow-md">
-              <h3 className="text-sm font-bold text-slate-300 mb-5 flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-yellow-500" />
-                정답률 TOP 5
-              </h3>
-              <div className="flex flex-col gap-3">
-                {mockRankingsLevel.map((rank, idx) => (
-                  <div key={rank.id} className="flex items-center justify-between p-2.5 rounded-lg bg-[#1b202c] border border-slate-800/50 hover:bg-slate-800/80 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-yellow-500/20 text-yellow-500' :
-                        idx === 1 ? 'bg-slate-300/20 text-slate-300' :
-                          idx === 2 ? 'bg-amber-700/20 text-amber-500' : 'bg-slate-800 text-slate-400'
-                        }`}>
-                        {idx + 1}
-                      </div>
-                      <span className="text-sm font-medium text-slate-200">{rank.name}</span>
-                    </div>
-                    <span className="text-xs font-bold text-indigo-400">{rank.count}</span>
+          <Card className="bg-[#151922] border-slate-800 p-0 overflow-hidden shadow-md">
+            {/* 탭 헤더 영역 */}
+            <div className="flex border-b border-slate-800/60 bg-[#0f1117]/50">
+              {(['정답률', '풀이 수', '연속 출석'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveRankingTab(tab)}
+                  className={`flex-1 py-4 text-sm font-bold transition-all ${activeRankingTab === tab
+                    ? 'text-yellow-500 border-b-2 border-yellow-500 bg-[#151922]'
+                    : 'text-slate-500 hover:text-slate-300 hover:bg-[#151922]/50'
+                    }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {tab === '정답률' && <Trophy className="w-4 h-4" />}
+                    {tab === '풀이 수' && <Activity className="w-4 h-4" />}
+                    {tab === '연속 출석' && <CheckCircle2 className="w-4 h-4" />}
+                    {tab}
                   </div>
-                ))}
-              </div>
-            </Card>
+                </button>
+              ))}
+            </div>
 
-            {/* 문제 풀이 랭킹 */}
-            <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col shadow-md">
-              <h3 className="text-sm font-bold text-slate-300 mb-5 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-emerald-500" />
-                풀이 수 TOP 5
-              </h3>
-              <div className="flex flex-col gap-3">
-                {mockRankingsSolved.map((rank, idx) => (
-                  <div key={rank.id} className="flex items-center justify-between p-2.5 rounded-lg bg-[#1b202c] border border-slate-800/50 hover:bg-slate-800/80 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-emerald-500/20 text-emerald-500' :
-                        idx === 1 ? 'bg-slate-300/20 text-slate-300' :
-                          idx === 2 ? 'bg-amber-700/20 text-amber-500' : 'bg-slate-800 text-slate-400'
-                        }`}>
-                        {idx + 1}
+            {/* 리스트 렌더링 영역 (Clean & Modern) */}
+            <div className="p-6">
+              <div className="flex flex-col">
+                {(activeRankingTab === '정답률' ? mockRankingsLevel
+                  : activeRankingTab === '풀이 수' ? mockRankingsSolved
+                    : mockRankingsComments).map((rank, idx) => (
+                      <div key={rank.id} className="flex items-center justify-between py-3.5 border-b border-slate-800/40 last:border-0 group hover:px-2 rounded-lg hover:bg-slate-800/40 transition-all duration-200 cursor-default">
+                        <div className="flex items-center gap-4">
+                          {/* 순위 하이라이트 */}
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-extrabold text-sm ${idx === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-yellow-950 shadow-[0_0_12px_rgba(234,179,8,0.4)]' :
+                            idx === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-slate-900 shadow-[0_0_8px_rgba(148,163,184,0.3)]' :
+                              idx === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-800 text-amber-50 shadow-[0_0_8px_rgba(180,83,9,0.3)]' :
+                                'bg-transparent text-slate-500 border border-slate-700/50'
+                            }`}>
+                            {idx + 1}
+                          </div>
+
+                          {/* 유저 아바타 및 이름 */}
+                          <div className="flex items-center gap-3">
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-slate-300 ${idx === 0 ? 'bg-slate-800 border-2 border-yellow-500/50' : 'bg-slate-800'}`}>
+                              {rank.name.charAt(0)}
+                            </div>
+                            <span className={`font-semibold tracking-tight ${idx === 0 ? 'text-white text-base' : 'text-slate-200 text-[15px]'}`}>
+                              {rank.name}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 기록 데이터 */}
+                        <span className={`font-black tracking-tight ${idx === 0 && activeRankingTab === '정답률' ? 'text-yellow-400 text-lg' :
+                          idx === 0 && activeRankingTab === '풀이 수' ? 'text-emerald-400 text-lg' :
+                            idx === 0 && activeRankingTab === '연속 출석' ? 'text-blue-400 text-lg' :
+                              'text-slate-400 text-sm'
+                          }`}>
+                          {rank.count}
+                        </span>
                       </div>
-                      <span className="text-sm font-medium text-slate-200">{rank.name}</span>
-                    </div>
-                    <span className="text-xs font-bold text-emerald-400">{rank.count}</span>
-                  </div>
-                ))}
+                    ))}
               </div>
-            </Card>
-
-            {/* 잔디 랭킹 */}
-            <Card className="bg-[#151922] border-slate-800 p-6 flex flex-col shadow-md">
-              <h3 className="text-sm font-bold text-slate-300 mb-5 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-blue-500" />
-                연속 잔디 (일) TOP 5
-              </h3>
-              <div className="flex flex-col gap-3">
-                {mockRankingsComments.map((rank, idx) => (
-                  <div key={rank.id} className="flex items-center justify-between p-2.5 rounded-lg bg-[#1b202c] border border-slate-800/50 hover:bg-slate-800/80 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-blue-500/20 text-blue-500' :
-                        idx === 1 ? 'bg-slate-300/20 text-slate-300' :
-                          idx === 2 ? 'bg-amber-700/20 text-amber-500' : 'bg-slate-800 text-slate-400'
-                        }`}>
-                        {idx + 1}
-                      </div>
-                      <span className="text-sm font-medium text-slate-200">{rank.name}</span>
-                    </div>
-                    <span className="text-xs font-bold text-blue-400">{rank.count}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-          </div>
+            </div>
+          </Card>
         </section>
 
       </div>
