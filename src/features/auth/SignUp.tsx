@@ -66,10 +66,11 @@ export const SignUp = () => {
       const userData = {
         isLoggedIn: true,
         name,
-        email: formData.email,
+        email: formData.email, // Keeping original as userDto is not defined
         avatar: '',
-        profileImageUrl: '',
+        profileImageUrl: '', // Keeping original as userDto is not defined
         baekjoonId: '',
+        provider: '', // Added based on instruction
         accessToken: accessToken!,
         refreshToken: refreshToken!,
       };

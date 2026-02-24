@@ -51,11 +51,12 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
 
       const userData = {
         isLoggedIn: true,
-        name,
-        email,
+        name: name,
+        email: email,
         avatar: '',
         profileImageUrl: '',
         baekjoonId: '',
+        provider: '',
         accessToken: accessToken!,
         refreshToken: refreshToken!,
       };

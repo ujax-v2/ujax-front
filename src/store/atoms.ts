@@ -18,7 +18,9 @@ export interface ProblemBox {
   count: number;
   category: string;
   color: string;
+  description?: string;
 }
+
 
 // Problem Box State
 export const currentProblemBoxState = atom<ProblemBox | null>({
@@ -57,7 +59,19 @@ export const ideIsExecutingState = atom({
   default: false,
 });
 
-function loadUser() {
+export interface UserState {
+  isLoggedIn: boolean;
+  name: string;
+  email: string;
+  avatar: string;
+  profileImageUrl: string;
+  baekjoonId: string;
+  accessToken: string;
+  refreshToken: string;
+  provider: string;
+}
+
+function loadUser(): UserState {
   try {
     const stored = localStorage.getItem('auth');
     if (stored) {
@@ -70,6 +84,7 @@ function loadUser() {
           avatar: parsed.avatar || '',
           profileImageUrl: parsed.profileImageUrl || '',
           baekjoonId: parsed.baekjoonId || '',
+          provider: parsed.provider || '',
           accessToken: parsed.accessToken as string,
           refreshToken: parsed.refreshToken as string,
         };
@@ -79,10 +94,10 @@ function loadUser() {
     console.warn('Failed to load user session, clearing storage:', e);
     localStorage.removeItem('auth');
   }
-  return { isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', accessToken: '', refreshToken: '' };
+  return { isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '' };
 }
 
-export const userState = atom({
+export const userState = atom<UserState>({
   key: 'userState',
   default: loadUser(),
 });

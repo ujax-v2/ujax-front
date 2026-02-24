@@ -150,7 +150,7 @@ export const ProfileTab = () => {
     try {
       await deleteMe();
       localStorage.removeItem('auth');
-      setUser({ isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', accessToken: '', refreshToken: '' });
+      setUser({ isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '' });
       setWorkspaces([]);
       setCurrentWorkspaceId(0);
       navigate('/login');

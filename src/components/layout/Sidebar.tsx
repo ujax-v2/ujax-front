@@ -61,7 +61,7 @@ export const Sidebar = () => {
       // logout API 실패해도 로컬 상태는 초기화
     }
     localStorage.removeItem('auth');
-    setUser({ isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', accessToken: '', refreshToken: '' });
+    setUser({ isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '' });
     setWorkspaces([]);
     setCurrentWorkspaceId(0);
     navigate('/login');
@@ -138,9 +138,6 @@ export const Sidebar = () => {
                 </div>
                 <div className="flex-1 overflow-hidden">
                   <div className="font-bold text-slate-200 text-sm truncate">{currentWorkspace?.name}</div>
-                  {currentWorkspace?.description && (
-                    <div className="text-xs text-slate-500 truncate">{currentWorkspace.description}</div>
-                  )}
                 </div>
               </div>
               <div className="flex gap-2">
