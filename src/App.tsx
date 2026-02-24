@@ -13,6 +13,7 @@ import { Settings } from './features/user/Settings';
 import { Community } from './features/community/Community';
 import { PostCreate } from './features/community/PostCreate';
 import { PostDetail } from './features/community/PostDetail';
+import { PostEdit } from './features/community/PostEdit';
 import { Login } from './features/auth/Login';
 import { SignUp } from './features/auth/SignUp';
 import { OAuthCallback } from './features/auth/OAuthCallback';
@@ -210,6 +211,9 @@ function AppContent() {
           } />
           <Route path="/ws/:wsId/community/:boardId" element={
             <ProtectedRoute><WorkspaceScope><PostDetail /></WorkspaceScope></ProtectedRoute>
+          } />
+          <Route path="/ws/:wsId/community/:boardId/edit" element={
+            <ProtectedRoute><WorkspaceScope><PostEdit /></WorkspaceScope></ProtectedRoute>
           } />
           <Route path="/ws/:wsId/challenges" element={
             <ProtectedRoute><WorkspaceScope><ChallengeList /></WorkspaceScope></ProtectedRoute>

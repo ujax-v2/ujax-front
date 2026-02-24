@@ -8,7 +8,7 @@ import {
   BOARD_TYPE_LABEL,
   LABEL_TO_BOARD_TYPE,
 } from '@/api/board';
-import type { BoardListItem, BoardType } from '@/api/board';
+import type { BoardListItemResponse, BoardType } from '@/api/board';
 import {
   PenSquare,
   MessageCircle,
@@ -27,7 +27,7 @@ export const Community = () => {
   const { toWs } = useWorkspaceNavigate();
   const wsId = useRecoilValue(currentWorkspaceState);
 
-  const [posts, setPosts] = useState<BoardListItem[]>([]);
+  const [posts, setPosts] = useState<BoardListItemResponse[]>([]);
   const [selectedTag, setSelectedTag] = useState<TagLabel>('전체');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
@@ -51,9 +51,9 @@ export const Community = () => {
         sort: 'createdAt,DESC',
         pinnedFirst: true,
       });
-      setPosts(res.items);
-      setTotalPages(res.page.totalPages ?? 0);
-      setTotalElements(res.page.totalElements ?? 0);
+      setPosts(res.items ?? []);
+      setTotalPages(res.page?.totalPages ?? 0);
+      setTotalElements(res.page?.totalElements ?? 0);
     } catch {
       setPosts([]);
     } finally {
@@ -79,7 +79,8 @@ export const Community = () => {
     if (e.key === 'Enter') handleSearch();
   };
 
-  const getTagBadge = (type: BoardType, pinned: boolean) => {
+  const getTagBadge = (type: BoardType | undefined, pinned: boolean | undefined) => {
+    if (!type) return null;
     const label = BOARD_TYPE_LABEL[type];
     if (type === 'NOTICE') return <Badge variant="destructive" className="bg-red-500/10 text-red-500 border-red-500/20 w-12 justify-center">{label}</Badge>;
     if (type === 'FREE') return <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/10 w-12 justify-center">{label}</Badge>;
@@ -188,16 +189,15 @@ export const Community = () => {
                           ? 'text-slate-100 group-hover:text-red-400'
                           : 'text-slate-200 group-hover:text-emerald-400'
                       }`}>
-                        {post.pinned && <span className="text-xs text-yellow-400 mr-2 font-mono">[고정]</span>}
                         {post.title}
-                        {post.commentCount > 0 && (
+                        {(post.commentCount ?? 0) > 0 && (
                           <span className={`ml-2 text-xs font-mono ${isNotice ? 'text-red-500/70' : 'text-emerald-500/70'}`}>
                             [{post.commentCount}]
                           </span>
                         )}
                       </td>
-                      <td className="p-4 text-slate-400">{post.author.nickname}</td>
-                      <td className="p-4 text-center text-slate-500 font-mono text-xs">{formatDate(post.createdAt)}</td>
+                      <td className="p-4 text-slate-400">{post.author?.nickname}</td>
+                      <td className="p-4 text-center text-slate-500 font-mono text-xs">{formatDate(post.createdAt ?? '')}</td>
                       <td className="p-4 text-center text-slate-500 font-mono">{post.viewCount}</td>
                       <td className="p-4 text-center text-emerald-500 font-bold font-mono">{post.likeCount}</td>
                     </tr>

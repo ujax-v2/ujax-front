@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Base';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 import { userState, workspacesState, currentWorkspaceState } from '@/store/atoms';
-import { getMe, updateMe, deleteMe } from '@/api/user';
+import { getMe, updateMe, deleteMe, getProfileImagePresignedUrl } from '@/api/user';
 import { extractErrorDetail } from './utils';
 import { AlertTriangle } from 'lucide-react';
 
@@ -23,6 +23,7 @@ export const ProfileTab = () => {
   const [originalName, setOriginalName] = useState('');
   const [originalBaekjoonId, setOriginalBaekjoonId] = useState('');
   const [originalImageUrl, setOriginalImageUrl] = useState('');
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [imageRemoved, setImageRemoved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<'success' | 'error' | null>(null);
@@ -72,9 +73,26 @@ export const ProfileTab = () => {
     });
   }, [setUser]);
 
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setSaveResult('error');
+      setSaveError('JPG, PNG, WEBP 형식만 지원합니다.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      setSaveResult('error');
+      setSaveError('파일 크기는 5MB 이하여야 합니다.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    setPendingFile(file);
+    setImageRemoved(false);
     const reader = new FileReader();
     reader.onload = () => {
       setPreviewUrl(reader.result as string);
@@ -85,6 +103,7 @@ export const ProfileTab = () => {
   const handleRemovePhoto = () => {
     setPreviewUrl('');
     setProfileImageUrl('');
+    setPendingFile(null);
     setImageRemoved(true);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -98,11 +117,28 @@ export const ProfileTab = () => {
       const requestBody: Record<string, string | null> = {};
       if (name !== originalName) requestBody.name = name;
       if (baekjoonId !== originalBaekjoonId) requestBody.baekjoonId = baekjoonId || null;
+
       if (imageRemoved) {
         requestBody.profileImageUrl = null;
-      } else if (profileImageUrl !== originalImageUrl) {
-        requestBody.profileImageUrl = profileImageUrl || null;
+      } else if (pendingFile) {
+        // 1. presigned URL 발급
+        const { presignedUrl, imageUrl } = await getProfileImagePresignedUrl(
+          pendingFile.size,
+          pendingFile.type,
+        );
+        // 2. S3에 직접 업로드
+        const uploadRes = await fetch(presignedUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': pendingFile.type },
+          body: pendingFile,
+        });
+        if (!uploadRes.ok) {
+          throw new Error('이미지 업로드에 실패했습니다.');
+        }
+        // 3. 반환받은 imageUrl을 updateMe에 전달
+        requestBody.profileImageUrl = imageUrl;
       }
+
       const updated = await updateMe(requestBody);
       // API 성공 → Recoil + localStorage 동기화
       setUser(prev => {
@@ -128,7 +164,9 @@ export const ProfileTab = () => {
       });
       setProfileImageUrl(updated.profileImageUrl ?? '');
       setPreviewUrl('');
+      setPendingFile(null);
       setImageRemoved(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       // 원본값 갱신
       setOriginalName(updated.name);
       setOriginalBaekjoonId(updated.baekjoonId ?? '');
@@ -137,7 +175,7 @@ export const ProfileTab = () => {
     } catch (err: any) {
       console.error('Failed to save profile:', err);
       setSaveResult('error');
-      setSaveError(err?.message || String(err));
+      setSaveError(extractErrorDetail(err, '요청에 실패했습니다.'));
     } finally {
       setSaving(false);
       setTimeout(() => setSaveResult(null), 3000);
@@ -182,14 +220,14 @@ export const ProfileTab = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/gif"
+              accept="image/jpeg,image/png,image/webp"
               className="hidden"
               onChange={handleFileChange}
             />
             <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>사진 변경</Button>
             <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600" onClick={handleRemovePhoto}>제거</Button>
           </div>
-          <p className="text-xs text-slate-500">최대 5MB의 JPG, GIF 또는 PNG 형식을 지원합니다.</p>
+          <p className="text-xs text-slate-500">최대 5MB의 JPG, PNG 또는 WEBP 형식을 지원합니다.</p>
         </div>
       </div>
 

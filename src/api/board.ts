@@ -1,21 +1,28 @@
 import type { components } from '@ujax/api-spec/types';
 import { authFetch } from './client';
 
-// ──── api-spec 공통 타입 ────
+// ──── api-spec에서 가져올 수 있는 타입 ────
 
-export type PageInfo = components['schemas']['PageInfo'];
+export type CreateBoardRequest = components['schemas']['CreateBoardRequest'];
+export type UpdateBoardRequest = components['schemas']['UpdateBoardRequest'];
+export type PinBoardRequest = components['schemas']['PinBoardRequest'];
+export type CreateCommentRequest = components['schemas']['CreateCommentRequest'];
 
-// ──── Board 로컬 타입 (api-spec에 아직 미포함) ────
+// BoardLikeStatus는 api-spec에 data 필드가 상세하게 정의되어 있음
+type ApiBoardLikeStatus = components['schemas']['ApiResponse-BoardLikeStatus'];
+export type BoardLikeStatusResponse = ApiBoardLikeStatus['data'];
+
+// ──── 응답 data 내부 타입 (백엔드 subsectionWithPath 사용으로 api-spec에 미포함) ────
 
 export type BoardType = 'FREE' | 'NOTICE' | 'QNA' | 'DATA';
 export type MemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
 
-export interface BoardAuthor {
+export interface BoardAuthorResponse {
   workspaceMemberId: number;
   nickname: string;
 }
 
-export interface BoardListItem {
+export interface BoardListItemResponse {
   boardId: number;
   workspaceId: number;
   type: BoardType;
@@ -26,12 +33,12 @@ export interface BoardListItem {
   likeCount: number;
   commentCount: number;
   myLike: boolean;
-  author: BoardAuthor;
+  author: BoardAuthorResponse;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface BoardDetail {
+export interface BoardDetailResponse {
   boardId: number;
   workspaceId: number;
   type: BoardType;
@@ -42,46 +49,41 @@ export interface BoardDetail {
   likeCount: number;
   commentCount: number;
   myLike: boolean;
-  author: BoardAuthor;
+  author: BoardAuthorResponse;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface BoardListResponse {
-  items: BoardListItem[];
-  page: PageInfo;
+  items: BoardListItemResponse[];
+  page: {
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    first: boolean;
+    last: boolean;
+  };
 }
 
-export interface CreateBoardRequest {
-  type: BoardType;
-  title: string;
-  content: string;
-  pinned?: boolean;
-}
-
-export interface UpdateBoardRequest {
-  type?: BoardType;
-  title?: string;
-  content?: string;
-  pinned?: boolean;
-}
-
-export interface BoardLikeStatus {
-  likeCount: number;
-  myLike: boolean;
-}
-
-export interface CommentItem {
+export interface CommentResponse {
   boardCommentId: number;
   boardId: number;
   content: string;
-  author: BoardAuthor;
+  author: BoardAuthorResponse;
   createdAt: string;
 }
 
 export interface CommentListResponse {
-  items: CommentItem[];
-  page: PageInfo;
+  items: CommentResponse[];
+  page: {
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    first: boolean;
+    last: boolean;
+  };
 }
 
 // ──── 태그 라벨 매핑 ────
@@ -129,12 +131,12 @@ export async function getBoards(
   return res.data;
 }
 
-export async function getBoardDetail(wsId: number, boardId: number): Promise<BoardDetail> {
+export async function getBoardDetail(wsId: number, boardId: number): Promise<BoardDetailResponse> {
   const res = await authFetch(`${boardBase(wsId)}/${boardId}`);
   return res.data;
 }
 
-export async function createBoard(wsId: number, data: CreateBoardRequest): Promise<BoardDetail> {
+export async function createBoard(wsId: number, data: CreateBoardRequest): Promise<BoardDetailResponse> {
   const res = await authFetch(boardBase(wsId), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -143,7 +145,7 @@ export async function createBoard(wsId: number, data: CreateBoardRequest): Promi
   return res.data;
 }
 
-export async function updateBoard(wsId: number, boardId: number, data: UpdateBoardRequest): Promise<BoardDetail> {
+export async function updateBoard(wsId: number, boardId: number, data: UpdateBoardRequest): Promise<BoardDetailResponse> {
   const res = await authFetch(`${boardBase(wsId)}/${boardId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -155,6 +157,14 @@ export async function updateBoard(wsId: number, boardId: number, data: UpdateBoa
 export async function deleteBoard(wsId: number, boardId: number): Promise<void> {
   await authFetch(`${boardBase(wsId)}/${boardId}`, {
     method: 'DELETE',
+  });
+}
+
+export async function pinBoard(wsId: number, boardId: number, pinned: boolean): Promise<void> {
+  await authFetch(`${boardBase(wsId)}/${boardId}/pin`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pinned }),
   });
 }
 
@@ -172,7 +182,7 @@ export async function unlikeBoard(wsId: number, boardId: number): Promise<void> 
   });
 }
 
-export async function getBoardLikeStatus(wsId: number, boardId: number): Promise<BoardLikeStatus> {
+export async function getBoardLikeStatus(wsId: number, boardId: number): Promise<BoardLikeStatusResponse> {
   const res = await authFetch(`${boardBase(wsId)}/${boardId}/likes`);
   return res.data;
 }
@@ -192,7 +202,7 @@ export async function getComments(
   return res.data;
 }
 
-export async function createComment(wsId: number, boardId: number, content: string): Promise<CommentItem> {
+export async function createComment(wsId: number, boardId: number, content: string): Promise<CommentResponse> {
   const res = await authFetch(`${boardBase(wsId)}/${boardId}/comments`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
