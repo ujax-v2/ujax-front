@@ -189,7 +189,6 @@ export const Community = () => {
                           ? 'text-slate-100 group-hover:text-red-400'
                           : 'text-slate-200 group-hover:text-emerald-400'
                       }`}>
-                        {post.pinned && <span className="text-xs text-yellow-400 mr-2 font-mono">[고정]</span>}
                         {post.title}
                         {(post.commentCount ?? 0) > 0 && (
                           <span className={`ml-2 text-xs font-mono ${isNotice ? 'text-red-500/70' : 'text-emerald-500/70'}`}>
