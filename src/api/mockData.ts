@@ -1,6 +1,6 @@
 import type { components } from '@ujax/api-spec/types';
 
-type ApiUser = components['schemas']['ApiResponse-UserResponse'];
+type ApiUser = components['schemas']['ApiResponseUserResponse'];
 type UserResponse = ApiUser['data'];
 
 export const MOCK_USER: UserResponse = {

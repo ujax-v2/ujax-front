@@ -1,8 +1,8 @@
 import type { components } from '@ujax/api-spec/types';
 import { apiFetch } from './client';
 
-type ApiAuthToken = components['schemas']['ApiResponse-AuthTokenResponse'];
-export type AuthTokenResponse = ApiAuthToken['data'];
+type ApiAuthToken = components['schemas']['ApiResponseAuthTokenResponse'];
+export type AuthTokenResponse = NonNullable< ApiAuthToken['data']>;
 export type SignupRequest = components['schemas']['SignupRequest'];
 export type LoginRequest = components['schemas']['LoginRequest'];
 

@@ -1,37 +1,37 @@
 import type { components } from '@ujax/api-spec/types';
 import { authFetch } from './client';
 
-type ApiWorkspace = components['schemas']['ApiResponse-WorkspaceResponse'];
-export type WorkspaceResponse = ApiWorkspace['data'];
+type ApiWorkspace = components['schemas']['ApiResponseWorkspaceResponse'];
+export type WorkspaceResponse = NonNullable<ApiWorkspace['data']>;
 
-type ApiWorkspaceList = components['schemas']['ApiResponse-WorkspaceList'];
-export type WorkspaceListResponse = ApiWorkspaceList['data'];
+type ApiWorkspaceList = components['schemas']['ApiResponseWorkspaceListResponse'];
+export type WorkspaceListResponse = NonNullable<ApiWorkspaceList['data']>;
 
-type ApiWorkspaceSettings = components['schemas']['ApiResponse-WorkspaceSettings'];
-export type WorkspaceSettingsResponse = ApiWorkspaceSettings['data'];
+type ApiWorkspaceSettings = components['schemas']['ApiResponseWorkspaceSettingsResponse'];
+export type WorkspaceSettingsResponse = NonNullable<ApiWorkspaceSettings['data']>;
 
-type ApiWorkspaceMember = components['schemas']['ApiResponse-WorkspaceMemberResponse'];
-export type WorkspaceMemberResponse = ApiWorkspaceMember['data'];
+type ApiWorkspaceMember = components['schemas']['ApiResponseWorkspaceMemberResponse'];
+export type WorkspaceMemberResponse = NonNullable<ApiWorkspaceMember['data']>;
 
-type ApiWorkspaceMemberList = components['schemas']['ApiResponse-WorkspaceMemberList'];
-export type WorkspaceMemberListResponse = ApiWorkspaceMemberList['data'];
+type ApiWorkspaceMemberList = components['schemas']['ApiResponseWorkspaceMemberListResponse'];
+export type WorkspaceMemberListResponse = NonNullable<ApiWorkspaceMemberList['data']>;
 
 export type CreateWorkspaceRequest = components['schemas']['CreateWorkspaceRequest'];
 export type UpdateWorkspaceRequest = components['schemas']['UpdateWorkspaceRequest'];
 
-type ApiWorkspaceExplore = components['schemas']['ApiResponse-WorkspaceExplore'];
-export type PageResponseWorkspaceResponse = ApiWorkspaceExplore['data'];
+type ApiWorkspaceExplore = components['schemas']['ApiResponsePageResponseWorkspaceResponse'];
+export type PageResponseWorkspaceResponse = NonNullable<ApiWorkspaceExplore['data']>;
 
 // ──── 워크스페이스 CRUD ────
 
 export async function getWorkspaces(): Promise<WorkspaceListResponse> {
   const res = await authFetch('/api/v1/workspaces');
-  return res.data;
+  return res.data!;
 }
 
 export async function getWorkspace(workspaceId: number): Promise<WorkspaceResponse> {
   const res = await authFetch(`/api/v1/workspaces/${workspaceId}`);
-  return res.data;
+  return res.data!;
 }
 
 export async function createWorkspace(data: CreateWorkspaceRequest): Promise<WorkspaceResponse> {
@@ -40,7 +40,7 @@ export async function createWorkspace(data: CreateWorkspaceRequest): Promise<Wor
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  return res.data;
+  return res.data!;
 }
 
 export async function updateWorkspace(workspaceId: number, data: UpdateWorkspaceRequest): Promise<WorkspaceResponse> {
@@ -49,7 +49,7 @@ export async function updateWorkspace(workspaceId: number, data: UpdateWorkspace
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  return res.data;
+  return res.data!;
 }
 
 export async function deleteWorkspace(workspaceId: number): Promise<void> {
@@ -62,31 +62,31 @@ export async function deleteWorkspace(workspaceId: number): Promise<void> {
 
 export async function exploreWorkspaces(page = 0, size = 12): Promise<PageResponseWorkspaceResponse> {
   const res = await authFetch(`/api/v1/workspaces/explore?page=${page}&size=${size}`);
-  return res.data;
+  return res.data!;
 }
 
 export async function searchWorkspaces(name: string, page = 0, size = 12): Promise<PageResponseWorkspaceResponse> {
   const res = await authFetch(`/api/v1/workspaces/search?name=${encodeURIComponent(name)}&page=${page}&size=${size}`);
-  return res.data;
+  return res.data!;
 }
 
 // ──── 설정 ────
 
 export async function getWorkspaceSettings(workspaceId: number): Promise<WorkspaceSettingsResponse> {
   const res = await authFetch(`/api/v1/workspaces/${workspaceId}/settings`);
-  return res.data;
+  return res.data!;
 }
 
 // ──── 멤버 ────
 
 export async function getWorkspaceMembers(workspaceId: number): Promise<WorkspaceMemberListResponse> {
   const res = await authFetch(`/api/v1/workspaces/${workspaceId}/members`);
-  return res.data;
+  return res.data!;
 }
 
 export async function getMyMembership(workspaceId: number): Promise<WorkspaceMemberResponse> {
   const res = await authFetch(`/api/v1/workspaces/${workspaceId}/members/me`);
-  return res.data;
+  return res.data!;
 }
 
 export async function updateMyNickname(workspaceId: number, nickname: string): Promise<WorkspaceMemberResponse> {
@@ -95,7 +95,7 @@ export async function updateMyNickname(workspaceId: number, nickname: string): P
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ nickname }),
   });
-  return res.data;
+  return res.data!;
 }
 
 export async function inviteMember(workspaceId: number, email: string): Promise<void> {

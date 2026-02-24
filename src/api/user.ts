@@ -1,13 +1,13 @@
 import type { components } from '@ujax/api-spec/types';
 import { authFetch } from './client';
 
-type ApiUser = components['schemas']['ApiResponse-UserResponse'];
-export type UserResponse = ApiUser['data'];
+type ApiUser = components['schemas']['ApiResponseUserResponse'];
+export type UserResponse = NonNullable<ApiUser['data']>;
 export type UserUpdateRequest = components['schemas']['UserUpdateRequest'];
 
 export async function getMe(): Promise<UserResponse> {
   const res = await authFetch('/api/v1/users/me');
-  return res.data;
+  return res.data!;
 }
 
 export async function updateMe(data: UserUpdateRequest): Promise<UserResponse> {
@@ -16,7 +16,7 @@ export async function updateMe(data: UserUpdateRequest): Promise<UserResponse> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  return res.data;
+  return res.data!;
 }
 
 export async function getProfileImagePresignedUrl(fileSize: number, contentType: string) {

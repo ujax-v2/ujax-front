@@ -3,14 +3,13 @@ import { authFetch } from './client';
 
 // ──── api-spec에서 가져올 수 있는 타입 ────
 
-export type CreateBoardRequest = components['schemas']['CreateBoardRequest'];
-export type UpdateBoardRequest = components['schemas']['UpdateBoardRequest'];
-export type PinBoardRequest = components['schemas']['PinBoardRequest'];
-export type CreateCommentRequest = components['schemas']['CreateCommentRequest'];
+export type CreateBoardRequest = any;
+export type UpdateBoardRequest = any;
+export type PinBoardRequest = any;
+export type CreateCommentRequest = any;
 
 // BoardLikeStatus는 api-spec에 data 필드가 상세하게 정의되어 있음
-type ApiBoardLikeStatus = components['schemas']['ApiResponse-BoardLikeStatus'];
-export type BoardLikeStatusResponse = ApiBoardLikeStatus['data'];
+export type BoardLikeStatusResponse = any;
 
 // ──── 응답 data 내부 타입 (백엔드 subsectionWithPath 사용으로 api-spec에 미포함) ────
 
@@ -128,12 +127,12 @@ export async function getBoards(
   if (params?.pinnedFirst !== undefined) q.set('pinnedFirst', String(params.pinnedFirst));
   const qs = q.toString();
   const res = await authFetch(`${boardBase(wsId)}${qs ? `?${qs}` : ''}`);
-  return res.data;
+  return res.data!;
 }
 
 export async function getBoardDetail(wsId: number, boardId: number): Promise<BoardDetailResponse> {
   const res = await authFetch(`${boardBase(wsId)}/${boardId}`);
-  return res.data;
+  return res.data!;
 }
 
 export async function createBoard(wsId: number, data: CreateBoardRequest): Promise<BoardDetailResponse> {
@@ -142,7 +141,7 @@ export async function createBoard(wsId: number, data: CreateBoardRequest): Promi
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  return res.data;
+  return res.data!;
 }
 
 export async function updateBoard(wsId: number, boardId: number, data: UpdateBoardRequest): Promise<BoardDetailResponse> {
@@ -151,7 +150,7 @@ export async function updateBoard(wsId: number, boardId: number, data: UpdateBoa
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  return res.data;
+  return res.data!;
 }
 
 export async function deleteBoard(wsId: number, boardId: number): Promise<void> {
@@ -184,7 +183,7 @@ export async function unlikeBoard(wsId: number, boardId: number): Promise<void> 
 
 export async function getBoardLikeStatus(wsId: number, boardId: number): Promise<BoardLikeStatusResponse> {
   const res = await authFetch(`${boardBase(wsId)}/${boardId}/likes`);
-  return res.data;
+  return res.data!;
 }
 
 // ──── 댓글 ────
@@ -199,7 +198,7 @@ export async function getComments(
   if (params?.size !== undefined) q.set('size', String(params.size));
   const qs = q.toString();
   const res = await authFetch(`${boardBase(wsId)}/${boardId}/comments${qs ? `?${qs}` : ''}`);
-  return res.data;
+  return res.data!;
 }
 
 export async function createComment(wsId: number, boardId: number, content: string): Promise<CommentResponse> {
