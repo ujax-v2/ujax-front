@@ -4,8 +4,8 @@ import { authFetch } from './client';
 type ApiWorkspace = components['schemas']['ApiResponse-WorkspaceResponse'];
 export type WorkspaceResponse = ApiWorkspace['data'];
 
-type ApiWorkspaceList = components['schemas']['ApiResponse-WorkspaceList'];
-export type WorkspaceListResponse = ApiWorkspaceList['data'];
+type ApiWorkspaceMyPage = components['schemas']['ApiResponse-WorkspaceMyPage'];
+export type WorkspaceMyPageResponse = ApiWorkspaceMyPage['data'];
 
 type ApiWorkspaceSettings = components['schemas']['ApiResponse-WorkspaceSettings'];
 export type WorkspaceSettingsResponse = ApiWorkspaceSettings['data'];
@@ -24,8 +24,8 @@ export type PageResponseWorkspaceResponse = ApiWorkspaceExplore['data'];
 
 // ──── 워크스페이스 CRUD ────
 
-export async function getWorkspaces(): Promise<WorkspaceListResponse> {
-  const res = await authFetch('/api/v1/workspaces');
+export async function getWorkspaces(page = 0, size = 100): Promise<WorkspaceMyPageResponse> {
+  const res = await authFetch(`/api/v1/workspaces/me?page=${page}&size=${size}`);
   return res.data;
 }
 
