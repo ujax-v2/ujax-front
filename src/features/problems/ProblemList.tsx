@@ -7,6 +7,8 @@ import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { currentProblemBoxState } from '@/store/atoms';
 import { getProblemBoxes, getProblemBox, createProblemBox, updateProblemBox, deleteProblemBox } from '@/api/problemBox';
 import type { ProblemBoxListData } from '@/api/problemBox';
+import { getWorkspaceProblems, deleteWorkspaceProblem } from '@/api/workspaceProblem';
+import type { WorkspaceProblemListData } from '@/api/workspaceProblem';
 import { getMyMembership } from '@/api/workspace';
 
 type MemberRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'MEMBER';
@@ -85,24 +87,48 @@ export const ProblemList = () => {
     fetchBoxes();
   }, [fetchBoxes]);
 
-  // Mock data for problems inside a box (추후 API 연동)
-  const problems = Array.from({ length: 10 }).map((_, i) => ({
-    id: 1000 + i,
-    title: i % 2 === 0 ? 'A+B' : '행렬 곱셈 순서',
-    difficulty: i % 3 === 0 ? 'Gold' : i % 3 === 1 ? 'Silver' : 'Bronze',
-    tier: i % 5 + 1,
-    tags: ['DP', 'Math', 'Implementation'].slice(0, (i % 3) + 1),
-    rate: '45%',
-    solved: i % 4 === 0
-  }));
+  // 문제집 내부 문제 목록
+  const [problems, setProblems] = useState<WorkspaceProblemListData['content']>([]);
+  const [problemsLoading, setProblemsLoading] = useState(false);
+  const [deletingProblemId, setDeletingProblemId] = useState<number | null>(null);
 
-  const getDifficultyColor = (diff: string) => {
-    switch (diff) {
-      case 'Gold': return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
-      case 'Silver': return 'text-slate-300 bg-slate-400/10 border-slate-400/20';
-      case 'Bronze': return 'text-amber-700 bg-amber-700/10 border-amber-700/20';
-      default: return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
+  const fetchProblems = useCallback(async () => {
+    if (!currentWsId || !currentBox) return;
+    setProblemsLoading(true);
+    try {
+      const data = await getWorkspaceProblems(currentWsId, currentBox.id);
+      setProblems(data.content);
+    } catch { /* ignore */ }
+    finally { setProblemsLoading(false); }
+  }, [currentWsId, currentBox]);
+
+  useEffect(() => {
+    if (currentBox) fetchProblems();
+  }, [currentBox, fetchProblems]);
+
+  const handleDeleteProblem = async (problemId: number) => {
+    if (!currentWsId || !currentBox) return;
+    setDeletingProblemId(problemId);
+    try {
+      await deleteWorkspaceProblem(currentWsId, currentBox.id, problemId);
+      await fetchProblems();
+    } catch (err: any) {
+      alert(parseApiError(err, '문제 삭제에 실패했습니다.'));
+    } finally {
+      setDeletingProblemId(null);
     }
+  };
+
+  const getTierColor = (tier: string | null) => {
+    if (!tier) return 'text-slate-500 bg-slate-500/10 border-slate-500/20';
+    const t = tier.toLowerCase();
+    if (t.includes('gold')) return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
+    if (t.includes('silver')) return 'text-slate-300 bg-slate-400/10 border-slate-400/20';
+    if (t.includes('bronze')) return 'text-amber-700 bg-amber-700/10 border-amber-700/20';
+    if (t.includes('platinum')) return 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20';
+    if (t.includes('diamond')) return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
+    if (t.includes('ruby')) return 'text-red-400 bg-red-400/10 border-red-400/20';
+    return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
   };
 
   // Create Box
@@ -434,53 +460,75 @@ export const ProblemList = () => {
         </div>
 
         {/* Problem List */}
-        <Card className="bg-[#151922] border-slate-800 overflow-hidden shadow-md">
-          <div className="overflow-x-auto">
-            <div className="min-w-[800px]">
-              <div className="grid grid-cols-[80px_1fr_120px_200px_100px] gap-4 p-4 border-b border-slate-800 bg-[#0f1117] text-sm font-bold text-slate-400">
-                <div className="text-center">#</div>
-                <div>제목</div>
-                <div>난이도</div>
-                <div>알고리즘 분류</div>
-                <div className="text-center">상태</div>
-              </div>
+        {problemsLoading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="w-8 h-8 text-slate-500 animate-spin" />
+          </div>
+        ) : problems.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-slate-500 mb-4">아직 등록된 문제가 없습니다.</p>
+            <Button onClick={() => toWs('problems/new')} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+              <Plus className="w-4 h-4 mr-1" /> 첫 문제 등록하기
+            </Button>
+          </div>
+        ) : (
+          <Card className="bg-[#151922] border-slate-800 overflow-hidden shadow-md">
+            <div className="overflow-x-auto">
+              <div className="min-w-[700px]">
+                <div className="grid grid-cols-[80px_1fr_120px_120px_60px] gap-4 p-4 border-b border-slate-800 bg-[#0f1117] text-sm font-bold text-slate-400">
+                  <div className="text-center">#</div>
+                  <div>제목</div>
+                  <div>티어</div>
+                  <div>마감일</div>
+                  {canManage && <div></div>}
+                </div>
 
-              <div className="divide-y divide-slate-800/50">
-                {problems.map((problem) => (
-                  <div
-                    key={problem.id}
-                    onClick={() => navigate(`/ide/${problem.id}`)}
-                    className="grid grid-cols-[80px_1fr_120px_200px_100px] gap-4 p-4 items-center hover:bg-slate-800/40 transition-colors cursor-pointer group"
-                  >
-                    <div className="text-center text-slate-500 font-mono text-xs">{problem.id}</div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-slate-200 font-bold group-hover:text-emerald-400 transition-colors">{problem.title}</span>
-                    </div>
-                    <div>
-                      <span className={`px-2 py-1 rounded text-xs font-extrabold border shadow-sm ${getDifficultyColor(problem.difficulty)}`}>
-                        {problem.difficulty} {problem.tier}
-                      </span>
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                      {problem.tags.map(tag => (
-                        <span key={tag} className="px-2 py-0.5 rounded bg-[#1b202c] text-slate-400 text-[10px] font-bold border border-slate-700/50">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="text-center">
-                      {problem.solved ? (
-                        <span className="text-emerald-500 text-[11px] font-extrabold bg-emerald-500/10 px-2 py-1.5 rounded-full border border-emerald-500/20">해결됨</span>
-                      ) : (
-                        <span className="text-slate-600 text-[11px] font-bold">-</span>
+                <div className="divide-y divide-slate-800/50">
+                  {problems.map((p) => (
+                    <div
+                      key={p.id}
+                      onClick={() => navigate(`/ide/${p.problemNumber}`)}
+                      className="grid grid-cols-[80px_1fr_120px_120px_60px] gap-4 p-4 items-center hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                    >
+                      <div className="text-center text-slate-500 font-mono text-xs">{p.problemNumber}</div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-slate-200 font-bold group-hover:text-emerald-400 transition-colors">{p.title}</span>
+                      </div>
+                      <div>
+                        {p.tier ? (
+                          <span className={`px-2 py-1 rounded text-xs font-extrabold border shadow-sm ${getTierColor(p.tier)}`}>
+                            {p.tier}
+                          </span>
+                        ) : (
+                          <span className="text-slate-600 text-xs">-</span>
+                        )}
+                      </div>
+                      <div className="text-slate-400 text-xs">
+                        {p.deadline ? new Date(p.deadline).toLocaleDateString('ko-KR') : '-'}
+                      </div>
+                      {canManage && (
+                        <div className="text-center">
+                          <button
+                            className="text-slate-600 hover:text-red-400 transition-colors p-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm('이 문제를 삭제하시겠습니까?')) handleDeleteProblem(p.id);
+                            }}
+                            disabled={deletingProblemId === p.id}
+                          >
+                            {deletingProblemId === p.id
+                              ? <Loader2 className="w-4 h-4 animate-spin" />
+                              : <Trash2 className="w-4 h-4" />}
+                          </button>
+                        </div>
                       )}
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        )}
       </div>
     </div>
   );
