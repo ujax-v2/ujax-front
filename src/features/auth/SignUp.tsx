@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 import { userState, workspacesState, currentWorkspaceState } from '@/store/atoms';
 import { signupApi } from '@/api/auth';
+import { getMe } from '@/api/user';
 import { Button, Card } from '@/components/ui/Base';
 import { Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -51,34 +52,27 @@ export const SignUp = () => {
       const result = await signupApi(formData.email, formData.password, formData.nickname);
       const { accessToken, refreshToken } = result.data;
 
-      // Decode JWT to get user info fallback
-      let name = formData.nickname;
-      try {
-        const binaryStr = atob(accessToken!.split('.')[1]);
-        const bytes = new Uint8Array(binaryStr.length);
-        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-        const payload = JSON.parse(new TextDecoder().decode(bytes));
-        name = payload.name || formData.nickname;
-      } catch (e) {
-        // ignore jwt parse error
-      }
+      // 토큰을 먼저 저장 (getMe가 authFetch를 사용하므로)
+      localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken }));
+
+      // getMe()로 완전한 유저 정보 조회
+      const me = await getMe();
 
       const userData = {
         isLoggedIn: true,
-        name,
-        email: formData.email, // Keeping original as userDto is not defined
-        avatar: '',
-        profileImageUrl: '', // Keeping original as userDto is not defined
-        baekjoonId: '',
-        provider: '', // Added based on instruction
+        id: me.id,
+        name: me.name,
+        email: me.email,
+        avatar: me.name,
+        profileImageUrl: me.profileImageUrl ?? '',
+        baekjoonId: me.baekjoonId ?? '',
+        provider: me.provider,
         accessToken: accessToken!,
         refreshToken: refreshToken!,
       };
 
-      // Save to local storage
       localStorage.setItem('auth', JSON.stringify(userData));
 
-      // 이전 세션 워크스페이스 초기화 후 유저 상태 설정
       setWorkspaces([]);
       setCurrentWsId(0);
       setUser(userData);

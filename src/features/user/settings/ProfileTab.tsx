@@ -50,9 +50,12 @@ export const ProfileTab = () => {
       setUser(prev => {
         const next = {
           ...prev,
+          id: data.id,
           name: data.name,
+          email: data.email,
           profileImageUrl: data.profileImageUrl ?? '',
           baekjoonId: data.baekjoonId ?? '',
+          provider: data.provider,
         };
         try {
           const stored = localStorage.getItem('auth');
@@ -60,6 +63,7 @@ export const ProfileTab = () => {
             const parsed = JSON.parse(stored);
             localStorage.setItem('auth', JSON.stringify({
               ...parsed,
+              id: next.id,
               name: next.name,
               profileImageUrl: next.profileImageUrl,
               baekjoonId: next.baekjoonId,
@@ -188,7 +192,7 @@ export const ProfileTab = () => {
     try {
       await deleteMe();
       localStorage.removeItem('auth');
-      setUser({ isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '' });
+      setUser({ isLoggedIn: false, id: 0, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '' });
       setWorkspaces([]);
       setCurrentWorkspaceId(0);
       navigate('/login');

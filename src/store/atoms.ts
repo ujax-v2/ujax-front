@@ -61,6 +61,7 @@ export const ideIsExecutingState = atom({
 
 export interface UserState {
   isLoggedIn: boolean;
+  id: number;
   name: string;
   email: string;
   avatar: string;
@@ -79,6 +80,7 @@ function loadUser(): UserState {
       if (parsed && typeof parsed === 'object' && parsed.accessToken) {
         return {
           isLoggedIn: true,
+          id: parsed.id || 0,
           name: parsed.name || 'User',
           email: parsed.email || '',
           avatar: parsed.avatar || '',
@@ -94,7 +96,7 @@ function loadUser(): UserState {
     console.warn('Failed to load user session, clearing storage:', e);
     localStorage.removeItem('auth');
   }
-  return { isLoggedIn: false, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '' };
+  return { isLoggedIn: false, id: 0, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '' };
 }
 
 export const userState = atom<UserState>({

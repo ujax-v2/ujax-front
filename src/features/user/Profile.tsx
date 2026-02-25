@@ -97,7 +97,7 @@ export const Profile = () => {
 
   // User Data from state (fallback for mockup metrics)
   const user = {
-    nickname: currentUser.name || '알려지지 않은 유저',
+    name: currentUser.name || '알려지지 않은 유저',
     email: currentUser.email || '이메일 정보 없음',
     reward: '0원',
     xp: 0,
@@ -163,7 +163,7 @@ export const Profile = () => {
             </div>
             <div className="grid grid-cols-[80px_1fr] gap-y-3 text-xs items-center">
               <div className="text-slate-500">닉네임</div>
-              <div className="text-slate-200 font-medium">{user.nickname}</div>
+              <div className="text-slate-200 font-medium">{user.name}</div>
 
               <div className="text-slate-500">이메일</div>
               <div className="text-slate-200 truncate pr-2">{user.email}</div>
