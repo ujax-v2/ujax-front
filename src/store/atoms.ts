@@ -11,14 +11,12 @@ export const sidebarOpenState = atom({
   default: true,
 });
 
-// 문제집(ProblemBox) 타입
+// 문제집(ProblemBox) 타입 — API 응답 기반
 export interface ProblemBox {
   id: number;
   title: string;
-  count: number;
-  category: string;
-  color: string;
-  description?: string;
+  description?: string | null;
+  createdAt: string;
 }
 
 
