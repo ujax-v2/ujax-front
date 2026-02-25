@@ -67,9 +67,9 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
       try {
         const res = await getWorkspaces();
         if (cancelled) return;
-        const items = (res.items ?? []).map((w: any) => ({
-          id: w.id!,
-          name: w.name!,
+        const items = (res.content ?? []).map((w) => ({
+          id: w.id,
+          name: w.name,
           description: w.description ?? null,
         })) as Workspace[];
         setWorkspaces(items);
