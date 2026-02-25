@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 import { userState, workspacesState, currentWorkspaceState } from '@/store/atoms';
+import { getMe } from '@/api/user';
 
 interface Props {
   onComplete?: (error?: string) => void;
@@ -37,34 +38,38 @@ export const OAuthCallback = ({ onComplete }: Props) => {
     const accessToken = params.get('accessToken');
     const refreshToken = params.get('refreshToken');
     if (accessToken && refreshToken) {
-      try {
-        const binaryStr = atob(accessToken.split('.')[1]);
-        const bytes = new Uint8Array(binaryStr.length);
-        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-        const payload = JSON.parse(new TextDecoder().decode(bytes));
-        const name = payload.name || '';
-        const email = payload.email || '';
-        const provider = payload.provider || ''; // Assuming provider is also in payload
-        localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken, name, email, provider })); // Added provider to localStorage
-        setWorkspaces([]);
-        setCurrentWsId(0);
-        setUser({
-          isLoggedIn: true,
-          name,
-          email,
-          avatar: name, // or payload.avatar if available
-          profileImageUrl: payload.profileImageUrl || '', // Assuming profileImageUrl is in payload
-          baekjoonId: payload.baekjoonId || '', // Assuming baekjoonId is in payload
-          provider,
-          accessToken,
-          refreshToken,
-        });
+      (async () => {
+        try {
+          // 토큰을 먼저 저장 (getMe가 authFetch를 사용하므로)
+          localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken }));
 
-        navigate('/', { replace: true });
-        if (onComplete) onComplete();
-      } catch {
-        navigate('/login', { replace: true });
-      }
+          // getMe()로 완전한 유저 정보 조회
+          const me = await getMe();
+
+          const userData = {
+            isLoggedIn: true,
+            id: me.id,
+            name: me.name,
+            email: me.email,
+            avatar: me.name,
+            profileImageUrl: me.profileImageUrl ?? '',
+            baekjoonId: me.baekjoonId ?? '',
+            provider: me.provider,
+            accessToken,
+            refreshToken,
+          };
+
+          localStorage.setItem('auth', JSON.stringify(userData));
+          setWorkspaces([]);
+          setCurrentWsId(0);
+          setUser(userData);
+
+          navigate('/', { replace: true });
+          if (onComplete) onComplete();
+        } catch {
+          navigate('/login', { replace: true });
+        }
+      })();
     } else {
       navigate('/login', { replace: true });
     }
