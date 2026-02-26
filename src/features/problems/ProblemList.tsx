@@ -1,15 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Button, Modal } from '@/components/ui/Base';
-import { Search, FolderPlus, ArrowLeft, Plus, MoreVertical, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Search, FolderPlus, ArrowLeft, Plus, MoreVertical, Pencil, Trash2, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useRecoilState } from 'recoil';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { currentProblemBoxState } from '@/store/atoms';
 import { getProblemBoxes, getProblemBox, createProblemBox, updateProblemBox, deleteProblemBox } from '@/api/problemBox';
 import type { ProblemBoxListData } from '@/api/problemBox';
-import { getWorkspaceProblems, deleteWorkspaceProblem } from '@/api/workspaceProblem';
+import { getWorkspaceProblems, updateWorkspaceProblem, deleteWorkspaceProblem } from '@/api/workspaceProblem';
 import type { WorkspaceProblemListData } from '@/api/workspaceProblem';
 import { getMyMembership } from '@/api/workspace';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import dayjs, { Dayjs } from 'dayjs';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 
 type MemberRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'MEMBER';
 
@@ -52,6 +56,12 @@ export const ProblemList = () => {
   const [myRole, setMyRole] = useState<MemberRole>('MEMBER');
   const canManage = myRole === 'OWNER' || myRole === 'ADMIN' || myRole === 'MANAGER';
 
+  // 페이지네이션
+  const [boxPage, setBoxPage] = useState(0);
+  const [boxTotalPages, setBoxTotalPages] = useState(0);
+  const [problemPage, setProblemPage] = useState(0);
+  const [problemTotalPages, setProblemTotalPages] = useState(0);
+
   // API 상태
   const [boxes, setBoxes] = useState<ProblemBoxListData['content']>([]);
   const [loading, setLoading] = useState(true);
@@ -71,17 +81,18 @@ export const ProblemList = () => {
     setError('');
     try {
       const [data, membership] = await Promise.all([
-        getProblemBoxes(currentWsId),
+        getProblemBoxes(currentWsId, boxPage),
         getMyMembership(currentWsId),
       ]);
       setBoxes(data.content);
+      setBoxTotalPages(data.page?.totalPages ?? 0);
       if (membership.role) setMyRole(membership.role as MemberRole);
     } catch (err: any) {
       setError(parseApiError(err, '문제집 목록을 불러오는 데 실패했습니다.'));
     } finally {
       setLoading(false);
     }
-  }, [currentWsId]);
+  }, [currentWsId, boxPage]);
 
   useEffect(() => {
     fetchBoxes();
@@ -92,19 +103,68 @@ export const ProblemList = () => {
   const [problemsLoading, setProblemsLoading] = useState(false);
   const [deletingProblemId, setDeletingProblemId] = useState<number | null>(null);
 
+  // 문제 수정 모달
+  const [editProblemTarget, setEditProblemTarget] = useState<{ id: number; problemNumber: number; title: string } | null>(null);
+  const [editDeadline, setEditDeadline] = useState<Dayjs | null>(null);
+  const [editReminderEnabled, setEditReminderEnabled] = useState(false);
+  const [editReminderHours, setEditReminderHours] = useState<number>(1);
+  const [editingProblem, setEditingProblem] = useState(false);
+  const [editProblemError, setEditProblemError] = useState('');
+
   const fetchProblems = useCallback(async () => {
     if (!currentWsId || !currentBox) return;
     setProblemsLoading(true);
     try {
-      const data = await getWorkspaceProblems(currentWsId, currentBox.id);
+      const data = await getWorkspaceProblems(currentWsId, currentBox.id, problemPage);
       setProblems(data.content);
+      setProblemTotalPages(data.page?.totalPages ?? 0);
     } catch { /* ignore */ }
     finally { setProblemsLoading(false); }
-  }, [currentWsId, currentBox]);
+  }, [currentWsId, currentBox, problemPage]);
 
   useEffect(() => {
     if (currentBox) fetchProblems();
   }, [currentBox, fetchProblems]);
+
+  const openEditProblemModal = (p: WorkspaceProblemListData['content'][number]) => {
+    setEditProblemTarget({ id: p.id, problemNumber: p.problemNumber, title: p.title });
+    setEditDeadline(p.deadline ? dayjs(p.deadline) : null);
+    if (p.deadline && p.scheduledAt) {
+      const diff = dayjs(p.deadline).diff(dayjs(p.scheduledAt), 'hour');
+      const validHours = [1, 2, 3, 6, 12, 24];
+      setEditReminderEnabled(true);
+      setEditReminderHours(validHours.includes(diff) ? diff : 1);
+    } else {
+      setEditReminderEnabled(false);
+      setEditReminderHours(1);
+    }
+    setEditProblemError('');
+  };
+
+  const closeEditProblemModal = () => {
+    setEditProblemTarget(null);
+    setEditProblemError('');
+  };
+
+  const handleEditProblem = async () => {
+    if (!currentWsId || !currentBox || !editProblemTarget) return;
+    setEditingProblem(true);
+    setEditProblemError('');
+    try {
+      await updateWorkspaceProblem(currentWsId, currentBox.id, editProblemTarget.id, {
+        deadline: editDeadline ? editDeadline.toISOString() : null,
+        scheduledAt: (editDeadline && editReminderEnabled)
+          ? editDeadline.subtract(editReminderHours, 'hour').toISOString()
+          : null,
+      });
+      closeEditProblemModal();
+      await fetchProblems();
+    } catch (err: any) {
+      setEditProblemError(parseApiError(err, '문제 수정에 실패했습니다.'));
+    } finally {
+      setEditingProblem(false);
+    }
+  };
 
   const handleDeleteProblem = async (problemId: number) => {
     if (!currentWsId || !currentBox) return;
@@ -204,6 +264,7 @@ export const ProblemList = () => {
   // 카드 클릭 → 문제집 내부로 (단건 조회해서 description 포함)
   const handleOpenBox = async (box: ProblemBoxListData['content'][number]) => {
     if (!currentWsId) return;
+    setProblemPage(0);
     try {
       const data = await getProblemBox(currentWsId, box.id);
       setCurrentBox({
@@ -261,6 +322,7 @@ export const ProblemList = () => {
 
           {/* 문제집 그리드 */}
           {!loading && !error && (
+            <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {boxes.map((box) => (
                 <Card
@@ -328,6 +390,42 @@ export const ProblemList = () => {
                 </button>
               )}
             </div>
+
+            {/* 문제집 페이지네이션 */}
+            {boxTotalPages > 1 && (
+              <div className="flex items-center justify-center">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setBoxPage(p => Math.max(0, p - 1))}
+                    disabled={boxPage === 0}
+                    className="p-2 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  {Array.from({ length: boxTotalPages }, (_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setBoxPage(i)}
+                      className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
+                        boxPage === i
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
+                          : 'text-slate-500 hover:bg-slate-800 hover:text-slate-300'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setBoxPage(p => Math.min(boxTotalPages - 1, p + 1))}
+                    disabled={boxPage >= boxTotalPages - 1}
+                    className="p-2 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+            </>
           )}
         </div>
 
@@ -472,11 +570,12 @@ export const ProblemList = () => {
             </Button>
           </div>
         ) : (
+          <>
           <Card className="bg-[#151922] border-slate-800 overflow-hidden shadow-md">
             <div className="overflow-x-auto">
               <div className="min-w-[700px]">
-                <div className="grid grid-cols-[80px_1fr_120px_120px_60px] gap-4 p-4 border-b border-slate-800 bg-[#0f1117] text-sm font-bold text-slate-400">
-                  <div className="text-center">#</div>
+                <div className="grid grid-cols-[80px_1fr_120px_120px_80px] gap-4 p-4 border-b border-slate-800 bg-[#0f1117] text-sm font-bold text-slate-400">
+                  <div className="text-center">번호</div>
                   <div>제목</div>
                   <div>티어</div>
                   <div>마감일</div>
@@ -488,7 +587,7 @@ export const ProblemList = () => {
                     <div
                       key={p.id}
                       onClick={() => navigate(`/ide/${p.problemNumber}`)}
-                      className="grid grid-cols-[80px_1fr_120px_120px_60px] gap-4 p-4 items-center hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                      className="grid grid-cols-[80px_1fr_120px_120px_80px] gap-4 p-4 items-center hover:bg-slate-800/40 transition-colors cursor-pointer group"
                     >
                       <div className="text-center text-slate-500 font-mono text-xs">{p.problemNumber}</div>
                       <div className="flex items-center gap-3">
@@ -508,18 +607,37 @@ export const ProblemList = () => {
                       </div>
                       {canManage && (
                         <div className="text-center">
-                          <button
-                            className="text-slate-600 hover:text-red-400 transition-colors p-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm('이 문제를 삭제하시겠습니까?')) handleDeleteProblem(p.id);
-                            }}
-                            disabled={deletingProblemId === p.id}
-                          >
-                            {deletingProblemId === p.id
-                              ? <Loader2 className="w-4 h-4 animate-spin" />
-                              : <Trash2 className="w-4 h-4" />}
-                          </button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                className="text-slate-600 hover:text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors p-2"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuItem onClick={() => openEditProblemModal(p)}>
+                                <Pencil className="w-4 h-4 mr-2" />
+                                수정
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                variant="destructive"
+                                disabled={deletingProblemId === p.id}
+                                onClick={() => {
+                                  if (confirm('이 문제를 삭제하시겠습니까?')) handleDeleteProblem(p.id);
+                                }}
+                              >
+                                {deletingProblemId === p.id ? (
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                )}
+                                삭제
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       )}
                     </div>
@@ -528,8 +646,123 @@ export const ProblemList = () => {
               </div>
             </div>
           </Card>
+
+          {/* 문제 페이지네이션 */}
+          {problemTotalPages > 1 && (
+            <div className="flex items-center justify-center mt-6">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setProblemPage(p => Math.max(0, p - 1))}
+                  disabled={problemPage === 0}
+                  className="p-2 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                {Array.from({ length: problemTotalPages }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setProblemPage(i)}
+                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
+                      problemPage === i
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
+                        : 'text-slate-500 hover:bg-slate-800 hover:text-slate-300'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setProblemPage(p => Math.min(problemTotalPages - 1, p + 1))}
+                  disabled={problemPage >= problemTotalPages - 1}
+                  className="p-2 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+          </>
         )}
       </div>
+
+      {/* 문제 수정 모달 */}
+      <Modal isOpen={!!editProblemTarget} onClose={closeEditProblemModal} title="문제 수정">
+        <div className="space-y-6">
+          <div className="flex items-center gap-3 bg-slate-800/50 rounded-lg px-4 py-3">
+            <span className="text-xs font-bold text-slate-400 bg-slate-700/60 rounded px-2 py-1 font-mono">{editProblemTarget?.problemNumber}</span>
+            <span className="text-base font-bold text-slate-200">{editProblemTarget?.title}</span>
+          </div>
+
+          {/* 마감일 */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-400">마감일</label>
+            <div className="relative">
+              <DateTimePicker
+                value={editDeadline}
+                onChange={(v) => setEditDeadline(v)}
+                ampm={false}
+                format="YYYY년 MM월 DD일 HH:mm"
+                slotProps={{
+                  textField: { fullWidth: true, size: 'small' },
+                }}
+                sx={!editDeadline ? {
+                  '& .MuiPickersSectionList-root': { color: 'transparent' },
+                } : undefined}
+              />
+              {!editDeadline && (
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-sm">
+                  마감일을 선택하세요
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* 알림 */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={editReminderEnabled}
+                onCheckedChange={setEditReminderEnabled}
+                disabled={!editDeadline}
+              />
+              <label className="text-sm text-slate-300">마감 전 알림</label>
+            </div>
+
+            {editReminderEnabled && editDeadline && (
+              <Select
+                value={String(editReminderHours)}
+                onValueChange={(v) => setEditReminderHours(Number(v))}
+              >
+                <SelectTrigger className="w-40 bg-slate-900 border-slate-800">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1시간 전</SelectItem>
+                  <SelectItem value="2">2시간 전</SelectItem>
+                  <SelectItem value="3">3시간 전</SelectItem>
+                  <SelectItem value="6">6시간 전</SelectItem>
+                  <SelectItem value="12">12시간 전</SelectItem>
+                  <SelectItem value="24">24시간 전</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          {editProblemError && (
+            <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2">
+              {editProblemError}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="ghost" onClick={closeEditProblemModal}>취소</Button>
+            <Button onClick={handleEditProblem} disabled={editingProblem}>
+              {editingProblem ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+              저장
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
