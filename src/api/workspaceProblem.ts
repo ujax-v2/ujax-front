@@ -19,7 +19,7 @@ export async function getWorkspaceProblems(
   wsId: number,
   boxId: number,
   page = 0,
-  size = 20,
+  size = 10,
 ): Promise<WorkspaceProblemListData> {
   const res = await authFetch(`${base(wsId, boxId)}?page=${page}&size=${size}`);
   return res.data;

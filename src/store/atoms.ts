@@ -1,4 +1,4 @@
-import { atom } from 'recoil';
+import { atom, AtomEffect } from 'recoil';
 
 
 export const themeState = atom({
@@ -128,14 +128,29 @@ export interface Workspace {
   description: string | null;
 }
 
+const localStorageEffect = <T>(key: string): AtomEffect<T> => ({ setSelf, onSet }) => {
+  try {
+    const saved = localStorage.getItem(key);
+    if (saved != null) setSelf(JSON.parse(saved));
+  } catch { /* ignore */ }
+  onSet((newValue, _, isReset) => {
+    try {
+      if (isReset) localStorage.removeItem(key);
+      else localStorage.setItem(key, JSON.stringify(newValue));
+    } catch { /* ignore */ }
+  });
+};
+
 export const currentWorkspaceState = atom<number>({
   key: 'currentWorkspaceState',
   default: 0,
+  effects: [localStorageEffect('currentWorkspaceId')],
 });
 
 export const workspacesState = atom<Workspace[]>({
   key: 'workspacesState',
   default: [],
+  effects: [localStorageEffect('workspaces')],
 });
 
 export const settingsTabState = atom({

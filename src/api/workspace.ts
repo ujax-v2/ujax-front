@@ -4,8 +4,8 @@ import { authFetch } from './client';
 type ApiWorkspace = components['schemas']['ApiResponse-WorkspaceResponse'];
 export type WorkspaceResponse = ApiWorkspace['data'];
 
-type ApiWorkspaceMyPage = components['schemas']['ApiResponse-WorkspaceMyPage'];
-export type WorkspaceMyPageResponse = ApiWorkspaceMyPage['data'];
+type ApiWorkspaceMyList = components['schemas']['ApiResponse-WorkspaceMyList'];
+export type WorkspaceMyListResponse = ApiWorkspaceMyList['data'];
 
 type ApiWorkspaceSettings = components['schemas']['ApiResponse-WorkspaceSettings'];
 export type WorkspaceSettingsResponse = ApiWorkspaceSettings['data'];
@@ -24,8 +24,8 @@ export type PageResponseWorkspaceResponse = ApiWorkspaceExplore['data'];
 
 // ──── 워크스페이스 CRUD ────
 
-export async function getWorkspaces(page = 0, size = 100): Promise<WorkspaceMyPageResponse> {
-  const res = await authFetch(`/api/v1/workspaces/me?page=${page}&size=${size}`);
+export async function getWorkspaces(): Promise<WorkspaceMyListResponse> {
+  const res = await authFetch(`/api/v1/workspaces/me`);
   return res.data;
 }
 
@@ -60,12 +60,12 @@ export async function deleteWorkspace(workspaceId: number): Promise<void> {
 
 // ──── 탐색 & 검색 ────
 
-export async function exploreWorkspaces(page = 0, size = 12): Promise<PageResponseWorkspaceResponse> {
+export async function exploreWorkspaces(page = 0, size = 20): Promise<PageResponseWorkspaceResponse> {
   const res = await authFetch(`/api/v1/workspaces/explore?page=${page}&size=${size}`);
   return res.data;
 }
 
-export async function searchWorkspaces(name: string, page = 0, size = 12): Promise<PageResponseWorkspaceResponse> {
+export async function searchWorkspaces(name: string, page = 0, size = 20): Promise<PageResponseWorkspaceResponse> {
   const res = await authFetch(`/api/v1/workspaces/search?name=${encodeURIComponent(name)}&page=${page}&size=${size}`);
   return res.data;
 }
