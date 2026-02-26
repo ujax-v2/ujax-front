@@ -24,6 +24,43 @@ import { ProblemRegistration } from './features/problems/ProblemRegistration';
 import { WorkspaceExplore } from './features/explore/WorkspaceExplore';
 import { CreateWorkspaceModal } from './components/modals/CreateWorkspaceModal';
 import { Menu } from 'lucide-react';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import 'dayjs/locale/ko';
+
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    background: { default: '#0F1117', paper: '#141820' },
+    primary: { main: '#6366f1' },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: { backgroundImage: 'none', border: '1px solid #1e293b' },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#0f172a',
+          borderRadius: 8,
+          '& .MuiOutlinedInput-notchedOutline': { borderColor: '#1e293b' },
+          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#6366f1' },
+        },
+        input: { color: '#e2e8f0' },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: { root: { color: '#94a3b8' } },
+    },
+    MuiIconButton: {
+      styleOverrides: { root: { color: '#94a3b8' } },
+    },
+  },
+});
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const user = useRecoilValue(userState);
@@ -65,9 +102,9 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await getWorkspaces();
+        const list = await getWorkspaces();
         if (cancelled) return;
-        const items = (res.content ?? []).map((w) => ({
+        const items = (list ?? []).map((w) => ({
           id: w.id,
           name: w.name,
           description: w.description ?? null,
@@ -248,10 +285,14 @@ function AppContent() {
 export default function App() {
   return (
     <RecoilRoot>
-      <BrowserRouter>
-        <AppContent />
-        <CreateWorkspaceModal />
-      </BrowserRouter>
+      <ThemeProvider theme={darkTheme}>
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ko">
+          <BrowserRouter>
+            <AppContent />
+            <CreateWorkspaceModal />
+          </BrowserRouter>
+        </LocalizationProvider>
+      </ThemeProvider>
     </RecoilRoot>
   );
 }
