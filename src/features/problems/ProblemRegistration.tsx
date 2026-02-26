@@ -8,6 +8,10 @@ import { currentProblemBoxState } from '@/store/atoms';
 import { findProblemByNumber } from '@/api/problem';
 import { createWorkspaceProblem } from '@/api/workspaceProblem';
 import type { ProblemResponse } from '@/api/problem';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import dayjs, { Dayjs } from 'dayjs';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 
 type FlowStatus = 'idle' | 'loading' | 'found' | 'crawling' | 'registering' | 'done' | 'error' | 'timeout';
 
@@ -26,88 +30,112 @@ function parseApiError(err: any): { detail: string; status?: number } {
 export const ProblemRegistration = () => {
   const { toWs, currentWsId } = useWorkspaceNavigate();
   const currentBox = useRecoilValue(currentProblemBoxState);
-  const { status: crawlStatus, requestCrawl, reset: resetCrawl } = useExtensionCrawl();
+  const { status: crawlStatus, reason: crawlReason, requestCrawl, reset: resetCrawl } = useExtensionCrawl();
 
   const [problemNumber, setProblemNumber] = useState('');
+  const [deadline, setDeadline] = useState<Dayjs | null>(null);
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderHours, setReminderHours] = useState<number>(1);
   const [flowStatus, setFlowStatus] = useState<FlowStatus>('idle');
   const [problem, setProblem] = useState<ProblemResponse | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // 크롤링 완료 시 → 재등록 시도
+  // 크롤링 완료 시 → 문제 데이터만 조회 (등록은 버튼 클릭 시)
   useEffect(() => {
-    if (crawlStatus === 'success' && currentBox && currentWsId) {
+    if (crawlStatus === 'success') {
       resetCrawl();
-      registerProblem(parseInt(problemNumber, 10));
+      (async () => {
+        const num = parseInt(problemNumber, 10);
+        const data = await findProblemByNumber(num);
+        if (data) {
+          setProblem(data);
+          setFlowStatus('found');
+        } else {
+          setFlowStatus('error');
+          setErrorMsg('크롤링은 완료되었으나 문제 데이터를 찾을 수 없습니다.');
+        }
+      })();
     } else if (crawlStatus === 'error') {
       setFlowStatus('error');
-      setErrorMsg('크롤링에 실패했습니다. 다시 시도해주세요.');
+      if (crawlReason === 'NOT_FOUND') {
+        setErrorMsg('존재하지 않는 문제 번호입니다.');
+      } else if (crawlReason === 'NETWORK_ERROR') {
+        setErrorMsg('네트워크 연결에 실패했습니다. 다시 시도해주세요.');
+      } else {
+        setErrorMsg('크롤링에 실패했습니다. 다시 시도해주세요.');
+      }
       resetCrawl();
     } else if (crawlStatus === 'timeout') {
       setFlowStatus('timeout');
-      setErrorMsg('응답 시간이 초과되었습니다. 확장 프로그램이 설치되어 있는지 확인해주세요.');
+      setErrorMsg('확장 프로그램이 설치되어 있는지 확인해주세요.');
       resetCrawl();
     }
   }, [crawlStatus]);
 
   // 문제 번호로 조회 (미리보기)
   const handleLookup = async () => {
-    const num = parseInt(problemNumber, 10);
-    if (!num || num <= 0) return;
+    const trimmed = problemNumber.trim();
+    if (!trimmed || !/^\d+$/.test(trimmed)) {
+      setFlowStatus('error');
+      setErrorMsg('문제 번호는 숫자만 입력할 수 있습니다.');
+      return;
+    }
+    const num = parseInt(trimmed, 10);
+    if (num <= 0) {
+      setFlowStatus('error');
+      setErrorMsg('문제 번호는 숫자만 입력할 수 있습니다.');
+      return;
+    }
 
     setProblem(null);
     setErrorMsg('');
     setFlowStatus('loading');
     resetCrawl();
 
-    const data = await findProblemByNumber(num);
-    if (data) {
-      setProblem(data);
-      setFlowStatus('found');
-    } else {
-      // DB에 없음 → 크롤링 시작
-      setFlowStatus('crawling');
-      requestCrawl(num);
+    try {
+      const data = await findProblemByNumber(num);
+      if (data) {
+        setProblem(data);
+        setFlowStatus('found');
+      } else {
+        // DB에 없음 → 크롤링 시작
+        setFlowStatus('crawling');
+        requestCrawl(num);
+      }
+    } catch (err: any) {
+      const { detail } = parseApiError(err);
+      setFlowStatus('error');
+      setErrorMsg(detail);
     }
   };
 
-  // 실제 등록 (문제집에 추가)
-  const registerProblem = async (num: number) => {
-    if (!currentWsId || !currentBox) return;
+  // 등록 버튼 → 조회된 문제 데이터로 문제집에 등록
+  const handleRegister = async () => {
+    if (!problem || !currentWsId || !currentBox) {
+      if (!currentBox) {
+        setErrorMsg('문제집을 먼저 선택해주세요.');
+        setFlowStatus('error');
+      }
+      return;
+    }
+
     setFlowStatus('registering');
     setErrorMsg('');
 
     try {
       await createWorkspaceProblem(currentWsId, currentBox.id, {
-        problemNumber: num,
-        deadline: null,
-        scheduledAt: null,
+        problemId: problem.id,
+        deadline: deadline ? deadline.toISOString() : null,
+        scheduledAt: (deadline && reminderEnabled)
+          ? deadline.subtract(reminderHours, 'hour').toISOString()
+          : null,
       });
-      // 등록 성공 → 문제 정보 가져오기
-      const data = await findProblemByNumber(num);
-      if (data) setProblem(data);
       setFlowStatus('done');
     } catch (err: any) {
-      const { detail, status } = parseApiError(err);
-      if (status === 404) {
-        // 아직 DB에 없음 → 크롤링
-        setFlowStatus('crawling');
-        requestCrawl(num);
-      } else {
-        setFlowStatus('error');
-        setErrorMsg(detail);
-      }
-    }
-  };
-
-  const handleRegister = () => {
-    const num = parseInt(problemNumber, 10);
-    if (!num || num <= 0) return;
-    if (!currentBox) {
-      setErrorMsg('문제집을 먼저 선택해주세요.');
+      const { detail } = parseApiError(err);
       setFlowStatus('error');
-      return;
+      setErrorMsg(detail);
     }
-    registerProblem(num);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -116,6 +144,9 @@ export const ProblemRegistration = () => {
 
   const handleReset = () => {
     setProblemNumber('');
+    setDeadline(null);
+    setReminderEnabled(false);
+    setReminderHours(1);
     setProblem(null);
     setFlowStatus('idle');
     setErrorMsg('');
@@ -181,7 +212,7 @@ export const ProblemRegistration = () => {
                 <span className="text-slate-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> 조회 중...</span>
               )}
               {flowStatus === 'crawling' && (
-                <span className="text-yellow-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> DB에 없는 문제입니다. 백준에서 수집 중...</span>
+                <span className="text-yellow-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> 백준에서 문제를 수집하고 있습니다...</span>
               )}
               {flowStatus === 'registering' && (
                 <span className="text-indigo-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> 문제집에 등록 중...</span>
@@ -223,6 +254,63 @@ export const ProblemRegistration = () => {
             </div>
           </div>
 
+          {/* 마감일 & 알림 */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-400">마감일</label>
+              <div className="relative">
+                <DateTimePicker
+                  value={deadline}
+                  onChange={(v) => setDeadline(v)}
+                  minDateTime={dayjs()}
+                  ampm={false}
+                  format="YYYY년 MM월 DD일 HH:mm"
+                  slotProps={{
+                    textField: { fullWidth: true, size: 'small' },
+                  }}
+                  sx={!deadline ? {
+                    '& .MuiPickersSectionList-root': { color: 'transparent' },
+                  } : undefined}
+                />
+                {!deadline && (
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-sm">
+                    마감일을 선택하세요
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={reminderEnabled}
+                  onCheckedChange={setReminderEnabled}
+                  disabled={!deadline}
+                />
+                <label className="text-sm text-slate-300">마감 전 알림</label>
+              </div>
+
+              {reminderEnabled && deadline && (
+                <Select
+                  value={String(reminderHours)}
+                  onValueChange={(v) => setReminderHours(Number(v))}
+                >
+                  <SelectTrigger className="w-40 bg-slate-900 border-slate-800">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1시간 전</SelectItem>
+                    <SelectItem value="2">2시간 전</SelectItem>
+                    <SelectItem value="3">3시간 전</SelectItem>
+                    <SelectItem value="6">6시간 전</SelectItem>
+                    <SelectItem value="12">12시간 전</SelectItem>
+                    <SelectItem value="24">24시간 전</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </div>
+
           {/* 하단 버튼 */}
           <div className="flex gap-3 pt-4">
             {flowStatus === 'done' ? (
@@ -246,7 +334,7 @@ export const ProblemRegistration = () => {
                 <Button
                   className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 disabled:opacity-50"
                   onClick={handleRegister}
-                  disabled={isProcessing || !problemNumber}
+                  disabled={!problem || isProcessing}
                 >
                   {flowStatus === 'registering'
                     ? <><Loader2 className="w-4 h-4 animate-spin mr-1" /> 등록 중...</>

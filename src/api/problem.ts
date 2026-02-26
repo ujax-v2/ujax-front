@@ -20,7 +20,9 @@ export async function findProblemByNumber(problemNumber: number): Promise<Proble
   try {
     const res = await authFetch(`/api/v1/problems/number/${problemNumber}`);
     return res.data;
-  } catch {
-    return null;
+  } catch (err: any) {
+    const msg = err?.message || '';
+    if (msg.includes('404')) return null;
+    throw err;
   }
 }

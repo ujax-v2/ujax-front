@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 type CrawlStatus = 'idle' | 'crawling' | 'success' | 'error' | 'timeout';
+export type CrawlReason = 'NOT_FOUND' | 'SERVER_ERROR' | 'NETWORK_ERROR' | null;
 
-const CRAWL_TIMEOUT_MS = 15_000;
+const CRAWL_TIMEOUT_MS = 8_000;
 
 export function useExtensionCrawl() {
   const [status, setStatus] = useState<CrawlStatus>('idle');
+  const [reason, setReason] = useState<CrawlReason>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const problemNumRef = useRef<number | null>(null);
 
@@ -23,6 +25,7 @@ export function useExtensionCrawl() {
       if (event.data.problemNum !== problemNumRef.current) return;
 
       cleanup();
+      setReason(event.data.reason || null);
       setStatus(event.data.success ? 'success' : 'error');
     };
 
@@ -52,7 +55,8 @@ export function useExtensionCrawl() {
     cleanup();
     problemNumRef.current = null;
     setStatus('idle');
+    setReason(null);
   }, [cleanup]);
 
-  return { status, requestCrawl, reset };
+  return { status, reason, requestCrawl, reset };
 }
