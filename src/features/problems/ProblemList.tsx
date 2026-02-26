@@ -180,15 +180,15 @@ export const ProblemList = () => {
   };
 
   const getTierColor = (tier: string | null) => {
-    if (!tier) return 'text-slate-500 bg-slate-500/10 border-slate-500/20';
+    if (!tier) return 'text-text-faint bg-surface-subtle border-border-subtle';
     const t = tier.toLowerCase();
-    if (t.includes('gold')) return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
-    if (t.includes('silver')) return 'text-slate-300 bg-slate-400/10 border-slate-400/20';
-    if (t.includes('bronze')) return 'text-amber-700 bg-amber-700/10 border-amber-700/20';
-    if (t.includes('platinum')) return 'text-cyan-400 bg-cyan-400/10 border-cyan-400/20';
-    if (t.includes('diamond')) return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
-    if (t.includes('ruby')) return 'text-red-400 bg-red-400/10 border-red-400/20';
-    return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
+    if (t.includes('gold')) return 'text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+    if (t.includes('silver')) return 'text-text-secondary bg-surface-subtle border-border-subtle';
+    if (t.includes('bronze')) return 'text-amber-700 dark:text-amber-500 bg-amber-500/10 border-amber-500/20';
+    if (t.includes('platinum')) return 'text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/20';
+    if (t.includes('diamond')) return 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20';
+    if (t.includes('ruby')) return 'text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/20';
+    return 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
   };
 
   // Create Box
@@ -286,14 +286,14 @@ export const ProblemList = () => {
   // ─── View: Problem Box List ───
   if (!currentBox) {
     return (
-      <div className="flex-1 overflow-y-auto bg-[#0a0c10] p-8 pb-12 font-sans text-slate-100 relative">
+      <div className="flex-1 overflow-y-auto bg-page p-8 pb-12 font-sans text-text-primary relative">
         <div className="max-w-6xl mx-auto space-y-10">
 
           {/* 헤더 */}
-          <div className="border-b border-slate-800 pb-8 mt-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="border-b border-border-default pb-8 mt-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex-1">
-              <h1 className="text-4xl font-extrabold text-white tracking-tight mb-3">나의 문제집</h1>
-              <p className="text-base text-slate-400 font-medium leading-relaxed max-w-3xl">
+              <h1 className="text-4xl font-extrabold text-text-primary tracking-tight mb-3">나의 문제집</h1>
+              <p className="text-base text-text-muted font-medium leading-relaxed max-w-3xl">
                 풀고 싶은 문제들을 테마별 그룹으로 분류하여 체계적으로 학습하고 관리해보세요.
               </p>
             </div>
@@ -308,7 +308,7 @@ export const ProblemList = () => {
           {/* 로딩 */}
           {loading && (
             <div className="flex justify-center py-20">
-              <Loader2 className="w-8 h-8 text-slate-500 animate-spin" />
+              <Loader2 className="w-8 h-8 text-text-faint animate-spin" />
             </div>
           )}
 
@@ -328,16 +328,16 @@ export const ProblemList = () => {
                 <Card
                   key={box.id}
                   onClick={() => handleOpenBox(box)}
-                  className="group bg-[#151922] border-slate-800 p-6 cursor-pointer hover:border-slate-600 transition-all shadow-md flex flex-col min-h-[180px]"
+                  className="group bg-surface-raised border-border-default p-6 cursor-pointer hover:border-border-subtle transition-all shadow-md flex flex-col min-h-[180px]"
                 >
                   {/* 상단: 제목 + 더보기 메뉴 */}
                   <div className="flex items-start justify-between gap-2 mb-3">
-                    <h3 className="text-xl font-bold text-slate-200 group-hover:text-white line-clamp-1 flex-1">{box.title}</h3>
+                    <h3 className="text-xl font-bold text-text-secondary group-hover:text-text-primary line-clamp-1 flex-1">{box.title}</h3>
                     {canManage && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
-                          className="text-slate-500 hover:text-slate-300 transition-colors p-1 shrink-0 -mr-1 -mt-1"
+                          className="text-text-faint hover:text-text-secondary transition-colors p-1 shrink-0 -mr-1 -mt-1"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <MoreVertical className="w-5 h-5" />
@@ -371,7 +371,7 @@ export const ProblemList = () => {
                   </div>
 
                   {/* 하단: 상대 시간 */}
-                  <div className="flex items-center text-xs text-slate-500 mt-auto pt-4 border-t border-slate-800/50">
+                  <div className="flex items-center text-xs text-text-faint mt-auto pt-4 border-t border-border-default/50">
                     <span className="font-medium">{relativeTime(box.updatedAt)} 업데이트</span>
                   </div>
                 </Card>
@@ -381,9 +381,9 @@ export const ProblemList = () => {
               {boxes.length === 0 && (
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="border-2 border-dashed border-slate-800 rounded-xl p-6 flex flex-col items-center justify-center gap-4 text-slate-500 hover:text-indigo-400 hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all min-h-[180px]"
+                  className="border-2 border-dashed border-border-default rounded-xl p-6 flex flex-col items-center justify-center gap-4 text-text-faint hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all min-h-[180px]"
                 >
-                  <div className="w-12 h-12 rounded-full bg-[#1b202c] border border-slate-800 flex items-center justify-center transition-all shadow-inner">
+                  <div className="w-12 h-12 rounded-full bg-surface-inset border border-border-default flex items-center justify-center transition-all shadow-inner">
                     <Plus className="w-6 h-6" />
                   </div>
                   <span className="font-bold text-sm">첫 문제집 만들기</span>
@@ -398,7 +398,7 @@ export const ProblemList = () => {
                   <button
                     onClick={() => setBoxPage(p => Math.max(0, p - 1))}
                     disabled={boxPage === 0}
-                    className="p-2 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 text-text-muted hover:text-text-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -409,7 +409,7 @@ export const ProblemList = () => {
                       className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
                         boxPage === i
                           ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                          : 'text-slate-500 hover:bg-slate-800 hover:text-slate-300'
+                          : 'text-text-faint hover:bg-surface-subtle hover:text-text-secondary'
                       }`}
                     >
                       {i + 1}
@@ -418,7 +418,7 @@ export const ProblemList = () => {
                   <button
                     onClick={() => setBoxPage(p => Math.min(boxTotalPages - 1, p + 1))}
                     disabled={boxPage >= boxTotalPages - 1}
-                    className="p-2 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 text-text-muted hover:text-text-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -433,23 +433,23 @@ export const ProblemList = () => {
         <Modal isOpen={isCreateModalOpen} onClose={() => { setIsCreateModalOpen(false); setCreateError(''); }} title="새 문제집 만들기">
           <form onSubmit={handleCreateBox} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-400">문제집 이름</label>
+              <label className="text-sm font-medium text-text-muted">문제집 이름</label>
               <input
                 type="text"
                 required
                 value={newBox.title}
                 onChange={(e) => setNewBox({ ...newBox, title: e.target.value })}
                 placeholder="예: 코딩테스트 대비 100제"
-                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500"
+                className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-2.5 text-text-secondary focus:outline-none focus:border-emerald-500"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-400">설명</label>
+              <label className="text-sm font-medium text-text-muted">설명</label>
               <textarea
                 value={newBox.description}
                 onChange={(e) => setNewBox({ ...newBox, description: e.target.value })}
                 placeholder="문제집에 대한 설명을 적어주세요."
-                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500 min-h-[80px]"
+                className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-2.5 text-text-secondary focus:outline-none focus:border-emerald-500 min-h-[80px]"
               />
             </div>
             {createError && (
@@ -471,23 +471,23 @@ export const ProblemList = () => {
         <Modal isOpen={!!editTarget} onClose={() => { setEditTarget(null); setEditError(''); }} title="문제집 수정">
           <form onSubmit={handleEditBox} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-400">문제집 이름</label>
+              <label className="text-sm font-medium text-text-muted">문제집 이름</label>
               <input
                 type="text"
                 required
                 value={editTarget?.title || ''}
                 onChange={(e) => setEditTarget(prev => prev ? { ...prev, title: e.target.value } : prev)}
                 placeholder="문제집 이름"
-                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500"
+                className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-2.5 text-text-secondary focus:outline-none focus:border-emerald-500"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-400">설명</label>
+              <label className="text-sm font-medium text-text-muted">설명</label>
               <textarea
                 value={editTarget?.description || ''}
                 onChange={(e) => setEditTarget(prev => prev ? { ...prev, description: e.target.value } : prev)}
                 placeholder="문제집에 대한 설명을 적어주세요."
-                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:border-emerald-500 min-h-[80px]"
+                className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-2.5 text-text-secondary focus:outline-none focus:border-emerald-500 min-h-[80px]"
               />
             </div>
             {editError && (
@@ -510,27 +510,27 @@ export const ProblemList = () => {
 
   // ─── View: Problems Inside a Box ───
   return (
-    <div className="flex-1 overflow-y-auto bg-[#0a0c10] p-8 pb-12 font-sans text-slate-100 relative">
+    <div className="flex-1 overflow-y-auto bg-page p-8 pb-12 font-sans text-text-primary relative">
       <div className="max-w-6xl mx-auto space-y-8">
 
         {/* Navigation & Header */}
         <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 text-sm text-slate-500 font-medium tracking-wide">
-            <button onClick={() => setCurrentBox(null)} className="hover:text-slate-300 transition-colors">문제집</button>
-            <span className="text-slate-700">/</span>
-            <span className="text-slate-300 font-semibold">{currentBox.title}</span>
+          <div className="flex items-center gap-2 text-sm text-text-faint font-medium tracking-wide">
+            <button onClick={() => setCurrentBox(null)} className="hover:text-text-secondary transition-colors">문제집</button>
+            <span className="text-text-faint">/</span>
+            <span className="text-text-secondary font-semibold">{currentBox.title}</span>
           </div>
 
-          <div className="border-b border-slate-800 pb-8 mt-4">
+          <div className="border-b border-border-default pb-8 mt-4">
             <div className="flex justify-between items-center gap-4">
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => setCurrentBox(null)}
-                  className="p-2 -ml-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-all"
+                  className="p-2 -ml-2 text-text-muted hover:text-text-primary rounded-lg hover:bg-surface-subtle transition-all"
                 >
                   <ArrowLeft className="w-6 h-6" />
                 </button>
-                <h1 className="text-3xl font-extrabold text-white tracking-tight">{currentBox.title}</h1>
+                <h1 className="text-3xl font-extrabold text-text-primary tracking-tight">{currentBox.title}</h1>
               </div>
               <Button
                 className="bg-emerald-600 border border-emerald-500 text-white font-bold hover:bg-emerald-700 shrink-0 shadow-sm transition-all"
@@ -540,7 +540,7 @@ export const ProblemList = () => {
               </Button>
             </div>
             {currentBox.description && (
-              <p className="text-slate-400 text-sm mt-4 leading-relaxed">{currentBox.description}</p>
+              <p className="text-text-muted text-sm mt-4 leading-relaxed">{currentBox.description}</p>
             )}
           </div>
         </div>
@@ -548,11 +548,11 @@ export const ProblemList = () => {
         {/* Search & Filter Bar */}
         <div className="flex gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-faint" />
             <input
               type="text"
               placeholder="문제 검색..."
-              className="w-full h-12 bg-[#151922] border border-slate-800 rounded-xl pl-12 pr-4 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 transition-all shadow-sm"
+              className="w-full h-12 bg-surface-raised border border-border-default rounded-xl pl-12 pr-4 text-text-secondary placeholder:text-text-faint focus:outline-none focus:border-emerald-500 transition-all shadow-sm"
             />
           </div>
         </div>
@@ -560,21 +560,21 @@ export const ProblemList = () => {
         {/* Problem List */}
         {problemsLoading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="w-8 h-8 text-slate-500 animate-spin" />
+            <Loader2 className="w-8 h-8 text-text-faint animate-spin" />
           </div>
         ) : problems.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-slate-500 mb-4">아직 등록된 문제가 없습니다.</p>
+            <p className="text-text-faint mb-4">아직 등록된 문제가 없습니다.</p>
             <Button onClick={() => toWs('problems/new')} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
               <Plus className="w-4 h-4 mr-1" /> 첫 문제 등록하기
             </Button>
           </div>
         ) : (
           <>
-          <Card className="bg-[#151922] border-slate-800 overflow-hidden shadow-md">
+          <Card className="bg-surface-raised border-border-default overflow-hidden shadow-md">
             <div className="overflow-x-auto">
               <div className="min-w-[700px]">
-                <div className="grid grid-cols-[80px_1fr_120px_120px_80px] gap-4 p-4 border-b border-slate-800 bg-[#0f1117] text-sm font-bold text-slate-400">
+                <div className="grid grid-cols-[80px_1fr_120px_120px_80px] gap-4 p-4 border-b border-border-default bg-page text-sm font-bold text-text-muted">
                   <div className="text-center">번호</div>
                   <div>제목</div>
                   <div>티어</div>
@@ -582,16 +582,16 @@ export const ProblemList = () => {
                   {canManage && <div></div>}
                 </div>
 
-                <div className="divide-y divide-slate-800/50">
+                <div className="divide-y divide-border-default">
                   {problems.map((p) => (
                     <div
                       key={p.id}
-                      onClick={() => navigate(`/ide/${p.problemNumber}`)}
-                      className="grid grid-cols-[80px_1fr_120px_120px_80px] gap-4 p-4 items-center hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                      onClick={() => navigate(`/ws/${currentWsId}/ide/${p.problemNumber}`)}
+                      className="grid grid-cols-[80px_1fr_120px_120px_80px] gap-4 p-4 items-center hover:bg-hover-bg transition-colors cursor-pointer group"
                     >
-                      <div className="text-center text-slate-500 font-mono text-xs">{p.problemNumber}</div>
+                      <div className="text-center text-emerald-600 dark:text-emerald-400 font-mono text-sm font-bold">{p.problemNumber}</div>
                       <div className="flex items-center gap-3">
-                        <span className="text-slate-200 font-bold group-hover:text-emerald-400 transition-colors">{p.title}</span>
+                        <span className="text-text-secondary font-bold group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{p.title}</span>
                       </div>
                       <div>
                         {p.tier ? (
@@ -599,10 +599,10 @@ export const ProblemList = () => {
                             {p.tier}
                           </span>
                         ) : (
-                          <span className="text-slate-600 text-xs">-</span>
+                          <span className="text-text-faint text-xs">-</span>
                         )}
                       </div>
-                      <div className="text-slate-400 text-xs">
+                      <div className="text-text-muted text-xs">
                         {p.deadline ? new Date(p.deadline).toLocaleDateString('ko-KR') : '-'}
                       </div>
                       {canManage && (
@@ -610,7 +610,7 @@ export const ProblemList = () => {
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <button
-                                className="text-slate-600 hover:text-slate-300 hover:bg-slate-700/50 rounded-lg transition-colors p-2"
+                                className="text-text-faint hover:text-text-secondary hover:bg-hover-bg rounded-lg transition-colors p-2"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <MoreVertical className="w-4 h-4" />
@@ -654,7 +654,7 @@ export const ProblemList = () => {
                 <button
                   onClick={() => setProblemPage(p => Math.max(0, p - 1))}
                   disabled={problemPage === 0}
-                  className="p-2 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 text-text-muted hover:text-text-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -665,7 +665,7 @@ export const ProblemList = () => {
                     className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
                       problemPage === i
                         ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                        : 'text-slate-500 hover:bg-slate-800 hover:text-slate-300'
+                        : 'text-text-faint hover:bg-surface-subtle hover:text-text-secondary'
                     }`}
                   >
                     {i + 1}
@@ -674,7 +674,7 @@ export const ProblemList = () => {
                 <button
                   onClick={() => setProblemPage(p => Math.min(problemTotalPages - 1, p + 1))}
                   disabled={problemPage >= problemTotalPages - 1}
-                  className="p-2 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 text-text-muted hover:text-text-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -688,14 +688,14 @@ export const ProblemList = () => {
       {/* 문제 수정 모달 */}
       <Modal isOpen={!!editProblemTarget} onClose={closeEditProblemModal} title="문제 수정">
         <div className="space-y-6">
-          <div className="flex items-center gap-3 bg-slate-800/50 rounded-lg px-4 py-3">
-            <span className="text-xs font-bold text-slate-400 bg-slate-700/60 rounded px-2 py-1 font-mono">{editProblemTarget?.problemNumber}</span>
-            <span className="text-base font-bold text-slate-200">{editProblemTarget?.title}</span>
+          <div className="flex items-center gap-3 bg-surface-subtle/50 rounded-lg px-4 py-3">
+            <span className="text-xs font-bold text-text-muted bg-surface-subtle rounded px-2 py-1 font-mono">{editProblemTarget?.problemNumber}</span>
+            <span className="text-base font-bold text-text-secondary">{editProblemTarget?.title}</span>
           </div>
 
           {/* 마감일 */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-400">마감일</label>
+            <label className="text-sm font-bold text-text-muted">마감일</label>
             <div className="relative">
               <DateTimePicker
                 value={editDeadline}
@@ -710,7 +710,7 @@ export const ProblemList = () => {
                 } : undefined}
               />
               {!editDeadline && (
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-sm">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint pointer-events-none text-sm">
                   마감일을 선택하세요
                 </span>
               )}
@@ -725,7 +725,7 @@ export const ProblemList = () => {
                 onCheckedChange={setEditReminderEnabled}
                 disabled={!editDeadline}
               />
-              <label className="text-sm text-slate-300">마감 전 알림</label>
+              <label className="text-sm text-text-secondary">마감 전 알림</label>
             </div>
 
             {editReminderEnabled && editDeadline && (
@@ -733,7 +733,7 @@ export const ProblemList = () => {
                 value={String(editReminderHours)}
                 onValueChange={(v) => setEditReminderHours(Number(v))}
               >
-                <SelectTrigger className="w-40 bg-slate-900 border-slate-800">
+                <SelectTrigger className="w-40 bg-input-bg border-border-default">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

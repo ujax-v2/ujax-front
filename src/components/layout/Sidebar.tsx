@@ -64,7 +64,6 @@ export const Sidebar = () => {
     localStorage.removeItem('auth');
     setUser({ isLoggedIn: false, id: 0, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '' });
     setWorkspaces([]);
-    setCurrentWorkspaceId(0);
     navigate('/login');
   };
 
@@ -105,26 +104,26 @@ export const Sidebar = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="w-64 h-full bg-[#0a0c10] border-r border-slate-800 flex flex-col flex-shrink-0 transition-all duration-300 relative z-50">
+    <div className="w-64 h-full bg-[#f0f1f4] dark:bg-[#0a0c10] border-r border-border-subtle/50 shadow-[1px_0_4px_rgba(0,0,0,0.03)] dark:shadow-[1px_0_4px_rgba(0,0,0,0.2)] flex flex-col flex-shrink-0 transition-all duration-300 relative z-50">
       {/* Header with Workspace Switcher */}
       <div className="p-3 relative" ref={menuRef}>
         <div
           onClick={() => setIsWorkspaceMenuOpen(!isWorkspaceMenuOpen)}
-          className="h-10 flex items-center justify-between px-2 hover:bg-slate-800/50 transition-colors cursor-pointer rounded-lg group select-none"
+          className="h-10 flex items-center justify-between px-2 hover:bg-hover-bg transition-colors cursor-pointer rounded-lg group select-none"
         >
           <div className="flex items-center gap-2 overflow-hidden">
             <div className="w-5 h-5 rounded bg-emerald-600 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-white">
               {currentWorkspace?.name?.charAt(0) ?? ''}
             </div>
-            <span className="font-semibold text-sm text-slate-200 truncate">{currentWorkspace.name}</span>
-            <ChevronsUpDown className="w-3 h-3 text-slate-500" />
+            <span className="font-semibold text-sm text-text-secondary truncate">{currentWorkspace.name}</span>
+            <ChevronsUpDown className="w-3 h-3 text-text-faint" />
           </div>
           <button
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(false);
             }}
-            className="p-1 text-slate-400 hover:text-slate-100 hover:bg-slate-700/50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+            className="p-1 text-text-muted hover:text-text-primary hover:bg-border-subtle/50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <PanelLeftClose className="w-4 h-4" />
           </button>
@@ -132,15 +131,15 @@ export const Sidebar = () => {
 
         {/* Workspace Switcher Popover */}
         {isWorkspaceMenuOpen && (
-          <div className="absolute top-14 left-3 w-[260px] bg-[#1e1e1e] border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-100">
+          <div className="absolute top-14 left-3 w-[260px] bg-surface-overlay border border-border-subtle rounded-xl shadow-2xl overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-100">
             {/* Current Workspace Header */}
-            <div className="p-4 bg-slate-800/30 border-b border-slate-700/50">
+            <div className="p-4 bg-hover-bg border-b border-border-subtle/50">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center text-lg font-bold text-white">
                   {currentWorkspace?.name?.charAt(0) ?? ''}
                 </div>
                 <div className="flex-1 overflow-hidden">
-                  <div className="font-bold text-slate-200 text-sm truncate">{currentWorkspace?.name}</div>
+                  <div className="font-bold text-text-secondary text-sm truncate">{currentWorkspace?.name}</div>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -150,7 +149,7 @@ export const Sidebar = () => {
                     navigate('/settings');
                     setIsWorkspaceMenuOpen(false);
                   }}
-                  className="flex-1 py-1.5 text-xs text-slate-300 bg-slate-700/50 hover:bg-slate-700 rounded border border-slate-600/50 flex items-center justify-center gap-1.5 transition-colors"
+                  className="flex-1 py-1.5 text-xs text-text-secondary bg-border-subtle/50 hover:bg-border-subtle rounded border border-border-subtle/50 flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <Settings className="w-3.5 h-3.5" /> 설정
                 </button>
@@ -160,7 +159,7 @@ export const Sidebar = () => {
                     navigate('/settings');
                     setIsWorkspaceMenuOpen(false);
                   }}
-                  className="flex-1 py-1.5 text-xs text-slate-300 bg-slate-700/50 hover:bg-slate-700 rounded border border-slate-600/50 flex items-center justify-center gap-1.5 transition-colors"
+                  className="flex-1 py-1.5 text-xs text-text-secondary bg-border-subtle/50 hover:bg-border-subtle rounded border border-border-subtle/50 flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <UserPlus className="w-3.5 h-3.5" /> 멤버 초대
                 </button>
@@ -169,32 +168,32 @@ export const Sidebar = () => {
 
             {/* Workspace List */}
             <div className="py-2 max-h-[240px] overflow-y-auto">
-              <div className="px-3 py-1.5 text-xs font-medium text-slate-500">bookandpapers717@gmail.com</div>
+              <div className="px-3 py-1.5 text-xs font-medium text-text-faint">bookandpapers717@gmail.com</div>
               {workspaces.map(ws => (
                 <div
                   key={ws.id}
                   onClick={() => handleSwitchWorkspace(ws.id)}
-                  className="flex items-center justify-between px-3 py-2 hover:bg-slate-700/30 cursor-pointer group"
+                  className="flex items-center justify-between px-3 py-2 hover:bg-hover-bg cursor-pointer group"
                 >
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <div className="w-6 h-6 rounded bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-300">
+                    <div className="w-6 h-6 rounded bg-border-subtle flex items-center justify-center text-xs font-medium text-text-secondary">
                       {ws.name.charAt(0)}
                     </div>
-                    <span className={`text-sm truncate ${ws.id === currentWorkspaceId ? 'text-slate-100 font-medium' : 'text-slate-400'}`}>
+                    <span className={`text-sm truncate ${ws.id === currentWorkspaceId ? 'text-text-primary font-medium' : 'text-text-muted'}`}>
                       {ws.name}
                     </span>
                   </div>
                   {ws.id === currentWorkspaceId ? (
                     <Check className="w-4 h-4 text-emerald-500" />
                   ) : (
-                    <MoreHorizontal className="w-4 h-4 text-slate-500 opacity-0 group-hover:opacity-100" />
+                    <MoreHorizontal className="w-4 h-4 text-text-faint opacity-0 group-hover:opacity-100" />
                   )}
                 </div>
               ))}
 
               <div
                 onClick={handleCreateWorkspace}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-slate-700/30 cursor-pointer text-slate-400 hover:text-slate-200 mt-1"
+                className="flex items-center gap-2 px-3 py-2 hover:bg-hover-bg cursor-pointer text-text-muted hover:text-text-secondary mt-1"
               >
                 <div className="w-6 h-6 flex items-center justify-center">
                   <Plus className="w-4 h-4" />
@@ -210,7 +209,7 @@ export const Sidebar = () => {
       {/* Main Navigation — 워크스페이스 스코프 메뉴 */}
       <div className="flex-1 px-2 py-4 overflow-y-auto flex flex-col">
         <div>
-          <div className="text-xs font-bold text-slate-400 mb-2 px-2 tracking-widest uppercase">메뉴</div>
+          <div className="text-xs font-bold text-text-muted mb-2 px-2 tracking-widest uppercase">메뉴</div>
           <div className="space-y-1">
             {menuItems.map((item, idx) => (
               <button
@@ -219,11 +218,11 @@ export const Sidebar = () => {
                 className={cn(
                   'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[15px] font-medium transition-colors group',
                   isMenuActive(item)
-                    ? 'bg-slate-800 text-slate-100'
-                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+                    ? 'bg-surface-subtle text-text-primary'
+                    : 'text-text-muted hover:text-text-primary hover:bg-hover-bg'
                 )}
               >
-                <item.icon className={cn("w-5 h-5", isMenuActive(item) ? "text-slate-100" : "text-slate-500 group-hover:text-slate-400")} />
+                <item.icon className={cn("w-5 h-5", isMenuActive(item) ? "text-text-primary" : "text-text-faint group-hover:text-text-muted")} />
                 <span className="flex-1 text-left">{item.label}</span>
               </button>
             ))}
@@ -232,30 +231,30 @@ export const Sidebar = () => {
 
         {/* 탐색 섹션 (글로벌) */}
         <div className="mt-8">
-          <div className="text-xs font-bold text-slate-400 mb-2 px-2 tracking-widest uppercase">탐색</div>
+          <div className="text-xs font-bold text-text-muted mb-2 px-2 tracking-widest uppercase">탐색</div>
           <button
             onClick={() => navigate('/explore')}
             className={cn(
               'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[15px] font-medium transition-colors group',
               location.pathname.startsWith('/explore')
-                ? 'bg-slate-800 text-slate-100'
-                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+                ? 'bg-surface-subtle text-text-primary'
+                : 'text-text-muted hover:text-text-primary hover:bg-hover-bg'
             )}
           >
-            <Compass className={cn("w-5 h-5", location.pathname.startsWith('/explore') ? "text-slate-100" : "text-slate-500 group-hover:text-slate-400")} />
+            <Compass className={cn("w-5 h-5", location.pathname.startsWith('/explore') ? "text-text-primary" : "text-text-faint group-hover:text-text-muted")} />
             <span className="flex-1 text-left">워크스페이스 탐색</span>
           </button>
         </div>
       </div>
 
       {/* Bottom Settings Section */}
-      <div className="p-2 border-t border-slate-800/50 space-y-0.5">
+      <div className="p-2 border-t border-border-default/50 space-y-0.5">
         <button
           onClick={() => {
             setSettingsTab('general');
             navigate('/settings');
           }}
-          className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 transition-colors"
+          className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium text-text-muted hover:text-text-primary hover:bg-hover-bg transition-colors"
         >
           <SlidersHorizontal className="w-4 h-4" />
           <span className="flex-1 text-left">설정</span>
@@ -264,7 +263,7 @@ export const Sidebar = () => {
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-slate-800/50 transition-colors"
+          className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium text-text-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-hover-bg transition-colors"
         >
           <LogOut className="w-4 h-4" />
           <span className="flex-1 text-left">로그아웃</span>

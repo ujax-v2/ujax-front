@@ -43,22 +43,22 @@ class ErrorBoundary extends Component<Props, State> {
             if (this.props.fallback) return this.props.fallback;
 
             return (
-                <div className="flex flex-col items-center justify-center min-h-screen bg-[#0F1117] text-white p-4">
-                    <div className="max-w-md w-full bg-[#141820] border border-slate-800 rounded-xl p-8 shadow-2xl text-center space-y-6">
+                <div className="flex flex-col items-center justify-center min-h-screen bg-page text-text-primary p-4">
+                    <div className="max-w-md w-full bg-surface border border-border-default rounded-xl p-8 shadow-2xl text-center space-y-6">
                         <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
                             <span className="text-3xl">⚠️</span>
                         </div>
 
                         <div>
-                            <h2 className="text-xl font-bold text-slate-100 mb-2">예기치 못한 오류가 발생했습니다</h2>
-                            <p className="text-sm text-slate-400">
+                            <h2 className="text-xl font-bold text-text-primary mb-2">예기치 못한 오류가 발생했습니다</h2>
+                            <p className="text-sm text-text-muted">
                                 죄송합니다. 요청을 처리하는 중에 문제가 발생했습니다.<br />
                                 지속적으로 발생할 경우 캐시를 삭제해 보세요.
                             </p>
                         </div>
 
                         {process.env.NODE_ENV === 'development' && this.state.error && (
-                            <div className="text-left bg-black/50 p-4 rounded text-xs font-mono text-red-300 overflow-auto max-h-32">
+                            <div className="text-left bg-black/50 p-4 rounded text-xs font-mono text-red-600 dark:text-red-300 overflow-auto max-h-32">
                                 {this.state.error.toString()}
                             </div>
                         )}
@@ -73,7 +73,7 @@ class ErrorBoundary extends Component<Props, State> {
 
                             <button
                                 onClick={this.handleReset}
-                                className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-lg transition-colors text-sm"
+                                className="w-full py-3 bg-surface-subtle hover:bg-border-subtle text-text-secondary font-medium rounded-lg transition-colors text-sm"
                             >
                                 초기화 후 메인으로 (로그아웃)
                             </button>

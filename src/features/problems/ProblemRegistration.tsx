@@ -157,16 +157,16 @@ export const ProblemRegistration = () => {
   const isProcessing = flowStatus === 'loading' || flowStatus === 'crawling' || flowStatus === 'registering';
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#0F1117] p-8 pb-24">
+    <div className="flex-1 overflow-y-auto bg-page p-8 pb-24">
       <div className="max-w-5xl mx-auto space-y-6">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-slate-100">문제 등록</h1>
+            <h1 className="text-xl font-bold text-text-primary">문제 등록</h1>
             {currentBox && (
-              <p className="text-sm text-slate-500 mt-1">
-                <span className="text-slate-400 font-medium">{currentBox.title}</span>에 문제 추가
+              <p className="text-sm text-text-faint mt-1">
+                <span className="text-text-muted font-medium">{currentBox.title}</span>에 문제 추가
               </p>
             )}
           </div>
@@ -175,11 +175,11 @@ export const ProblemRegistration = () => {
           </Button>
         </div>
 
-        <div className="bg-[#141820] border border-slate-800 rounded-xl p-8 space-y-8">
+        <div className="bg-surface border border-border-default rounded-xl p-8 space-y-8">
 
           {/* 문제 번호 입력 */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-400">백준 문제 번호</label>
+            <label className="text-sm font-bold text-text-muted">백준 문제 번호</label>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -193,7 +193,7 @@ export const ProblemRegistration = () => {
                 }}
                 onKeyDown={handleKeyDown}
                 placeholder="예: 2504"
-                className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-input-bg border border-border-default rounded-lg px-4 py-3 text-text-secondary focus:outline-none focus:border-indigo-500"
               />
               <Button
                 onClick={handleLookup}
@@ -209,13 +209,13 @@ export const ProblemRegistration = () => {
             {/* 상태 메시지 */}
             <div className="min-h-[20px]">
               {flowStatus === 'loading' && (
-                <span className="text-slate-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> 조회 중...</span>
+                <span className="text-text-muted text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> 조회 중...</span>
               )}
               {flowStatus === 'crawling' && (
-                <span className="text-yellow-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> 백준에서 문제를 수집하고 있습니다...</span>
+                <span className="text-yellow-600 dark:text-yellow-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> 백준에서 문제를 수집하고 있습니다...</span>
               )}
               {flowStatus === 'registering' && (
-                <span className="text-indigo-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> 문제집에 등록 중...</span>
+                <span className="text-indigo-600 dark:text-indigo-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> 문제집에 등록 중...</span>
               )}
               {flowStatus === 'found' && (
                 <span className="text-green-400 text-sm flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> 문제를 찾았습니다</span>
@@ -231,25 +231,25 @@ export const ProblemRegistration = () => {
 
           {/* 문제 정보 미리보기 */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-400">문제 제목</label>
-            <div className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-3 text-slate-200 min-h-[48px]">
-              {problem?.title || <span className="text-slate-600">문제 번호를 조회하면 자동으로 채워집니다</span>}
+            <label className="text-sm font-bold text-text-muted">문제 제목</label>
+            <div className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-3 text-text-secondary min-h-[48px]">
+              {problem?.title || <span className="text-text-faint">문제 번호를 조회하면 자동으로 채워집니다</span>}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-400">티어</label>
-              <div className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-3 text-slate-200 min-h-[48px]">
-                {problem?.tier || <span className="text-slate-600">-</span>}
+              <label className="text-sm font-bold text-text-muted">티어</label>
+              <div className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-3 text-text-secondary min-h-[48px]">
+                {problem?.tier || <span className="text-text-faint">-</span>}
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-400">태그</label>
-              <div className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-3 min-h-[48px]">
+              <label className="text-sm font-bold text-text-muted">태그</label>
+              <div className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-3 min-h-[48px]">
                 {tags
-                  ? <span className="text-slate-200">{tags}</span>
-                  : <span className="text-slate-600">문제 번호를 조회하면 자동으로 채워집니다</span>}
+                  ? <span className="text-text-secondary">{tags}</span>
+                  : <span className="text-text-faint">문제 번호를 조회하면 자동으로 채워집니다</span>}
               </div>
             </div>
           </div>
@@ -257,7 +257,7 @@ export const ProblemRegistration = () => {
           {/* 마감일 & 알림 */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-400">마감일</label>
+              <label className="text-sm font-bold text-text-muted">마감일</label>
               <div className="relative">
                 <DateTimePicker
                   value={deadline}
@@ -273,7 +273,7 @@ export const ProblemRegistration = () => {
                   } : undefined}
                 />
                 {!deadline && (
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-sm">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint pointer-events-none text-sm">
                     마감일을 선택하세요
                   </span>
                 )}
@@ -287,7 +287,7 @@ export const ProblemRegistration = () => {
                   onCheckedChange={setReminderEnabled}
                   disabled={!deadline}
                 />
-                <label className="text-sm text-slate-300">마감 전 알림</label>
+                <label className="text-sm text-text-secondary">마감 전 알림</label>
               </div>
 
               {reminderEnabled && deadline && (
@@ -295,7 +295,7 @@ export const ProblemRegistration = () => {
                   value={String(reminderHours)}
                   onValueChange={(v) => setReminderHours(Number(v))}
                 >
-                  <SelectTrigger className="w-40 bg-slate-900 border-slate-800">
+                  <SelectTrigger className="w-40 bg-input-bg border-border-default">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

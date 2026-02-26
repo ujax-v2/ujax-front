@@ -39,6 +39,23 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Semantic colors — light */
+  --page: #ffffff;
+  --page-deep: #fcfcfd;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-overlay: #ffffff;
+  --surface-inset: #f8f9fb;
+  --surface-subtle: #f3f5f8;
+  --text-primary: #0f172a;
+  --text-secondary: #2d3748;
+  --text-muted: #4a5568;
+  --text-faint: #718096;
+  --border-default: rgba(0, 0, 0, 0.15);
+  --border-subtle: #b8c1cc;
+  --input-bg: #f8f9fb;
+  --hover-bg: rgba(0, 0, 0, 0.04);
 }
 
 .dark {
@@ -76,6 +93,23 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
+
+  /* Semantic colors — dark */
+  --page: #0F1117;
+  --page-deep: #0a0c10;
+  --surface: #141820;
+  --surface-raised: #151922;
+  --surface-overlay: #1e1e1e;
+  --surface-inset: #1b202c;
+  --surface-subtle: #1e2330;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-faint: #64748b;
+  --border-default: #1e293b;
+  --border-subtle: #334155;
+  --input-bg: #0f172a;
+  --hover-bg: rgba(30, 41, 59, 0.5);
 }
 
 @theme inline {
@@ -117,6 +151,23 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Semantic colors */
+  --color-page: var(--page);
+  --color-page-deep: var(--page-deep);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-surface-inset: var(--surface-inset);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+  --color-border-default: var(--border-default);
+  --color-border-subtle: var(--border-subtle);
+  --color-input-bg: var(--input-bg);
+  --color-hover-bg: var(--hover-bg);
 }
 
 @layer base {

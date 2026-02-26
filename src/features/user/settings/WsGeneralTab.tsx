@@ -150,26 +150,26 @@ export const WsGeneralTab = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 pb-4 border-b border-slate-200 dark:border-slate-800">워크스페이스 일반 설정</h2>
+      <h2 className="text-xl font-bold text-text-primary pb-4 border-b border-border-default">워크스페이스 일반 설정</h2>
 
       <div className="space-y-4 max-w-md">
-        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">워크스페이스 정보</h3>
+        <h3 className="text-sm font-bold text-text-secondary">워크스페이스 정보</h3>
         <div>
-          <label className="block text-xs font-bold text-slate-500 mb-1">이름</label>
-          <input type="text" value={wsName} onChange={e => setWsName(e.target.value)} className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+          <label className="block text-xs font-bold text-text-faint mb-1">이름</label>
+          <input type="text" value={wsName} onChange={e => setWsName(e.target.value)} className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-500 mb-1">설명</label>
-          <input type="text" value={wsDescription} onChange={e => setWsDescription(e.target.value)} placeholder="워크스페이스 설명을 입력하세요" className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+          <label className="block text-xs font-bold text-text-faint mb-1">설명</label>
+          <input type="text" value={wsDescription} onChange={e => setWsDescription(e.target.value)} placeholder="워크스페이스 설명을 입력하세요" className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
         </div>
       </div>
 
       <div className="pt-2 space-y-4 max-w-md">
-        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">연동</h3>
+        <h3 className="text-sm font-bold text-text-secondary">연동</h3>
         <div>
-          <label className="block text-xs font-bold text-slate-500 mb-1">Mattermost Webhook URL</label>
-          <input type="text" value={wsMmWebhookUrl} onChange={e => setWsMmWebhookUrl(e.target.value)} placeholder="https://mattermost.example.com/hooks/..." className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
-          <p className="text-[11px] text-slate-400 mt-1">알림을 받을 Mattermost 채널의 Webhook URL을 입력하세요.</p>
+          <label className="block text-xs font-bold text-text-faint mb-1">Mattermost Webhook URL</label>
+          <input type="text" value={wsMmWebhookUrl} onChange={e => setWsMmWebhookUrl(e.target.value)} placeholder="https://mattermost.example.com/hooks/..." className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+          <p className="text-[11px] text-text-faint mt-1">알림을 받을 Mattermost 채널의 Webhook URL을 입력하세요.</p>
         </div>
         <div className="space-y-2 pt-2">
           <Button
@@ -185,12 +185,12 @@ export const WsGeneralTab = () => {
         </div>
       </div>
 
-      <div className="pt-6 border-t border-slate-200 dark:border-slate-800 space-y-4 max-w-md">
-        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">내 설정</h3>
+      <div className="pt-6 border-t border-border-default space-y-4 max-w-md">
+        <h3 className="text-sm font-bold text-text-secondary">내 설정</h3>
         <div>
-          <label className="block text-xs font-bold text-slate-500 mb-1">닉네임</label>
-          <input type="text" value={wsNickname} onChange={e => setWsNickname(e.target.value)} placeholder="이 워크스페이스에서 사용할 닉네임" className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
-          <p className="text-[11px] text-slate-400 mt-1">이 워크스페이스에서 다른 멤버에게 보이는 이름입니다.</p>
+          <label className="block text-xs font-bold text-text-faint mb-1">닉네임</label>
+          <input type="text" value={wsNickname} onChange={e => setWsNickname(e.target.value)} placeholder="이 워크스페이스에서 사용할 닉네임" className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+          <p className="text-[11px] text-text-faint mt-1">이 워크스페이스에서 다른 멤버에게 보이는 이름입니다.</p>
         </div>
         <div className="space-y-2 pt-2">
           <Button
@@ -206,30 +206,30 @@ export const WsGeneralTab = () => {
         </div>
       </div>
 
-      <div className="pt-6 border-t border-red-200 dark:border-red-500/20">
+      <div className="pt-6 border-t border-red-500/20">
         <h3 className="text-sm font-bold text-red-500 mb-4">위험 구역</h3>
         <div className="space-y-3">
-          <div className="rounded-lg border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5 p-4 flex items-center justify-between">
+          <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium text-slate-900 dark:text-slate-200">워크스페이스 나가기</div>
-              <div className="text-xs text-slate-500 mt-0.5">이 워크스페이스에서 나갑니다. 다시 참여하려면 초대가 필요합니다.</div>
+              <div className="text-sm font-medium text-text-secondary">워크스페이스 나가기</div>
+              <div className="text-xs text-text-faint mt-0.5">이 워크스페이스에서 나갑니다. 다시 참여하려면 초대가 필요합니다.</div>
             </div>
             <Button
               variant="ghost"
-              className="text-red-500 hover:text-white hover:bg-red-600 border border-red-300 dark:border-red-500/30 ml-4 flex-shrink-0"
+              className="text-red-500 hover:text-white hover:bg-red-600 border border-red-500/30 ml-4 flex-shrink-0"
               onClick={() => { setShowWsLeaveModal(true); setWsLeaveError(''); }}
             >
               <LogOut className="w-4 h-4 mr-1.5" />나가기
             </Button>
           </div>
-          <div className="rounded-lg border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5 p-4 flex items-center justify-between">
+          <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium text-slate-900 dark:text-slate-200">워크스페이스 삭제</div>
-              <div className="text-xs text-slate-500 mt-0.5">워크스페이스와 모든 데이터가 영구적으로 삭제됩니다.</div>
+              <div className="text-sm font-medium text-text-secondary">워크스페이스 삭제</div>
+              <div className="text-xs text-text-faint mt-0.5">워크스페이스와 모든 데이터가 영구적으로 삭제됩니다.</div>
             </div>
             <Button
               variant="ghost"
-              className="text-red-500 hover:text-white hover:bg-red-600 border border-red-300 dark:border-red-500/30 ml-4 flex-shrink-0"
+              className="text-red-500 hover:text-white hover:bg-red-600 border border-red-500/30 ml-4 flex-shrink-0"
               onClick={() => { setShowWsDeleteModal(true); setWsDeleteConfirmName(''); setWsDeleteError(''); }}
             >
               삭제
@@ -241,20 +241,20 @@ export const WsGeneralTab = () => {
       {/* 워크스페이스 나가기 모달 */}
       {showWsLeaveModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => !wsLeaving && setShowWsLeaveModal(false)}>
-          <div className="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-2xl border border-slate-700/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface-overlay rounded-xl shadow-2xl border border-border-subtle/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
                 <LogOut className="w-5 h-5 text-red-500" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">워크스페이스 나가기</h3>
+              <h3 className="text-lg font-bold text-text-primary">워크스페이스 나가기</h3>
             </div>
 
-            <p className="text-sm text-slate-500">
-              <span className="font-bold text-slate-700 dark:text-slate-300">{wsName}</span> 워크스페이스에서 나가시겠습니까? 다시 참여하려면 초대가 필요합니다.
+            <p className="text-sm text-text-faint">
+              <span className="font-bold text-text-secondary">{wsName}</span> 워크스페이스에서 나가시겠습니까? 다시 참여하려면 초대가 필요합니다.
             </p>
 
             {wsLeaveError && (
-              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-500/10 rounded px-3 py-2">{wsLeaveError}</p>
+              <p className="text-xs text-red-500 bg-red-500/10 rounded px-3 py-2">{wsLeaveError}</p>
             )}
 
             <div className="flex justify-end gap-2 pt-2">
@@ -274,34 +274,34 @@ export const WsGeneralTab = () => {
       {/* 워크스페이스 삭제 모달 */}
       {showWsDeleteModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => !wsDeleting && setShowWsDeleteModal(false)}>
-          <div className="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-2xl border border-slate-700/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface-overlay rounded-xl shadow-2xl border border-border-subtle/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">워크스페이스 삭제</h3>
+              <h3 className="text-lg font-bold text-text-primary">워크스페이스 삭제</h3>
             </div>
 
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-text-faint">
               이 작업은 되돌릴 수 없습니다. 워크스페이스의 모든 데이터가 영구 삭제됩니다.
             </p>
 
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">
-                확인을 위해 워크스페이스 이름(<span className="font-bold text-slate-700 dark:text-slate-300">{wsName}</span>)을 입력하세요
+              <label className="block text-xs font-medium text-text-faint mb-1.5">
+                확인을 위해 워크스페이스 이름(<span className="font-bold text-text-secondary">{wsName}</span>)을 입력하세요
               </label>
               <input
                 type="text"
                 value={wsDeleteConfirmName}
                 onChange={e => setWsDeleteConfirmName(e.target.value)}
                 placeholder={wsName}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none"
+                className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none"
                 autoFocus
               />
             </div>
 
             {wsDeleteError && (
-              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-500/10 rounded px-3 py-2">{wsDeleteError}</p>
+              <p className="text-xs text-red-500 bg-red-500/10 rounded px-3 py-2">{wsDeleteError}</p>
             )}
 
             <div className="flex justify-end gap-2 pt-2">

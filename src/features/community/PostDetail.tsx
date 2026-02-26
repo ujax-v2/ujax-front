@@ -182,7 +182,7 @@ export const PostDetail = () => {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-[#0F1117] h-full">
+      <div className="flex-1 flex items-center justify-center bg-page h-full">
         <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
       </div>
     );
@@ -190,10 +190,10 @@ export const PostDetail = () => {
 
   if (error || !post) {
     return (
-      <div className="flex-1 p-8 bg-[#0F1117] h-full">
+      <div className="flex-1 p-8 bg-page h-full">
         <div className="max-w-4xl mx-auto text-center py-20">
-          <p className="text-slate-400 text-lg mb-4">{error || '게시물을 찾을 수 없습니다.'}</p>
-          <Button variant="outline" onClick={() => toWs('community')} className="border-slate-700 text-slate-300">
+          <p className="text-text-muted text-lg mb-4">{error || '게시물을 찾을 수 없습니다.'}</p>
+          <Button variant="outline" onClick={() => toWs('community')} className="border-border-subtle text-text-secondary">
             <ArrowLeft className="w-4 h-4 mr-2" /> 목록으로
           </Button>
         </div>
@@ -202,19 +202,19 @@ export const PostDetail = () => {
   }
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto bg-[#0F1117] h-full">
+    <div className="flex-1 p-8 overflow-y-auto bg-page h-full">
       <div className="max-w-4xl mx-auto space-y-5">
 
         {/* Back */}
         <button
           onClick={() => toWs('community')}
-          className="flex items-center gap-2 text-slate-400 hover:text-slate-200 transition-colors text-sm"
+          className="flex items-center gap-2 text-text-muted hover:text-text-secondary transition-colors text-sm"
         >
           <ArrowLeft className="w-4 h-4" /> 목록으로
         </button>
 
         {/* ─── 게시물 본문 카드 ─── */}
-        <Card className="bg-[#141820] border-slate-800 shadow-sm overflow-hidden">
+        <Card className="bg-surface border-border-default shadow-sm overflow-hidden">
 
           {/* Header 영역 */}
           <div className="px-7 pt-6 pb-5 space-y-3">
@@ -241,7 +241,7 @@ export const PostDetail = () => {
                   {isAuthor && (
                     <button
                       onClick={() => toWs(`community/${numericBoardId}/edit`)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-text-muted hover:text-text-secondary hover:bg-surface-subtle transition-colors"
                     >
                       <Edit3 className="w-3.5 h-3.5" /> 수정
                     </button>
@@ -257,14 +257,14 @@ export const PostDetail = () => {
             </div>
 
             {/* 제목 */}
-            <h1 className="text-[1.6rem] font-extrabold text-white leading-snug tracking-tight">
+            <h1 className="text-[1.6rem] font-extrabold text-text-primary leading-snug tracking-tight">
               {post.title}
             </h1>
 
             {/* 메타 정보 */}
-            <div className="flex items-center gap-4 text-[13px] text-slate-500">
-              <span className="flex items-center gap-1.5 font-medium text-slate-300">
-                <User className="w-3.5 h-3.5 text-slate-500" /> {post.author?.nickname}
+            <div className="flex items-center gap-4 text-[13px] text-text-faint">
+              <span className="flex items-center gap-1.5 font-medium text-text-secondary">
+                <User className="w-3.5 h-3.5 text-text-faint" /> {post.author?.nickname}
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" /> {formatDate(post.createdAt ?? '')}
@@ -279,57 +279,57 @@ export const PostDetail = () => {
           </div>
 
           {/* 구분선 */}
-          <div className="border-t border-slate-800" />
+          <div className="border-t border-border-default" />
 
           {/* 본문 마크다운 */}
           <div className="px-7 pt-4 pb-6">
-            <div className="prose prose-invert max-w-none
-              prose-headings:text-slate-100 prose-headings:font-bold prose-headings:tracking-tight
+            <div className="prose dark:prose-invert max-w-none
+              prose-headings:text-text-primary prose-headings:font-bold prose-headings:tracking-tight
               prose-h1:text-2xl prose-h1:mt-8 prose-h1:mb-4
               prose-h2:text-xl prose-h2:mt-7 prose-h2:mb-3
               prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-2
-              prose-p:text-[15px] prose-p:text-slate-300 prose-p:leading-[1.8] prose-p:my-3
-              prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline
-              prose-strong:text-slate-100 prose-strong:font-bold
-              prose-em:text-slate-300
-              prose-code:text-emerald-300 prose-code:bg-slate-800/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-[13px] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
-              prose-pre:bg-[#0D1017] prose-pre:border prose-pre:border-slate-700/50 prose-pre:rounded-xl prose-pre:my-4
-              prose-blockquote:border-l-emerald-500/40 prose-blockquote:bg-emerald-500/5 prose-blockquote:rounded-r-lg prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:text-slate-400 prose-blockquote:not-italic
+              prose-p:text-[15px] prose-p:text-text-secondary prose-p:leading-[1.8] prose-p:my-3
+              prose-a:text-emerald-600 dark:prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline
+              prose-strong:text-text-primary prose-strong:font-bold
+              prose-em:text-text-secondary
+              prose-code:text-emerald-600 dark:prose-code:text-emerald-300 prose-code:bg-surface-subtle/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-[13px] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
+              prose-pre:bg-page-deep prose-pre:border prose-pre:border-border-subtle/50 prose-pre:rounded-xl prose-pre:my-4
+              prose-blockquote:border-l-emerald-500/40 prose-blockquote:bg-emerald-500/5 prose-blockquote:rounded-r-lg prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:text-text-muted prose-blockquote:not-italic
               prose-ul:my-3 prose-ol:my-3
-              prose-li:text-[15px] prose-li:text-slate-300 prose-li:leading-[1.8] prose-li:my-0.5
-              prose-hr:border-slate-700/50 prose-hr:my-6
-              prose-img:rounded-xl prose-img:border prose-img:border-slate-800
+              prose-li:text-[15px] prose-li:text-text-secondary prose-li:leading-[1.8] prose-li:my-0.5
+              prose-hr:border-border-subtle/50 prose-hr:my-6
+              prose-img:rounded-xl prose-img:border prose-img:border-border-default
               prose-table:text-sm
-              prose-th:text-slate-300 prose-th:bg-slate-800/50 prose-th:px-3 prose-th:py-2
-              prose-td:text-slate-400 prose-td:px-3 prose-td:py-2 prose-td:border-slate-700/50
+              prose-th:text-text-secondary prose-th:bg-surface-subtle/50 prose-th:px-3 prose-th:py-2
+              prose-td:text-text-muted prose-td:px-3 prose-td:py-2 prose-td:border-border-subtle/50
             ">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content ?? ''}</ReactMarkdown>
             </div>
           </div>
 
           {/* 추천 바 — 본문 카드 하단에 자연스럽게 */}
-          <div className="border-t border-slate-800 px-7 py-4 flex items-center justify-between">
+          <div className="border-t border-border-default px-7 py-4 flex items-center justify-between">
             <button
               onClick={handleLikeToggle}
               className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                 post.myLike
                   ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                  : 'text-text-muted hover:bg-surface-subtle hover:text-text-secondary'
               }`}
             >
               <ThumbsUp className={`w-[18px] h-[18px] ${post.myLike ? 'fill-emerald-400' : ''}`} />
               추천 {(post.likeCount ?? 0) > 0 && <span className="tabular-nums">{post.likeCount}</span>}
             </button>
-            <span className="text-xs text-slate-600">
+            <span className="text-xs text-text-faint">
               {post.updatedAt !== post.createdAt && `수정됨 ${formatDate(post.updatedAt ?? '')}`}
             </span>
           </div>
         </Card>
 
         {/* ─── 댓글 섹션 ─── */}
-        <Card className="bg-[#141820] border-slate-800 shadow-sm overflow-hidden">
+        <Card className="bg-surface border-border-default shadow-sm overflow-hidden">
           <div className="px-7 py-5">
-            <h3 className="text-[15px] font-bold text-white flex items-center gap-2 mb-5">
+            <h3 className="text-[15px] font-bold text-text-primary flex items-center gap-2 mb-5">
               <MessageCircle className="w-[18px] h-[18px] text-emerald-500" />
               댓글 <span className="text-emerald-500 tabular-nums">{post.commentCount}</span>
             </h3>
@@ -343,7 +343,7 @@ export const PostDetail = () => {
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCommentSubmit(); } }}
                 placeholder="댓글을 입력하세요..."
                 maxLength={255}
-                className="flex-1 bg-slate-900/80 border border-slate-700/50 rounded-lg py-2.5 px-4 text-sm text-slate-200 focus:outline-none focus:border-emerald-500/50 transition-colors placeholder:text-slate-600"
+                className="flex-1 bg-input-bg/80 border border-border-subtle/50 rounded-lg py-2.5 px-4 text-sm text-text-secondary focus:outline-none focus:border-emerald-500/50 transition-colors placeholder:text-text-faint"
               />
               <Button
                 onClick={handleCommentSubmit}
@@ -355,9 +355,9 @@ export const PostDetail = () => {
             </div>
 
             {/* 댓글 목록 */}
-            <div className="divide-y divide-slate-800/40">
+            <div className="divide-y divide-border-default">
               {comments.length === 0 ? (
-                <p className="text-slate-600 text-sm py-8 text-center">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>
+                <p className="text-text-faint text-sm py-8 text-center">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>
               ) : (
                 comments.map(c => {
                   const isCommentAuthor = myMemberId !== null && c.author?.workspaceMemberId === myMemberId;
@@ -367,16 +367,16 @@ export const PostDetail = () => {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2.5 mb-1.5">
-                            <span className="text-[13px] font-bold text-slate-200">{c.author?.nickname}</span>
-                            <span className="text-[11px] text-slate-600 tabular-nums">{formatDate(c.createdAt ?? '')}</span>
+                            <span className="text-[13px] font-bold text-text-secondary">{c.author?.nickname}</span>
+                            <span className="text-[11px] text-text-faint tabular-nums">{formatDate(c.createdAt ?? '')}</span>
                           </div>
-                          <p className="text-[14px] text-slate-300 leading-relaxed whitespace-pre-wrap break-words">{c.content}</p>
+                          <p className="text-[14px] text-text-secondary leading-relaxed whitespace-pre-wrap break-words">{c.content}</p>
                         </div>
                         {canDeleteComment && (
                           <button
                             onClick={() => handleCommentDelete(c.boardCommentId!)}
 
-                            className="p-1.5 text-slate-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                            className="p-1.5 text-text-faint hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
                             title="삭제"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -391,7 +391,7 @@ export const PostDetail = () => {
 
             {/* 댓글 페이지네이션 */}
             {commentTotalPages > 1 && (
-              <div className="flex justify-center gap-1.5 pt-4 mt-2 border-t border-slate-800/40">
+              <div className="flex justify-center gap-1.5 pt-4 mt-2 border-t border-border-default/40">
                 {Array.from({ length: commentTotalPages }, (_, i) => (
                   <button
                     key={i}
@@ -399,7 +399,7 @@ export const PostDetail = () => {
                     className={`w-7 h-7 rounded-md text-xs font-bold transition-colors ${
                       commentPage === i
                         ? 'bg-emerald-500/20 text-emerald-400'
-                        : 'text-slate-600 hover:bg-slate-800 hover:text-slate-400'
+                        : 'text-text-faint hover:bg-surface-subtle hover:text-text-muted'
                     }`}
                   >
                     {i + 1}

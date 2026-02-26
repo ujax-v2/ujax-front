@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Badge } from '@/components/ui/Base';
-import { Play, RotateCcw, Save, Settings, CheckCircle2, AlertCircle, Loader2, Share, ArrowLeft, Timer, ChevronDown, ChevronRight, Plus, Code2 } from 'lucide-react';
+import { Play, RotateCcw, Settings, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, ChevronDown, ChevronRight, Plus, Code2, Clock, HardDrive } from 'lucide-react';
 import Editor from '@monaco-editor/react';
-import { useRecoilState, useSetRecoilState } from 'recoil';
+import { useRecoilState } from 'recoil';
 import { useParams } from 'react-router-dom';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { ideCodeState, ideLanguageState, ideOutputState, ideIsExecutingState, IdeOutput } from '@/store/atoms';
+import { getProblemByNumber } from '@/api/problem';
+import type { ProblemResponse } from '@/api/problem';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { useIsDark } from '@/App';
 
 // Language ID mapping for Judge0
 const LANGUAGE_OPTIONS = [
@@ -56,7 +60,6 @@ public class Main {
 }`
 };
 
-// Simple Stopwatch Component
 const Stopwatch = () => {
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
@@ -64,28 +67,23 @@ const Stopwatch = () => {
   useEffect(() => {
     let interval: any;
     if (isRunning) {
-      interval = setInterval(() => {
-        setTime((prevTime) => prevTime + 1);
-      }, 1000);
-    } else if (!isRunning) {
-      clearInterval(interval);
+      interval = setInterval(() => setTime((t) => t + 1), 1000);
     }
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  const formatTime = (seconds: number) => {
-    const getSeconds = `0${seconds % 60}`.slice(-2);
-    const minutes = Math.floor(seconds / 60);
-    const getMinutes = `0${minutes % 60}`.slice(-2);
-    const getHours = `0${Math.floor(seconds / 3600)}`.slice(-2);
-    return `${getHours}:${getMinutes}:${getSeconds}`;
+  const fmt = (s: number) => {
+    const ss = `0${s % 60}`.slice(-2);
+    const mm = `0${Math.floor(s / 60) % 60}`.slice(-2);
+    const hh = `0${Math.floor(s / 3600)}`.slice(-2);
+    return `${hh}:${mm}:${ss}`;
   };
 
   return (
-    <div className="flex items-center gap-2 bg-slate-800 rounded px-2 py-1 text-xs font-mono text-slate-300">
-      <Timer className="w-3 h-3 text-emerald-500" />
-      <span>{formatTime(time)}</span>
-      <button onClick={() => setIsRunning(!isRunning)} className="hover:text-white">
+    <div className="flex items-center gap-2 bg-surface-subtle rounded px-3 py-1.5 text-sm font-mono text-text-secondary">
+      <Timer className="w-3.5 h-3.5 text-emerald-500" />
+      <span>{fmt(time)}</span>
+      <button onClick={() => setIsRunning(!isRunning)} className="hover:text-text-primary">
         {isRunning ? 'II' : '▶'}
       </button>
     </div>
@@ -93,6 +91,7 @@ const Stopwatch = () => {
 };
 
 export const IDE = () => {
+  const isDark = useIsDark();
   const [code, setCode] = useRecoilState(ideCodeState);
   const [language, setLanguage] = useRecoilState(ideLanguageState);
   const [output, setOutput] = useRecoilState(ideOutputState);
@@ -100,330 +99,315 @@ export const IDE = () => {
   const { navigate, toWs } = useWorkspaceNavigate();
   const { problemId } = useParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [problem, setProblem] = useState<ProblemResponse | null>(null);
+  const [problemLoading, setProblemLoading] = useState(false);
+  const [problemError, setProblemError] = useState('');
 
-  // Sections state for collapsible
-  const [openSections, setOpenSections] = useState({
-    problem: true,
-    tests: false
-  });
+  const [testOpen, setTestOpen] = useState(false);
 
-  const toggleSection = (section: 'problem' | 'tests') => {
-    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
-  };
+  useEffect(() => {
+    if (!problemId) return;
+    const num = parseInt(problemId, 10);
+    if (!num || num <= 0) return;
+    setProblemLoading(true);
+    setProblemError('');
+    getProblemByNumber(num)
+      .then((data) => setProblem(data))
+      .catch((err) => {
+        const msg = err?.message || '';
+        const jsonMatch = msg.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try { setProblemError(JSON.parse(jsonMatch[0]).detail || '문제를 불러오는 데 실패했습니다.'); }
+          catch { setProblemError('문제를 불러오는 데 실패했습니다.'); }
+        } else { setProblemError('문제를 불러오는 데 실패했습니다.'); }
+      })
+      .finally(() => setProblemLoading(false));
+  }, [problemId]);
 
-  // Initialize code with template if empty or if it matches the default 'Hello World'
   useEffect(() => {
     if (code.includes('Hello, World!') || code.trim() === '') {
       setCode(CODE_TEMPLATES[language] || '');
     }
   }, []);
 
-  const handleEditorChange = (value: string | undefined) => {
-    if (value !== undefined) {
-      setCode(value);
-    }
-  };
-
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedLang = LANGUAGE_OPTIONS.find(lang => lang.value === e.target.value);
-    if (selectedLang) {
-      setLanguage(selectedLang.value);
-      // Automatically switch to the template for the new language
-      setCode(CODE_TEMPLATES[selectedLang.value] || '');
-    }
+    const lang = LANGUAGE_OPTIONS.find(l => l.value === e.target.value);
+    if (lang) { setLanguage(lang.value); setCode(CODE_TEMPLATES[lang.value] || ''); }
   };
 
   const executeCode = async () => {
     setIsExecuting(true);
-    setOpenSections(prev => ({ ...prev, tests: true })); // Auto open tests
+    setTestOpen(true);
     setOutput(null);
-
-    // Mock Judge0 API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      const mockResponse = {
-        stdout: "3\n",
-        stderr: null,
-        status: { id: 3, description: "Accepted" },
-        time: "0.045",
-        memory: "12480"
-      };
-
+      await new Promise(r => setTimeout(r, 1500));
       if (code.includes("error")) {
-        setOutput({
-          stdout: null,
-          stderr: "ReferenceError: error is not defined\n    at Object.<anonymous> (/script.js:1:1)",
-          status: { id: 11, description: "Runtime Error" },
-          time: "0.050",
-          memory: "13000"
-        });
+        setOutput({ stdout: null, stderr: "ReferenceError: error is not defined\n    at Object.<anonymous> (/script.js:1:1)", status: { id: 11, description: "Runtime Error" }, time: "0.050", memory: "13000" });
       } else {
-        setOutput(mockResponse);
+        setOutput({ stdout: "3\n", stderr: null, status: { id: 3, description: "Accepted" }, time: "0.045", memory: "12480" });
       }
-
-    } catch (error) {
-      setOutput({
-        stdout: null,
-        stderr: "Failed to execute code. Please check your connection.",
-        status: { id: 0, description: "Network Error" },
-        time: null,
-        memory: null
-      } as IdeOutput);
-    } finally {
-      setIsExecuting(false);
-    }
+    } catch {
+      setOutput({ stdout: null, stderr: "Failed to execute code.", status: { id: 0, description: "Network Error" }, time: null, memory: null } as IdeOutput);
+    } finally { setIsExecuting(false); }
   };
 
   const handleSubmit = async () => {
     if (isSubmitting || isExecuting) return;
-
     setIsSubmitting(true);
-    setOpenSections(prev => ({ ...prev, tests: true }));
+    setTestOpen(true);
     setOutput(null);
-
     try {
-      // Mock Submission Delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Simulate 'Accepted' result
-      const mockResponse = {
-        stdout: "",
-        stderr: null,
-        status: { id: 3, description: "Accepted" },
-        time: "0.045",
-        memory: "12480"
-      };
-
-      setOutput(mockResponse);
-
-      // If accepted, navigate to solutions list
-      if (mockResponse.status?.id === 3) {
-        setTimeout(() => {
-          navigate(`/problems/${problemId || '1000'}/solutions`);
-        }, 1500);
-      }
-    } catch (error) {
-      setOutput({
-        stdout: null,
-        stderr: "Submission failed.",
-        status: { id: 0, description: "Error" },
-        time: null,
-        memory: null
-      } as IdeOutput);
-    } finally {
-      setIsSubmitting(false);
-    }
+      await new Promise(r => setTimeout(r, 1500));
+      const res = { stdout: "", stderr: null, status: { id: 3, description: "Accepted" }, time: "0.045", memory: "12480" };
+      setOutput(res);
+      if (res.status?.id === 3) setTimeout(() => navigate(`/problems/${problemId || '1000'}/solutions`), 1500);
+    } catch {
+      setOutput({ stdout: null, stderr: "Submission failed.", status: { id: 0, description: "Error" }, time: null, memory: null } as IdeOutput);
+    } finally { setIsSubmitting(false); }
   };
 
   return (
-    <div className="flex h-full flex-col bg-[#0F1117] text-slate-300">
-      {/* IDE Header */}
-      <div className="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-[#0F1117]">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => toWs('problems')}>
-            <ArrowLeft className="w-4 h-4 mr-2" /> 문제집으로
+    <div className="flex h-full flex-col bg-page text-text-secondary">
+      {/* Header */}
+      <div className="h-14 border-b border-border-default flex items-center justify-between px-5 bg-page shrink-0">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" onClick={() => toWs('problems')} className="text-sm">
+            <ArrowLeft className="w-4 h-4 mr-1.5" /> 돌아가기
           </Button>
-          <div className="h-4 w-px bg-slate-800" />
+          <div className="h-5 w-px bg-surface-subtle" />
           <div className="flex items-center gap-2">
-            <Badge variant="success">Easy</Badge>
-            <h1 className="font-semibold text-slate-100">1000. A+B</h1>
+            {problem?.tier && <Badge variant="success">{problem.tier}</Badge>}
+            <h1 className="font-semibold text-text-primary text-base">
+              {problem ? `${problem.problemNumber}. ${problem.title}` : problemId ? `#${problemId}` : '문제'}
+            </h1>
           </div>
         </div>
-
         <div className="flex items-center gap-3">
           <Stopwatch />
-          <div className="h-4 w-px bg-slate-800 mx-2" />
-
+          <div className="h-5 w-px bg-surface-subtle" />
           <select
             value={language}
             onChange={handleLanguageChange}
-            className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-medium text-slate-300 focus:outline-none focus:border-emerald-500 cursor-pointer"
+            className="bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm font-medium text-text-secondary focus:outline-none focus:border-emerald-500 cursor-pointer"
           >
             {LANGUAGE_OPTIONS.map(opt => (
               <option key={opt.id} value={opt.value}>{opt.name}</option>
             ))}
           </select>
-
-          <Button variant="ghost" size="sm" onClick={() => setCode(CODE_TEMPLATES[language])}>
+          <Button variant="ghost" onClick={() => setCode(CODE_TEMPLATES[language])}>
             <RotateCcw className="w-4 h-4" />
           </Button>
-          <Button variant="secondary" size="sm"><Settings className="w-4 h-4" /></Button>
+          <Button variant="secondary"><Settings className="w-4 h-4" /></Button>
         </div>
       </div>
 
-      {/* Main Split Area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel: Problem & Tests (Collapsible) */}
-        <div className="w-[40%] border-r border-slate-800 flex flex-col bg-[#0F1117] overflow-y-auto custom-scrollbar">
+      {/* Main: Resizable Left (Problem) | Right (Editor + Test) */}
+      <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
+        {/* ─── Left: Problem ─── */}
+        <ResizablePanel defaultSize={38} minSize={25} maxSize={60}>
+          <div className="h-full flex flex-col bg-page overflow-y-auto custom-scrollbar">
+            <div className="px-5 py-3 bg-surface border-b border-border-default shrink-0">
+              <span className="font-bold text-text-secondary text-sm uppercase tracking-wider">문제 설명</span>
+            </div>
 
-          {/* Problem Details Section */}
-          <div className="border-b border-slate-800">
-            <button
-              onClick={() => toggleSection('problem')}
-              className="w-full flex items-center justify-between px-4 py-3 bg-[#141820] hover:bg-slate-800 transition-colors"
-            >
-              <span className="font-bold text-slate-200 text-sm">Problem Details</span>
-              {openSections.problem ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            </button>
-
-            {openSections.problem && (
-              <div className="p-6 space-y-6 animate-in slide-in-from-top-2 duration-200">
-                <section>
-                  <h3 className="text-lg font-bold text-slate-100 mb-3">문제</h3>
-                  <p className="text-slate-400 leading-relaxed">
-                    두 정수 A와 B를 입력받은 다음, A+B를 출력하는 프로그램을 작성하시오.
-                  </p>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-bold text-slate-100 mb-3">입력</h3>
-                  <p className="text-slate-400 leading-relaxed">
-                    첫째 줄에 A와 B가 주어진다. (0 &lt; A, B &lt; 10)
-                  </p>
-                </section>
-
-                <section>
-                  <h3 className="text-lg font-bold text-slate-100 mb-3">출력</h3>
-                  <p className="text-slate-400 leading-relaxed">
-                    첫째 줄에 A+B를 출력한다.
-                  </p>
-                </section>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Card className="p-4 bg-slate-900 border-slate-800">
-                    <h4 className="text-xs font-semibold text-slate-500 mb-2 uppercase">예제 입력 1</h4>
-                    <code className="text-sm font-mono text-slate-200">1 2</code>
-                  </Card>
-                  <Card className="p-4 bg-slate-900 border-slate-800">
-                    <h4 className="text-xs font-semibold text-slate-500 mb-2 uppercase">예제 출력 1</h4>
-                    <code className="text-sm font-mono text-slate-200">3</code>
-                  </Card>
+            <div className="p-6 space-y-6">
+              {problemLoading ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-5 h-5 text-text-faint animate-spin" />
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Test Results Section */}
-          <div className="border-b border-slate-800">
-            <button
-              onClick={() => toggleSection('tests')}
-              className="w-full flex items-center justify-between px-4 py-3 bg-[#141820] hover:bg-slate-800 transition-colors"
-            >
-              <span className="font-bold text-slate-200 text-sm">Test Results</span>
-              {openSections.tests ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            </button>
-
-            {openSections.tests && (
-              <div className="p-6 min-h-[200px] animate-in slide-in-from-top-2 duration-200">
-                {isExecuting ? (
-                  <div className="flex flex-col items-center justify-center h-48 text-slate-500">
-                    <Loader2 className="w-8 h-8 animate-spin mb-4 text-emerald-500" />
-                    <p>코드를 실행하고 있습니다...</p>
-                  </div>
-                ) : output ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 mb-2">
-                      {output.status?.id === 3 ? (
-                        <div className="flex items-center gap-2 text-emerald-400">
-                          <CheckCircle2 className="w-5 h-5" />
-                          <span className="font-bold text-lg">테스트 통과</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-red-400">
-                          <AlertCircle className="w-5 h-5" />
-                          <span className="font-bold text-lg">{output.status?.description || 'Error'}</span>
+              ) : problemError ? (
+                <div className="text-center py-12 text-red-400 text-sm">{problemError}</div>
+              ) : problem ? (
+                <>
+                  {/* 제한 정보 */}
+                  {(problem.timeLimit || problem.memoryLimit) && (
+                    <div className="flex gap-3">
+                      {problem.timeLimit && (
+                        <div className="flex items-center gap-2 text-sm text-text-muted bg-surface-subtle/60 rounded-md px-3 py-2 border border-border-subtle/50">
+                          <Clock className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                          <span>{problem.timeLimit}</span>
                         </div>
                       )}
-                      <div className="h-4 w-px bg-slate-700 mx-2" />
-                      <div className="text-sm text-slate-500">
-                        시간: {output.time || '0'}s • 메모리: {output.memory || '0'}KB
-                      </div>
+                      {problem.memoryLimit && (
+                        <div className="flex items-center gap-2 text-sm text-text-muted bg-surface-subtle/60 rounded-md px-3 py-2 border border-border-subtle/50">
+                          <HardDrive className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                          <span>{problem.memoryLimit}</span>
+                        </div>
+                      )}
                     </div>
+                  )}
 
-                    <Card className="p-4 bg-slate-900 border-slate-800">
-                      <h4 className="text-xs font-semibold text-slate-500 mb-2 uppercase">표준 출력 (Stdout)</h4>
-                      <pre className="text-sm font-mono text-slate-200 whitespace-pre-wrap">
-                        {output.stdout || <span className="text-slate-600 italic">No output</span>}
-                      </pre>
-                    </Card>
+                  {problem.description && (
+                    <section>
+                      <h3 className="text-base font-bold text-text-primary mb-2">문제</h3>
+                      <hr className="border-border-subtle mb-3" />
+                      <div className="text-text-secondary text-[15px] leading-[1.9] prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: problem.description }} />
+                    </section>
+                  )}
 
-                    {output.stderr && (
-                      <Card className="p-4 bg-red-900/10 border-red-500/20">
-                        <h4 className="text-xs font-semibold text-red-400 mb-2 uppercase">에러 메시지 (Stderr)</h4>
-                        <pre className="text-sm font-mono text-red-300 whitespace-pre-wrap">
-                          {output.stderr}
-                        </pre>
-                      </Card>
+                  {problem.inputDescription && (
+                    <section>
+                      <h3 className="text-base font-bold text-text-primary mb-2">입력</h3>
+                      <hr className="border-border-subtle mb-3" />
+                      <div className="text-text-secondary text-[15px] leading-[1.9] prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: problem.inputDescription }} />
+                    </section>
+                  )}
+
+                  {problem.outputDescription && (
+                    <section>
+                      <h3 className="text-base font-bold text-text-primary mb-2">출력</h3>
+                      <hr className="border-border-subtle mb-3" />
+                      <div className="text-text-secondary text-[15px] leading-[1.9] prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: problem.outputDescription }} />
+                    </section>
+                  )}
+
+                  {problem.samples.length > 0 && (
+                    <div className="space-y-3">
+                      {problem.samples.map((s) => (
+                        <div key={s.id} className="grid grid-cols-2 gap-3">
+                          <div className="bg-input-bg/80 border border-border-default rounded-lg p-3">
+                            <h4 className="text-xs font-bold text-text-faint mb-2 uppercase tracking-wider">예제 입력 {s.sampleIndex}</h4>
+                            <pre className="text-sm font-mono text-text-secondary whitespace-pre-wrap leading-relaxed">{s.input || ''}</pre>
+                          </div>
+                          <div className="bg-input-bg/80 border border-border-default rounded-lg p-3">
+                            <h4 className="text-xs font-bold text-text-faint mb-2 uppercase tracking-wider">예제 출력 {s.sampleIndex}</h4>
+                            <pre className="text-sm font-mono text-text-secondary whitespace-pre-wrap leading-relaxed">{s.output || ''}</pre>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-12 text-text-faint text-sm">문제를 선택해주세요.</div>
+              )}
+            </div>
+          </div>
+        </ResizablePanel>
+
+        <ResizableHandle withHandle className="bg-surface-subtle hover:bg-indigo-500/50 transition-colors w-[3px]" />
+
+        {/* ─── Right: Editor (top) + Test Results (bottom) ─── */}
+        <ResizablePanel defaultSize={62} minSize={40}>
+          <ResizablePanelGroup direction="vertical">
+            {/* Editor */}
+            <ResizablePanel defaultSize={65} minSize={30}>
+              <div className="h-full bg-surface-overlay">
+                <Editor
+                  height="100%"
+                  theme={isDark ? 'vs-dark' : 'light'}
+                  language={LANGUAGE_OPTIONS.find(l => l.value === language)?.monaco || 'javascript'}
+                  value={code}
+                  onChange={(v) => v !== undefined && setCode(v)}
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 15,
+                    lineNumbers: 'on',
+                    roundedSelection: false,
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    padding: { top: 16 },
+                  }}
+                />
+              </div>
+            </ResizablePanel>
+
+            <ResizableHandle withHandle className="bg-surface-subtle hover:bg-indigo-500/50 transition-colors h-[3px]" />
+
+            {/* Test Results */}
+            <ResizablePanel defaultSize={35} minSize={15}>
+              <div className="h-full flex flex-col bg-page overflow-hidden">
+                <button
+                  onClick={() => setTestOpen(!testOpen)}
+                  className="flex items-center justify-between px-4 py-2 bg-surface hover:bg-hover-bg transition-colors shrink-0 border-b border-border-default"
+                >
+                  <span className="font-bold text-xs text-text-secondary uppercase tracking-wider">테스트 결과</span>
+                  {testOpen ? <ChevronDown className="w-3.5 h-3.5 text-text-faint" /> : <ChevronRight className="w-3.5 h-3.5 text-text-faint" />}
+                </button>
+
+                {testOpen && (
+                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                    {isExecuting ? (
+                      <div className="flex flex-col items-center justify-center h-full text-text-faint">
+                        <Loader2 className="w-6 h-6 animate-spin mb-3 text-emerald-500" />
+                        <p className="text-xs">실행 중...</p>
+                      </div>
+                    ) : output ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          {output.status?.id === 3 ? (
+                            <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span className="font-bold text-sm">테스트 통과</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 text-red-400">
+                              <AlertCircle className="w-4 h-4" />
+                              <span className="font-bold text-sm">{output.status?.description || 'Error'}</span>
+                            </div>
+                          )}
+                          <div className="h-3 w-px bg-border-subtle" />
+                          <span className="text-xs text-text-faint">
+                            {output.time || '0'}s / {output.memory || '0'}KB
+                          </span>
+                        </div>
+
+                        <Card className="p-3 bg-input-bg/80 border-border-default">
+                          <h4 className="text-[10px] font-bold text-text-faint mb-1 uppercase tracking-wider">Stdout</h4>
+                          <pre className="text-xs font-mono text-text-secondary whitespace-pre-wrap">
+                            {output.stdout || <span className="text-text-faint italic">No output</span>}
+                          </pre>
+                        </Card>
+
+                        {output.stderr && (
+                          <Card className="p-3 bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-500/20">
+                            <h4 className="text-[10px] font-bold text-red-400 mb-1 uppercase tracking-wider">Stderr</h4>
+                            <pre className="text-xs font-mono text-red-600 dark:text-red-300 whitespace-pre-wrap">{output.stderr}</pre>
+                          </Card>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-text-faint">
+                        <Play className="w-8 h-8 mb-2 opacity-15" />
+                        <p className="text-xs">코드를 실행하여 결과를 확인하세요.</p>
+                      </div>
                     )}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-48 text-slate-600">
-                    <Play className="w-12 h-12 mb-4 opacity-20" />
-                    <p>코드를 실행하여 결과를 확인하세요.</p>
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+      </ResizablePanelGroup>
 
-        {/* Right Panel: Monaco Editor */}
-        <div className="flex-1 flex flex-col bg-[#1e1e1e]">
-          <div className="flex-1 relative">
-            <Editor
-              height="100%"
-              theme="vs-dark"
-              language={LANGUAGE_OPTIONS.find(l => l.value === language)?.monaco || 'javascript'}
-              value={code}
-              onChange={handleEditorChange}
-              options={{
-                minimap: { enabled: false },
-                fontSize: 14,
-                lineNumbers: 'on',
-                roundedSelection: false,
-                scrollBeyondLastLine: false,
-                readOnly: false,
-                automaticLayout: true,
-                padding: { top: 16 }
-              }}
-            />
-          </div>
-
-          {/* Footer Actions */}
-          <div className="h-14 border-t border-slate-800 bg-[#0F1117] px-4 flex items-center justify-between">
-            <Button variant="ghost" size="sm" className="text-slate-400 hover:text-slate-200">
-              <Plus className="w-4 h-4 mr-2" /> Add Test Case
-            </Button>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => navigate(`/problems/1000/solutions`)}
-                className="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
-              >
-                <Code2 className="w-4 h-4 mr-2" /> 풀이 보기
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={executeCode}
-                disabled={isExecuting}
-                className="w-24"
-              >
-                {isExecuting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Run Code'}
-              </Button>
-              <Button
-                className="bg-emerald-600 hover:bg-emerald-700 text-white w-24"
-                size="sm"
-                onClick={handleSubmit}
-                disabled={isSubmitting || isExecuting}
-              >
-                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit'}
-              </Button>
-            </div>
-          </div>
+      {/* ─── Bottom Action Bar (고정) ─── */}
+      <div className="h-14 border-t border-border-default bg-surface px-5 flex items-center justify-between shrink-0">
+        <Button variant="ghost" className="text-text-secondary hover:text-text-primary hover:bg-hover-bg text-sm border border-border-subtle px-3 py-1.5">
+          <Plus className="w-4 h-4 mr-1.5" /> 테스트 추가
+        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="secondary"
+            onClick={() => navigate(`/problems/${problemId || '1000'}/solutions`)}
+            className="bg-surface-subtle hover:bg-border-subtle text-text-secondary border border-border-subtle text-sm px-4 py-2"
+          >
+            <Code2 className="w-4 h-4 mr-1.5" /> 풀이 보기
+          </Button>
+          <Button
+            variant="primary"
+            onClick={executeCode}
+            disabled={isExecuting}
+            className="text-sm px-5 py-2"
+          >
+            {isExecuting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Play className="w-4 h-4 mr-1.5" />실행</>}
+          </Button>
+          <Button
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-5 py-2 font-semibold"
+            onClick={handleSubmit}
+            disabled={isSubmitting || isExecuting}
+          >
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : '제출'}
+          </Button>
         </div>
       </div>
     </div>

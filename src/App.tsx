@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRecoilState, useRecoilValue, RecoilRoot } from 'recoil';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, Workspace } from './store/atoms';
+import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, Workspace, themeState, ThemeMode } from './store/atoms';
 import { Sidebar } from './components/layout/Sidebar';
 import { getWorkspaces } from './api/workspace';
 import { Dashboard } from './features/dashboard/Dashboard';
@@ -61,6 +61,78 @@ const darkTheme = createTheme({
     },
   },
 });
+
+const lightTheme = createTheme({
+  palette: {
+    mode: 'light',
+    background: { default: '#ffffff', paper: '#ffffff' },
+    primary: { main: '#6366f1' },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: { backgroundImage: 'none', border: '1px solid #e2e8f0' },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#f8fafc',
+          borderRadius: 8,
+          '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e2e8f0' },
+          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#cbd5e1' },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#6366f1' },
+        },
+        input: { color: '#0f172a' },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: { root: { color: '#64748b' } },
+    },
+    MuiIconButton: {
+      styleOverrides: { root: { color: '#64748b' } },
+    },
+  },
+});
+
+/** Resolve effective theme: 'system' → check prefers-color-scheme */
+function useResolvedTheme(): 'light' | 'dark' {
+  const theme = useRecoilValue(themeState);
+  const [systemDark, setSystemDark] = React.useState(
+    () => window.matchMedia('(prefers-color-scheme: dark)').matches
+  );
+
+  React.useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  if (theme === 'system') return systemDark ? 'dark' : 'light';
+  return theme;
+}
+
+/** Sync .dark class on <html> */
+function ThemeSync() {
+  const resolved = useResolvedTheme();
+
+  React.useEffect(() => {
+    const root = document.documentElement;
+    if (resolved === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [resolved]);
+
+  return null;
+}
+
+/** Expose resolved theme for MUI + components that need it */
+export function useIsDark(): boolean {
+  return useResolvedTheme() === 'dark';
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const user = useRecoilValue(userState);
@@ -130,31 +202,31 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#0F1117]">
-        <div className="w-8 h-8 border-2 border-slate-700 border-t-emerald-500 rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-screen bg-page">
+        <div className="w-8 h-8 border-2 border-border-default border-t-emerald-500 rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!isMember) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-[#0F1117] text-white p-4">
-        <div className="max-w-md text-center space-y-6 p-8 bg-[#141820] border border-slate-800 rounded-2xl shadow-2xl">
+      <div className="flex flex-col items-center justify-center h-screen bg-page text-text-primary p-4">
+        <div className="max-w-md text-center space-y-6 p-8 bg-surface border border-border-default rounded-2xl shadow-2xl">
           <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-2">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-slate-100">접근 권한이 없습니다</h1>
-          <p className="text-slate-400">
+          <h1 className="text-2xl font-bold text-text-primary">접근 권한이 없습니다</h1>
+          <p className="text-text-muted">
             요청하신 워크스페이스에 접근할 수 없습니다.<br />
             멤버가 아니거나 존재하지 않는 워크스페이스일 수 있습니다.
           </p>
           <div className="flex gap-3 justify-center pt-2">
             <button
               onClick={() => navigate('/')}
-              className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors font-medium text-sm"
+              className="px-5 py-2.5 bg-surface-subtle hover:bg-border-subtle text-text-secondary rounded-lg transition-colors font-medium text-sm"
             >
               홈으로
             </button>
@@ -200,13 +272,13 @@ function AppContent() {
 
   // 사이드바를 숨겨야 하는 페이지: 인증, IDE, 홈, 풀이 보기(solutions)
   const isFullScreen = ['/login', '/signup', '/auth/callback', '/'].includes(location.pathname)
-    || location.pathname.startsWith('/ide')
+    || location.pathname.includes('/ide')
     || location.pathname.includes('/solutions');
   // 워크스페이스가 없으면 사이드바 숨김 (컨텍스트 없으므로)
   const showSidebar = !isFullScreen && user.isLoggedIn && workspaces.length > 0;
 
   return (
-    <div className="flex h-screen bg-[#0F1117] text-white font-sans overflow-hidden selection:bg-emerald-500/30">
+    <div className="flex h-screen bg-page text-text-primary font-sans overflow-hidden selection:bg-emerald-500/30">
       {showSidebar && <Sidebar />}
       <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Mobile / Collapsed Sidebar Trigger */}
@@ -214,7 +286,7 @@ function AppContent() {
           <div className="absolute top-3 left-3 z-50">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-2 text-text-muted hover:text-text-primary hover:bg-hover-bg rounded-lg transition-colors"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -259,9 +331,14 @@ function AppContent() {
             <ProtectedRoute><WorkspaceScope><ChallengeDetail /></WorkspaceScope></ProtectedRoute>
           } />
 
+          <Route path="/ws/:wsId/ide" element={
+            <ProtectedRoute><WorkspaceScope><IDE /></WorkspaceScope></ProtectedRoute>
+          } />
+          <Route path="/ws/:wsId/ide/:problemId" element={
+            <ProtectedRoute><WorkspaceScope><IDE /></WorkspaceScope></ProtectedRoute>
+          } />
+
           {/* ═══ 글로벌 라우트 (WS 무관) ═══ */}
-          <Route path="/ide" element={<ProtectedRoute><IDE /></ProtectedRoute>} />
-          <Route path="/ide/:problemId" element={<ProtectedRoute><IDE /></ProtectedRoute>} />
           <Route path="/problems/:id/solutions" element={<ProtectedRoute><ProblemSolutions /></ProtectedRoute>} />
 
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
@@ -282,17 +359,23 @@ function AppContent() {
   );
 }
 
+function MuiThemeWrapper({ children }: { children: React.ReactNode }) {
+  const isDark = useIsDark();
+  return <ThemeProvider theme={isDark ? darkTheme : lightTheme}>{children}</ThemeProvider>;
+}
+
 export default function App() {
   return (
     <RecoilRoot>
-      <ThemeProvider theme={darkTheme}>
+      <MuiThemeWrapper>
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ko">
           <BrowserRouter>
+            <ThemeSync />
             <AppContent />
             <CreateWorkspaceModal />
           </BrowserRouter>
         </LocalizationProvider>
-      </ThemeProvider>
+      </MuiThemeWrapper>
     </RecoilRoot>
   );
 }

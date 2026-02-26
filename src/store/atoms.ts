@@ -1,9 +1,24 @@
 import { atom, AtomEffect } from 'recoil';
 
+const localStorageEffect = <T>(key: string): AtomEffect<T> => ({ setSelf, onSet }) => {
+  try {
+    const saved = localStorage.getItem(key);
+    if (saved != null) setSelf(JSON.parse(saved));
+  } catch { /* ignore */ }
+  onSet((newValue, _, isReset) => {
+    try {
+      if (isReset) localStorage.removeItem(key);
+      else localStorage.setItem(key, JSON.stringify(newValue));
+    } catch { /* ignore */ }
+  });
+};
 
-export const themeState = atom({
+export type ThemeMode = 'system' | 'light' | 'dark';
+
+export const themeState = atom<ThemeMode>({
   key: 'themeState',
   default: 'dark',
+  effects: [localStorageEffect('theme')],
 });
 
 export const sidebarOpenState = atom({
@@ -24,6 +39,7 @@ export interface ProblemBox {
 export const currentProblemBoxState = atom<ProblemBox | null>({
   key: 'currentProblemBoxState',
   default: null, // null이면 문제집 목록 표시, 값이 있으면 해당 문제집 내부 표시
+  effects: [localStorageEffect('currentProblemBox')],
 });
 
 // IDE State
@@ -127,19 +143,6 @@ export interface Workspace {
   name: string;
   description: string | null;
 }
-
-const localStorageEffect = <T>(key: string): AtomEffect<T> => ({ setSelf, onSet }) => {
-  try {
-    const saved = localStorage.getItem(key);
-    if (saved != null) setSelf(JSON.parse(saved));
-  } catch { /* ignore */ }
-  onSet((newValue, _, isReset) => {
-    try {
-      if (isReset) localStorage.removeItem(key);
-      else localStorage.setItem(key, JSON.stringify(newValue));
-    } catch { /* ignore */ }
-  });
-};
 
 export const currentWorkspaceState = atom<number>({
   key: 'currentWorkspaceState',
