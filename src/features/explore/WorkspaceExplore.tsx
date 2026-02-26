@@ -128,26 +128,26 @@ export const WorkspaceExplore = () => {
     };
 
     return (
-        <div className="flex-1 overflow-y-auto bg-[#0F1117] p-8 pb-24">
+        <div className="flex-1 overflow-y-auto bg-page p-8 pb-24">
             <div className="max-w-5xl mx-auto space-y-8">
 
                 {/* 헤더 */}
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-100">워크스페이스 탐색</h1>
-                    <p className="text-slate-400 mt-1">공개 워크스페이스를 탐색하고 원하는 스터디에 참여하세요.</p>
+                    <h1 className="text-2xl font-bold text-text-primary">워크스페이스 탐색</h1>
+                    <p className="text-text-muted mt-1">공개 워크스페이스를 탐색하고 원하는 스터디에 참여하세요.</p>
                 </div>
 
                 {/* 검색바 */}
                 <form onSubmit={handleSearch} className="relative">
                     <div className="flex gap-3">
                         <div className="flex-1 relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-faint" />
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="워크스페이스 이름, 태그, 키워드로 검색..."
-                                className="w-full h-12 bg-[#141820] border border-slate-800 rounded-xl pl-12 pr-4 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                                className="w-full h-12 bg-surface border border-border-default rounded-xl pl-12 pr-4 text-text-secondary placeholder:text-text-faint focus:outline-none focus:border-indigo-500 transition-colors"
                             />
                         </div>
                         <Button
@@ -163,8 +163,8 @@ export const WorkspaceExplore = () => {
                 {/* 검색 결과 정보 */}
                 {submittedQuery && (
                     <div className="flex items-center justify-between">
-                        <p className="text-sm text-slate-400">
-                            "<span className="text-slate-200 font-medium">{submittedQuery}</span>" 검색 결과 · {filteredWorkspaces.length}개
+                        <p className="text-sm text-text-muted">
+                            "<span className="text-text-secondary font-medium">{submittedQuery}</span>" 검색 결과 · {filteredWorkspaces.length}개
                         </p>
                         {submittedQuery && (
                             <button
@@ -173,7 +173,7 @@ export const WorkspaceExplore = () => {
                                     setSubmittedQuery('');
                                     navigate('/explore', { replace: true });
                                 }}
-                                className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
+                                className="text-sm text-text-faint hover:text-text-secondary transition-colors"
                             >
                                 검색 초기화
                             </button>
@@ -185,39 +185,39 @@ export const WorkspaceExplore = () => {
                 <div className="grid gap-4">
                     {filteredWorkspaces.length === 0 ? (
                         <div className="text-center py-20">
-                            <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4">
-                                <Search className="w-8 h-8 text-slate-600" />
+                            <div className="w-16 h-16 rounded-full bg-surface-subtle flex items-center justify-center mx-auto mb-4">
+                                <Search className="w-8 h-8 text-text-faint" />
                             </div>
-                            <h3 className="text-lg font-semibold text-slate-300 mb-2">검색 결과가 없습니다</h3>
-                            <p className="text-slate-500">다른 키워드로 검색해보세요.</p>
+                            <h3 className="text-lg font-semibold text-text-secondary mb-2">검색 결과가 없습니다</h3>
+                            <p className="text-text-faint">다른 키워드로 검색해보세요.</p>
                         </div>
                     ) : (
                         filteredWorkspaces.map((ws) => (
                             <div
                                 key={ws.id}
-                                className="group bg-[#141820] border border-slate-800 rounded-xl p-6 hover:border-slate-700 hover:bg-slate-800/30 transition-all"
+                                className="group bg-surface border border-border-default rounded-xl p-6 hover:border-border-subtle hover:bg-hover-bg transition-all"
                             >
                                 <div className="flex items-start gap-4">
                                     {/* 아이콘 */}
-                                    <div className="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center text-xl flex-shrink-0 group-hover:bg-slate-700 transition-colors">
+                                    <div className="w-12 h-12 rounded-lg bg-surface-subtle flex items-center justify-center text-xl flex-shrink-0 group-hover:bg-border-subtle transition-colors">
                                         {ws.icon}
                                     </div>
 
                                     {/* 정보 */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <h3 className="text-lg font-semibold text-slate-100 group-hover:text-white transition-colors truncate">
+                                            <h3 className="text-lg font-semibold text-text-primary group-hover:text-text-primary transition-colors truncate">
                                                 {ws.name}
                                             </h3>
                                             {ws.isPublic ? (
                                                 <Globe className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
                                             ) : (
-                                                <Lock className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                                                <Lock className="w-3.5 h-3.5 text-text-faint flex-shrink-0" />
                                             )}
                                         </div>
-                                        <p className="text-sm text-slate-400 mb-3 line-clamp-2">{ws.description}</p>
+                                        <p className="text-sm text-text-muted mb-3 line-clamp-2">{ws.description}</p>
 
-                                        <div className="flex items-center gap-4 text-xs text-slate-500">
+                                        <div className="flex items-center gap-4 text-xs text-text-faint">
                                             <span className="flex items-center gap-1">
                                                 <Users className="w-3.5 h-3.5" />
                                                 {ws.members}명
@@ -231,7 +231,7 @@ export const WorkspaceExplore = () => {
                                             {ws.tags.map(tag => (
                                                 <span
                                                     key={tag}
-                                                    className="px-2 py-0.5 text-xs rounded bg-slate-800 text-slate-400 border border-slate-700 cursor-pointer hover:border-indigo-500/50 hover:text-indigo-400 transition-colors"
+                                                    className="px-2 py-0.5 text-xs rounded bg-surface-subtle text-text-muted border border-border-subtle cursor-pointer hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                                                     onClick={() => {
                                                         setSearchQuery(tag);
                                                         setSubmittedQuery(tag);

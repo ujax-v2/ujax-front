@@ -34,12 +34,12 @@ export const ChallengeDetail = () => {
   const ranking = participants.sort((a, b) => b.score - a.score).slice(0, 5);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#0F1117] p-8">
+    <div className="flex-1 overflow-y-auto bg-page p-8">
       <div className="max-w-6xl mx-auto space-y-8">
 
         {/* Header */}
         <div className="flex flex-col gap-6">
-          <Button variant="ghost" className="w-fit -ml-2 text-slate-400" onClick={() => toWs('challenges')}>
+          <Button variant="ghost" className="w-fit -ml-2 text-text-muted" onClick={() => toWs('challenges')}>
             <ArrowLeft className="w-4 h-4 mr-2" /> 챌린지 목록
           </Button>
 
@@ -51,25 +51,25 @@ export const ChallengeDetail = () => {
                 ) : (
                   <div className="flex items-center gap-2">
                     <Badge variant="success">Day 12</Badge>
-                    <span className="text-slate-500 text-sm">/ {currentChallenge.duration}</span>
+                    <span className="text-text-faint text-sm">/ {currentChallenge.duration}</span>
                   </div>
                 )}
               </div>
-              <h1 className="text-3xl font-bold text-slate-100">{currentChallenge.title}</h1>
+              <h1 className="text-3xl font-bold text-text-primary">{currentChallenge.title}</h1>
             </div>
 
             {/* Timer or Result Badge */}
             <div className="text-right">
               {isEndedView ? (
                 <div className="flex flex-col items-end">
-                  <span className="text-sm text-slate-400 mb-1">Final Status</span>
+                  <span className="text-sm text-text-muted mb-1">Final Status</span>
                   <span className="text-xl font-bold text-emerald-500 flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5" /> Completed
                   </span>
                 </div>
               ) : (
                 <>
-                  <div className="text-sm text-slate-400 mb-1">남은 시간</div>
+                  <div className="text-sm text-text-muted mb-1">남은 시간</div>
                   <div className="text-2xl font-mono font-bold text-emerald-500">14:22:05</div>
                 </>
               )}
@@ -77,16 +77,16 @@ export const ChallengeDetail = () => {
           </div>
 
           {/* Progress Bar (Show in both but different context) */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+          <div className="bg-input-bg/50 border border-border-default rounded-xl p-6">
             <div className="flex justify-between text-sm mb-2">
-              <span className="text-slate-300">
+              <span className="text-text-secondary">
                 {isEndedView ? '최종 달성률' : '전체 진행률'}
               </span>
               <span className="text-emerald-500 font-bold">
                 {isEndedView ? '92%' : '40%'}
               </span>
             </div>
-            <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-surface-subtle rounded-full h-3 overflow-hidden">
               <div
                 className={`h-full bg-gradient-to-r from-emerald-600 to-emerald-400 relative ${isEndedView ? 'w-[92%]' : 'w-2/5'}`}
               >
@@ -94,16 +94,16 @@ export const ChallengeDetail = () => {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4 mt-6">
-              <div className="text-center p-3 bg-slate-800/30 rounded-lg">
-                <div className="text-xs text-slate-500 mb-1">{isEndedView ? '완주자' : '생존자'}</div>
-                <div className="text-xl font-bold text-slate-200">124<span className="text-slate-500 text-sm font-normal">/156</span></div>
+              <div className="text-center p-3 bg-surface-subtle/30 rounded-lg">
+                <div className="text-xs text-text-faint mb-1">{isEndedView ? '완주자' : '생존자'}</div>
+                <div className="text-xl font-bold text-text-secondary">124<span className="text-text-faint text-sm font-normal">/156</span></div>
               </div>
-              <div className="text-center p-3 bg-slate-800/30 rounded-lg">
-                <div className="text-xs text-slate-500 mb-1">평균 문제 해결</div>
-                <div className="text-xl font-bold text-slate-200">{isEndedView ? '28.5' : '12'}</div>
+              <div className="text-center p-3 bg-surface-subtle/30 rounded-lg">
+                <div className="text-xs text-text-faint mb-1">평균 문제 해결</div>
+                <div className="text-xl font-bold text-text-secondary">{isEndedView ? '28.5' : '12'}</div>
               </div>
-              <div className="text-center p-3 bg-slate-800/30 rounded-lg">
-                <div className="text-xs text-slate-500 mb-1">총 상금 포인트</div>
+              <div className="text-center p-3 bg-surface-subtle/30 rounded-lg">
+                <div className="text-xs text-text-faint mb-1">총 상금 포인트</div>
                 <div className="text-xl font-bold text-yellow-500">50,000 P</div>
               </div>
             </div>
@@ -118,13 +118,13 @@ export const ChallengeDetail = () => {
             {isEndedView ? (
               /* ENDED VIEW: Ranking & Results */
               <>
-                <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-text-secondary flex items-center gap-2">
                   <Medal className="w-5 h-5 text-yellow-500" /> 최종 랭킹
                 </h2>
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden">
+                <div className="bg-input-bg/50 border border-border-default rounded-xl overflow-hidden">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-800 bg-[#141820] text-slate-400 text-sm">
+                      <tr className="border-b border-border-default bg-surface text-text-muted text-sm">
                         <th className="p-4 font-medium w-16 text-center">Rank</th>
                         <th className="p-4 font-medium">User</th>
                         <th className="p-4 font-medium text-center">Solved</th>
@@ -132,27 +132,27 @@ export const ChallengeDetail = () => {
                         <th className="p-4 font-medium text-center">Code</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/50">
+                    <tbody className="divide-y divide-border-default">
                       {ranking.map((user, idx) => (
-                        <tr key={user.id} className="hover:bg-slate-800/30 transition-colors">
+                        <tr key={user.id} className="hover:bg-hover-bg transition-colors">
                           <td className="p-4 text-center">
                             {idx === 0 ? <span className="text-xl">🥇</span> :
                               idx === 1 ? <span className="text-xl">🥈</span> :
                                 idx === 2 ? <span className="text-xl">🥉</span> :
-                                  <span className="text-slate-500 font-mono">#{user.rank}</span>}
+                                  <span className="text-text-faint font-mono">#{user.rank}</span>}
                           </td>
                           <td className="p-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden">
+                              <div className="w-8 h-8 rounded-full bg-surface-subtle overflow-hidden">
                                 <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`} alt={user.name} />
                               </div>
-                              <span className="text-slate-200 font-medium">{user.name}</span>
+                              <span className="text-text-secondary font-medium">{user.name}</span>
                             </div>
                           </td>
-                          <td className="p-4 text-center text-slate-400">{user.solvedCount}</td>
+                          <td className="p-4 text-center text-text-muted">{user.solvedCount}</td>
                           <td className="p-4 text-right font-mono text-emerald-400">{user.score.toLocaleString()}</td>
                           <td className="p-4 text-center">
-                            <button className="text-slate-500 hover:text-emerald-500 transition-colors" title="View Code">
+                            <button className="text-text-faint hover:text-emerald-500 transition-colors" title="View Code">
                               <Code2 className="w-4 h-4 mx-auto" />
                             </button>
                           </td>
@@ -165,18 +165,18 @@ export const ChallengeDetail = () => {
             ) : (
               /* ACTIVE VIEW: Daily Mission */
               <>
-                <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-text-secondary flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-emerald-500" /> 오늘의 미션
                 </h2>
 
-                <div className="bg-gradient-to-br from-slate-900 to-slate-900/50 border border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group hover:border-emerald-500/50 transition-colors">
+                <div className="bg-gradient-to-br from-surface-raised to-surface dark:from-slate-900 dark:to-slate-900/50 border border-border-subtle/50 rounded-2xl p-6 relative overflow-hidden group hover:border-emerald-500/50 transition-colors">
                   <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                     <Trophy className="w-32 h-32 text-emerald-500" />
                   </div>
 
                   <div className="relative z-10">
-                    <Badge className="bg-emerald-500/10 text-emerald-400 mb-3 border-emerald-500/20">Today's Problem</Badge>
-                    <h3 className="text-2xl font-bold text-white mb-2">1920. 수 찾기</h3>
+                    <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-3 border-emerald-500/20">Today's Problem</Badge>
+                    <h3 className="text-2xl font-bold text-text-primary mb-2">1920. 수 찾기</h3>
                     <div className="flex gap-2 mb-6">
                       <Badge variant="secondary">Silver 4</Badge>
                       <Badge variant="secondary">Binary Search</Badge>
@@ -194,12 +194,12 @@ export const ChallengeDetail = () => {
                 </div>
 
                 {/* Upcoming Schedule (Mini) */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-                  <h3 className="font-bold text-slate-200 mb-4">내일 예고</h3>
-                  <div className="flex items-center gap-4 text-slate-400">
-                    <div className="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center font-bold text-slate-500">?</div>
+                <div className="bg-input-bg/50 border border-border-default rounded-xl p-6">
+                  <h3 className="font-bold text-text-secondary mb-4">내일 예고</h3>
+                  <div className="flex items-center gap-4 text-text-muted">
+                    <div className="w-12 h-12 rounded-lg bg-surface-subtle flex items-center justify-center font-bold text-text-faint">?</div>
                     <div>
-                      <div className="font-semibold text-slate-300">내일 00:00 공개</div>
+                      <div className="font-semibold text-text-secondary">내일 00:00 공개</div>
                       <div className="text-sm">난이도: Gold 5 예상</div>
                     </div>
                   </div>
@@ -210,23 +210,23 @@ export const ChallengeDetail = () => {
 
           {/* Sidebar: Participants */}
           <div className="space-y-6">
-            <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-text-secondary flex items-center gap-2">
               <Flame className="w-5 h-5 text-orange-500" /> {isEndedView ? '참가자' : '생존자 현황'}
             </h2>
 
-            <div className="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden">
-              <div className="p-4 border-b border-slate-800 bg-slate-900/80">
-                <div className="flex justify-between text-xs font-medium text-slate-400 uppercase tracking-wider">
+            <div className="bg-input-bg/50 border border-border-default rounded-xl overflow-hidden">
+              <div className="p-4 border-b border-border-default bg-input-bg/80">
+                <div className="flex justify-between text-xs font-medium text-text-muted uppercase tracking-wider">
                   <span>Member</span>
                   <span>{isEndedView ? 'Score' : 'Streak'}</span>
                 </div>
               </div>
-              <div className="divide-y divide-slate-800/50 max-h-[400px] overflow-y-auto">
+              <div className="divide-y divide-border-default max-h-[400px] overflow-y-auto">
                 {participants.map((p) => (
-                  <div key={p.id} className="p-3 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
+                  <div key={p.id} className="p-3 flex items-center justify-between hover:bg-hover-bg transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="relative">
-                        <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden">
+                        <div className="w-8 h-8 rounded-full bg-surface-subtle overflow-hidden">
                           <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id}`} alt={p.name} />
                         </div>
                         {!isEndedView && p.status === 'dropped' && (
@@ -235,7 +235,7 @@ export const ChallengeDetail = () => {
                           </div>
                         )}
                       </div>
-                      <span className={`text-sm font-medium ${!isEndedView && p.status === 'dropped' ? 'text-slate-500 line-through' : 'text-slate-200'}`}>
+                      <span className={`text-sm font-medium ${!isEndedView && p.status === 'dropped' ? 'text-text-faint line-through' : 'text-text-secondary'}`}>
                         {p.name}
                       </span>
                     </div>

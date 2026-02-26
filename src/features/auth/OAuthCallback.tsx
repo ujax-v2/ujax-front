@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
-import { userState, workspacesState, currentWorkspaceState } from '@/store/atoms';
+import { userState, workspacesState } from '@/store/atoms';
 import { getMe } from '@/api/user';
 
 interface Props {
@@ -11,7 +11,6 @@ interface Props {
 export const OAuthCallback = ({ onComplete }: Props) => {
   const setUser = useSetRecoilState(userState);
   const setWorkspaces = useSetRecoilState(workspacesState);
-  const setCurrentWsId = useSetRecoilState(currentWorkspaceState);
   const navigate = useNavigate();
   // Use a ref to prevent double execution in strict mode
   const processedRef = useRef(false);
@@ -61,7 +60,6 @@ export const OAuthCallback = ({ onComplete }: Props) => {
 
           localStorage.setItem('auth', JSON.stringify(userData));
           setWorkspaces([]);
-          setCurrentWsId(0);
           setUser(userData);
 
           navigate('/', { replace: true });

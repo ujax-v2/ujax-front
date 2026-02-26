@@ -1,10 +1,25 @@
 
   <!DOCTYPE html>
-  <html lang="ko">
+  <html lang="ko" class="dark">
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>UJAX - 알고리즘 공유 플랫폼</title>
+      <script>
+        // 페이지 로드 전 저장된 테마 적용 (깜빡임 방지)
+        (function() {
+          try {
+            var theme = JSON.parse(localStorage.getItem('theme'));
+            if (theme === 'light') {
+              document.documentElement.classList.remove('dark');
+            } else if (theme === 'system') {
+              if (!window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.remove('dark');
+              }
+            }
+          } catch(e) {}
+        })();
+      </script>
     </head>
 
     <body>

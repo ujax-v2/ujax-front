@@ -57,10 +57,10 @@ export const CreateWorkspaceModal = () => {
 
 
 
-      <div className="w-full max-w-lg bg-[#141820] border border-slate-700/50 rounded-2xl shadow-2xl p-8 relative">
+      <div className="w-full max-w-lg bg-surface border border-border-subtle/50 rounded-2xl shadow-2xl p-8 relative">
         <button
           onClick={() => setIsOpen(false)}
-          className="absolute top-6 left-6 p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors"
+          className="absolute top-6 left-6 p-2 rounded-lg bg-surface-subtle text-text-muted hover:text-text-primary transition-colors"
         >
           <span className="sr-only">Close</span>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -69,27 +69,27 @@ export const CreateWorkspaceModal = () => {
         </button>
 
         <div className="text-center mt-8 mb-10">
-          <h2 className="text-3xl font-bold text-white mb-2">워크스페이스 생성</h2>
+          <h2 className="text-3xl font-bold text-text-primary mb-2">워크스페이스 생성</h2>
         </div>
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">워크스페이스 이름</label>
+            <label className="text-sm font-medium text-text-secondary">워크스페이스 이름</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full h-12 bg-slate-900/50 border border-slate-700 rounded-lg px-4 text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full h-12 bg-input-bg/50 border border-border-subtle rounded-lg px-4 text-text-secondary focus:outline-none focus:border-indigo-500 transition-colors"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">설명 <span className="text-slate-500">(선택)</span></label>
+            <label className="text-sm font-medium text-text-secondary">설명 <span className="text-text-faint">(선택)</span></label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+              className="w-full bg-input-bg/50 border border-border-subtle rounded-lg px-4 py-3 text-text-secondary focus:outline-none focus:border-indigo-500 transition-colors resize-none"
               placeholder="워크스페이스에 대한 간단한 설명을 입력하세요"
             />
           </div>
@@ -108,7 +108,7 @@ export const CreateWorkspaceModal = () => {
             {isSubmitting ? '생성 중...' : '생성하기'}
           </Button>
 
-          <p className="text-center text-xs text-slate-500 mt-4">
+          <p className="text-center text-xs text-text-faint mt-4">
             생성 후에도 워크스페이스 이름은 언제든 변경할 수 있습니다.
           </p>
         </div>

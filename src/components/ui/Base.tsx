@@ -16,10 +16,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', ...props }, ref) => {
     const variants = {
       primary: 'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 shadow-sm shadow-emerald-900/20',
-      secondary: 'bg-slate-800 text-slate-200 hover:bg-slate-700 active:bg-slate-600 border border-slate-700',
-      ghost: 'bg-transparent text-slate-400 hover:text-slate-100 hover:bg-slate-800/50',
+      secondary: 'bg-surface-subtle text-text-secondary hover:bg-border-subtle active:bg-border-default border border-border-subtle',
+      ghost: 'bg-transparent text-text-muted hover:text-text-primary hover:bg-hover-bg',
       danger: 'bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20',
-      outline: 'bg-transparent border border-slate-700 text-slate-300 hover:bg-slate-800/50 hover:text-slate-100',
+      outline: 'bg-transparent border border-border-subtle text-text-secondary hover:bg-hover-bg hover:text-text-primary',
     };
 
     const sizes = {
@@ -47,7 +47,7 @@ Button.displayName = 'Button';
 interface CardProps extends HTMLAttributes<HTMLDivElement> { }
 
 export const Card = ({ className, children, ...props }: CardProps) => (
-  <div className={cn('bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm', className)} {...props}>
+  <div className={cn('bg-surface/50 border border-border-default rounded-xl overflow-hidden backdrop-blur-sm', className)} {...props}>
     {children}
   </div>
 );
@@ -58,12 +58,12 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 
 export const Badge = ({ className, variant = 'default', children, ...props }: BadgeProps) => {
   const variants = {
-    default: 'bg-slate-800 text-slate-300 border-slate-700',
-    success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    warning: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    destructive: 'bg-red-500/10 text-red-400 border-red-500/20',
-    outline: 'bg-transparent border-slate-700 text-slate-400',
-    secondary: 'bg-slate-800/50 text-slate-400 border-slate-700/50',
+    default: 'bg-surface-subtle text-text-secondary border-border-subtle',
+    success: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+    warning: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+    destructive: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
+    outline: 'bg-transparent border-border-subtle text-text-muted',
+    secondary: 'bg-surface-subtle/50 text-text-muted border-border-subtle/50',
   };
   return (
     <span className={cn('inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border', variants[variant], className)} {...props}>
@@ -84,7 +84,7 @@ export const Avatar = ({ className, src, alt, fallback, ...props }: AvatarProps)
       {src ? (
         <img className="aspect-square h-full w-full" src={src} alt={alt} />
       ) : (
-        <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-800">
+        <div className="flex h-full w-full items-center justify-center rounded-full bg-surface-subtle">
           {fallback}
         </div>
       )}
@@ -106,14 +106,14 @@ export const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
       <div className="relative w-full max-w-lg mx-auto my-6 z-50">
-        <div className="relative flex flex-col w-full bg-[#141820] border border-slate-800 rounded-xl shadow-2xl outline-none focus:outline-none">
+        <div className="relative flex flex-col w-full bg-surface border border-border-default rounded-xl shadow-2xl outline-none focus:outline-none">
           {/* Header */}
-          <div className="flex items-center justify-between p-5 border-b border-slate-800 rounded-t">
-            <h3 className="text-xl font-semibold text-slate-100">
+          <div className="flex items-center justify-between p-5 border-b border-border-default rounded-t">
+            <h3 className="text-xl font-semibold text-text-primary">
               {title}
             </h3>
             <button
-              className="p-1 ml-auto bg-transparent border-0 text-slate-400 float-right text-3xl leading-none font-semibold outline-none focus:outline-none hover:text-slate-100 transition-colors"
+              className="p-1 ml-auto bg-transparent border-0 text-text-muted float-right text-3xl leading-none font-semibold outline-none focus:outline-none hover:text-text-primary transition-colors"
               onClick={onClose}
             >
               <X className="w-5 h-5" />

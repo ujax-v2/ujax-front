@@ -87,24 +87,24 @@ export const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0F1117] p-4">
-      <Card className="w-full max-w-md p-8 bg-[#141820] border-slate-800">
+    <div className="min-h-screen flex items-center justify-center bg-page p-4">
+      <Card className="w-full max-w-md p-8 bg-surface border-border-default">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-slate-100 mb-2">회원가입</h1>
-          <p className="text-slate-400 text-sm">개발자 커뮤니티에 참여하세요.</p>
+          <h1 className="text-2xl font-bold text-text-primary mb-2">회원가입</h1>
+          <p className="text-text-muted text-sm">개발자 커뮤니티에 참여하세요.</p>
         </div>
 
         <form onSubmit={handleSignup} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-400">이메일</label>
+            <label className="text-xs font-medium text-text-muted">이메일</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint" />
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className={`w-full bg-slate-900 border ${errors.email ? 'border-red-500' : 'border-slate-800'} rounded-lg py-2.5 pl-10 pr-4 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors`}
+                className={`w-full bg-input-bg border ${errors.email ? 'border-red-500' : 'border-border-default'} rounded-lg py-2.5 pl-10 pr-4 text-sm text-text-secondary focus:outline-none focus:border-emerald-500 transition-colors`}
                 placeholder="name@example.com"
               />
             </div>
@@ -112,40 +112,40 @@ export const SignUp = () => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-400">닉네임</label>
+            <label className="text-xs font-medium text-text-muted">닉네임</label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint" />
               <input
                 type="text"
                 name="nickname"
                 value={formData.nickname}
                 onChange={handleChange}
-                className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2.5 pl-10 pr-4 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full bg-input-bg border border-border-default rounded-lg py-2.5 pl-10 pr-4 text-sm text-text-secondary focus:outline-none focus:border-emerald-500 transition-colors"
                 placeholder="DevMaster"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-400">비밀번호</label>
+            <label className="text-xs font-medium text-text-muted">비밀번호</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint" />
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`w-full bg-slate-900 border ${errors.password ? 'border-red-500' : 'border-slate-800'} rounded-lg py-2.5 pl-10 pr-4 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors`}
+                className={`w-full bg-input-bg border ${errors.password ? 'border-red-500' : 'border-border-default'} rounded-lg py-2.5 pl-10 pr-4 text-sm text-text-secondary focus:outline-none focus:border-emerald-500 transition-colors`}
                 placeholder="••••••••"
               />
             </div>
 
             {/* Password Validation Feedback Area */}
             <div className="grid grid-cols-2 gap-2 mt-2">
-              <div className={`text-xs flex items-center gap-1 ${formData.password.length >= 8 ? 'text-emerald-500' : 'text-slate-600'}`}>
+              <div className={`text-xs flex items-center gap-1 ${formData.password.length >= 8 ? 'text-emerald-500' : 'text-text-faint'}`}>
                 <CheckCircle2 className="w-3 h-3" /> 8자 이상
               </div>
-              <div className={`text-xs flex items-center gap-1 ${/[0-9]/.test(formData.password) ? 'text-emerald-500' : 'text-slate-600'}`}>
+              <div className={`text-xs flex items-center gap-1 ${/[0-9]/.test(formData.password) ? 'text-emerald-500' : 'text-text-faint'}`}>
                 <CheckCircle2 className="w-3 h-3" /> 숫자 포함
               </div>
             </div>
@@ -162,7 +162,7 @@ export const SignUp = () => {
           </Button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-slate-400">
+        <div className="mt-6 text-center text-sm text-text-muted">
           이미 계정이 있으신가요?{' '}
           <button onClick={() => navigate('/login')} className="text-emerald-500 hover:text-emerald-400 font-medium">
             로그인

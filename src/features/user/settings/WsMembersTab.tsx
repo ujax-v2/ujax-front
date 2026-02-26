@@ -125,18 +125,18 @@ export const WsMembersTab = () => {
 
   const roleBadgeClass = (role?: string) => {
     switch (role) {
-      case 'OWNER': return 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400';
-      case 'MANAGER': return 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400';
-      default: return 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400';
+      case 'OWNER': return 'bg-amber-500/10 text-amber-400';
+      case 'MANAGER': return 'bg-blue-500/10 text-blue-400';
+      default: return 'bg-surface-subtle text-text-muted';
     }
   };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+      <div className="flex items-center justify-between pb-4 border-b border-border-default">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">멤버</h2>
-          <p className="text-sm text-slate-500 mt-1">워크스페이스의 멤버를 관리하세요.</p>
+          <h2 className="text-xl font-bold text-text-primary">멤버</h2>
+          <p className="text-sm text-text-faint mt-1">워크스페이스의 멤버를 관리하세요.</p>
         </div>
         <Button
           className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
@@ -147,31 +147,31 @@ export const WsMembersTab = () => {
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">워크스페이스 멤버 ({members.length})</h3>
+        <h3 className="text-sm font-bold text-text-secondary">워크스페이스 멤버 ({members.length})</h3>
 
         {membersLoading ? (
-          <div className="text-sm text-slate-500 text-center py-8">불러오는 중...</div>
+          <div className="text-sm text-text-faint text-center py-8">불러오는 중...</div>
         ) : members.length === 0 ? (
-          <div className="text-sm text-slate-500 bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg text-center">
+          <div className="text-sm text-text-faint bg-surface-subtle/50 p-4 rounded-lg text-center">
             멤버가 없습니다.
           </div>
         ) : (
-          <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden divide-y divide-slate-200 dark:divide-slate-700">
+          <div className="rounded-lg border border-border-subtle overflow-hidden divide-y-2 divide-border-default">
             {members.map(member => {
               const isMe = member.workspaceMemberId === myMemberId;
               const role = member.role as string;
               const canManage = (myRole === 'OWNER' || myRole === 'MANAGER') && !isMe && role !== 'OWNER';
               const menuOpen = memberMenuOpen === member.workspaceMemberId;
               return (
-                <div key={member.workspaceMemberId} className="flex items-center justify-between py-3 px-4 bg-white dark:bg-[#1e1e1e] hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <div key={member.workspaceMemberId} className="flex items-center justify-between py-3 px-4 bg-surface-overlay hover:bg-hover-bg transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                      <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                    <div className="w-9 h-9 rounded-full bg-surface-subtle flex items-center justify-center">
+                      <span className="text-sm font-bold text-text-muted">
                         {(member.nickname ?? '?').charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-slate-900 dark:text-slate-200">
+                      <div className="text-sm font-medium text-text-secondary">
                         {member.nickname ?? '(닉네임 없음)'}
                       </div>
                     </div>
@@ -184,17 +184,17 @@ export const WsMembersTab = () => {
                       <div className="relative">
                         <button
                           onClick={() => setMemberMenuOpen(menuOpen ? null : member.workspaceMemberId!)}
-                          className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                          className="p-1 rounded hover:bg-hover-bg text-text-muted hover:text-text-secondary transition-colors"
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </button>
                         {menuOpen && (
                           <>
                             <div className="fixed inset-0 z-[150]" onClick={() => setMemberMenuOpen(null)} />
-                            <div className="absolute right-0 top-full mt-1 z-[151] w-48 bg-white dark:bg-[#252525] rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-1">
+                            <div className="absolute right-0 top-full mt-1 z-[151] w-48 bg-surface-overlay rounded-lg shadow-lg border border-border-subtle py-1">
                               {role !== 'MANAGER' && (
                                 <button
-                                  className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-hover-bg"
                                   onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'MANAGER'); }}
                                 >
                                   매니저로 변경
@@ -202,7 +202,7 @@ export const WsMembersTab = () => {
                               )}
                               {role !== 'MEMBER' && (
                                 <button
-                                  className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-hover-bg"
                                   onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'MEMBER'); }}
                                 >
                                   멤버로 변경
@@ -210,15 +210,15 @@ export const WsMembersTab = () => {
                               )}
                               {myRole === 'OWNER' && (
                                 <button
-                                  className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                  className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-hover-bg"
                                   onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'OWNER'); }}
                                 >
                                   소유자로 변경
                                 </button>
                               )}
-                              <div className="border-t border-slate-200 dark:border-slate-700 my-1" />
+                              <div className="border-t border-border-subtle my-1" />
                               <button
-                                className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                                className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-500/10"
                                 onClick={() => { setMemberMenuOpen(null); confirmRemoveMember(member); }}
                               >
                                 워크스페이스에서 제거
@@ -239,32 +239,32 @@ export const WsMembersTab = () => {
       {/* 초대 모달 */}
       {showInviteModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => !inviting && setShowInviteModal(false)}>
-          <div className="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-2xl border border-slate-700/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface-overlay rounded-xl shadow-2xl border border-border-subtle/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
                 <UserPlus className="w-5 h-5 text-emerald-600" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">멤버 초대</h3>
+              <h3 className="text-lg font-bold text-text-primary">멤버 초대</h3>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">이메일 주소</label>
+              <label className="block text-xs font-medium text-text-faint mb-1.5">이메일 주소</label>
               <input
                 type="email"
                 value={inviteEmail}
                 onChange={e => setInviteEmail(e.target.value)}
                 placeholder="example@email.com"
-                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-3 py-1.5 text-sm text-slate-900 dark:text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
                 autoFocus
                 onKeyDown={e => e.key === 'Enter' && inviteEmail.trim() && handleInvite()}
               />
             </div>
 
             {inviteError && (
-              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-500/10 rounded px-3 py-2">{inviteError}</p>
+              <p className="text-xs text-red-500 bg-red-500/10 rounded px-3 py-2">{inviteError}</p>
             )}
             {inviteSuccess && (
-              <p className="text-xs text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 rounded px-3 py-2">초대가 완료되었습니다.</p>
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded px-3 py-2">초대가 완료되었습니다.</p>
             )}
 
             <div className="flex justify-end gap-2 pt-2">
@@ -284,15 +284,15 @@ export const WsMembersTab = () => {
       {/* 역할 변경 확인 모달 */}
       {showRoleChangeModal && roleChangeMember && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => !roleChangeLoading && setShowRoleChangeModal(false)}>
-          <div className="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-2xl border border-slate-700/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">역할 변경</h3>
-            <p className="text-sm text-slate-500">
-              <span className="font-bold text-slate-700 dark:text-slate-300">{roleChangeMember.nickname}</span>의 역할을{' '}
-              <span className="font-bold text-slate-700 dark:text-slate-300">{roleLabel(roleChangeTarget)}</span>(으)로 변경하시겠습니까?
+          <div className="bg-surface-overlay rounded-xl shadow-2xl border border-border-subtle/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-text-primary">역할 변경</h3>
+            <p className="text-sm text-text-faint">
+              <span className="font-bold text-text-secondary">{roleChangeMember.nickname}</span>의 역할을{' '}
+              <span className="font-bold text-text-secondary">{roleLabel(roleChangeTarget)}</span>(으)로 변경하시겠습니까?
             </p>
 
             {roleChangeError && (
-              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-500/10 rounded px-3 py-2">{roleChangeError}</p>
+              <p className="text-xs text-red-500 bg-red-500/10 rounded px-3 py-2">{roleChangeError}</p>
             )}
 
             <div className="flex justify-end gap-2 pt-2">
@@ -312,19 +312,19 @@ export const WsMembersTab = () => {
       {/* 멤버 제거 확인 모달 */}
       {showRemoveMemberModal && removingMember && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => !removingLoading && setShowRemoveMemberModal(false)}>
-          <div className="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-2xl border border-slate-700/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+          <div className="bg-surface-overlay rounded-xl shadow-2xl border border-border-subtle/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">멤버 제거</h3>
+              <h3 className="text-lg font-bold text-text-primary">멤버 제거</h3>
             </div>
-            <p className="text-sm text-slate-500">
-              <span className="font-bold text-slate-700 dark:text-slate-300">{removingMember.nickname}</span>을(를) 워크스페이스에서 제거하시겠습니까? 이 멤버는 더 이상 워크스페이스에 접근할 수 없습니다.
+            <p className="text-sm text-text-faint">
+              <span className="font-bold text-text-secondary">{removingMember.nickname}</span>을(를) 워크스페이스에서 제거하시겠습니까? 이 멤버는 더 이상 워크스페이스에 접근할 수 없습니다.
             </p>
 
             {removeMemberError && (
-              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-500/10 rounded px-3 py-2">{removeMemberError}</p>
+              <p className="text-xs text-red-500 bg-red-500/10 rounded px-3 py-2">{removeMemberError}</p>
             )}
 
             <div className="flex justify-end gap-2 pt-2">
