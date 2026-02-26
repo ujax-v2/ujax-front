@@ -52,9 +52,9 @@ export const Home = () => {
         let cancelled = false;
         (async () => {
             try {
-                const res = await getWorkspaces();
+                const list = await getWorkspaces();
                 if (cancelled) return;
-                const items = (res.content ?? []).map((w) => ({
+                const items = (list ?? []).map((w) => ({
                     id: w.id,
                     name: w.name,
                     description: w.description ?? null,

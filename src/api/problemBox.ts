@@ -12,7 +12,7 @@ export type UpdateProblemBoxRequest = components['schemas']['UpdateProblemBoxReq
 
 // ──── 문제집 CRUD ────
 
-export async function getProblemBoxes(workspaceId: number, page = 0, size = 20): Promise<ProblemBoxListData> {
+export async function getProblemBoxes(workspaceId: number, page = 0, size = 9): Promise<ProblemBoxListData> {
   const res = await authFetch(`/api/v1/workspaces/${workspaceId}/problem-boxes?page=${page}&size=${size}`);
   return res.data;
 }
