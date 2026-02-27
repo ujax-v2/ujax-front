@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
+import { useT } from '@/i18n';
 import { isCreateWorkspaceModalOpenState, workspacesState, currentWorkspaceState } from '@/store/atoms';
 import { createWorkspace } from '@/api/workspace';
 import { Button } from '../ui/Base';
@@ -12,6 +13,7 @@ export const CreateWorkspaceModal = () => {
   const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
   const setCurrentWorkspaceId = useSetRecoilState(currentWorkspaceState);
   const navigate = useNavigate();
+  const t = useT();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -69,12 +71,12 @@ export const CreateWorkspaceModal = () => {
         </button>
 
         <div className="text-center mt-8 mb-10">
-          <h2 className="text-3xl font-bold text-text-primary mb-2">워크스페이스 생성</h2>
+          <h2 className="text-3xl font-bold text-text-primary mb-2">{t('createWs.title')}</h2>
         </div>
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-secondary">워크스페이스 이름</label>
+            <label className="text-sm font-medium text-text-secondary">{t('createWs.name')}</label>
             <input
               type="text"
               value={name}
@@ -84,13 +86,13 @@ export const CreateWorkspaceModal = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-secondary">설명 <span className="text-text-faint">(선택)</span></label>
+            <label className="text-sm font-medium text-text-secondary">{t('createWs.description')} <span className="text-text-faint">{t('createWs.optional')}</span></label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               className="w-full bg-input-bg/50 border border-border-subtle rounded-lg px-4 py-3 text-text-secondary focus:outline-none focus:border-indigo-500 transition-colors resize-none"
-              placeholder="워크스페이스에 대한 간단한 설명을 입력하세요"
+              placeholder={t('createWs.descPlaceholder')}
             />
           </div>
 
@@ -105,7 +107,7 @@ export const CreateWorkspaceModal = () => {
             disabled={!name || isSubmitting}
             className="w-full h-12 text-base font-semibold bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? '생성 중...' : '생성하기'}
+            {isSubmitting ? t('createWs.creating') : t('createWs.create')}
           </Button>
 
           <p className="text-center text-xs text-text-faint mt-4">

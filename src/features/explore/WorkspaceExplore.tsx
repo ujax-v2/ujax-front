@@ -4,6 +4,7 @@ import { useRecoilValue } from 'recoil';
 import { Card, Button, Badge } from '@/components/ui/Base';
 import { Search, Users, Globe, Lock, ArrowRight } from 'lucide-react';
 import { workspacesState, currentWorkspaceState } from '@/store/atoms';
+import { useT } from '@/i18n';
 
 /**
  * 워크스페이스 탐색 페이지
@@ -87,6 +88,7 @@ const MOCK_PUBLIC_WORKSPACES = [
 export const WorkspaceExplore = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+    const t = useT();
     const myWorkspaces = useRecoilValue(workspacesState);
     const currentWsId = useRecoilValue(currentWorkspaceState);
 
@@ -133,8 +135,7 @@ export const WorkspaceExplore = () => {
 
                 {/* 헤더 */}
                 <div>
-                    <h1 className="text-2xl font-bold text-text-primary">워크스페이스 탐색</h1>
-                    <p className="text-text-muted mt-1">공개 워크스페이스를 탐색하고 원하는 스터디에 참여하세요.</p>
+                    <h1 className="text-2xl font-bold text-text-primary">{t('explore.title')}</h1>
                 </div>
 
                 {/* 검색바 */}
@@ -146,7 +147,7 @@ export const WorkspaceExplore = () => {
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="워크스페이스 이름, 태그, 키워드로 검색..."
+                                placeholder={t('explore.searchPlaceholder')}
                                 className="w-full h-12 bg-surface border border-border-default rounded-xl pl-12 pr-4 text-text-secondary placeholder:text-text-faint focus:outline-none focus:border-indigo-500 transition-colors"
                             />
                         </div>
@@ -155,7 +156,7 @@ export const WorkspaceExplore = () => {
                             className="h-12 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
                         >
                             <Search className="w-4 h-4 mr-2" />
-                            검색
+                            {t('common.search')}
                         </Button>
                     </div>
                 </form>
@@ -175,7 +176,7 @@ export const WorkspaceExplore = () => {
                                 }}
                                 className="text-sm text-text-faint hover:text-text-secondary transition-colors"
                             >
-                                검색 초기화
+                                {t('explore.resetSearch')}
                             </button>
                         )}
                     </div>
@@ -188,8 +189,8 @@ export const WorkspaceExplore = () => {
                             <div className="w-16 h-16 rounded-full bg-surface-subtle flex items-center justify-center mx-auto mb-4">
                                 <Search className="w-8 h-8 text-text-faint" />
                             </div>
-                            <h3 className="text-lg font-semibold text-text-secondary mb-2">검색 결과가 없습니다</h3>
-                            <p className="text-text-faint">다른 키워드로 검색해보세요.</p>
+                            <h3 className="text-lg font-semibold text-text-secondary mb-2">{t('explore.noResults')}</h3>
+                            <p className="text-text-faint">{t('explore.noResultsDesc')}</p>
                         </div>
                     ) : (
                         filteredWorkspaces.map((ws) => (
@@ -220,7 +221,7 @@ export const WorkspaceExplore = () => {
                                         <div className="flex items-center gap-4 text-xs text-text-faint">
                                             <span className="flex items-center gap-1">
                                                 <Users className="w-3.5 h-3.5" />
-                                                {ws.members}명
+                                                {t('explore.memberCount', { n: ws.members })}
                                             </span>
                                             <span>· {ws.owner}</span>
                                             <span>· {ws.createdAt}</span>
@@ -252,7 +253,7 @@ export const WorkspaceExplore = () => {
                                                 className="text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10"
                                                 onClick={() => navigate(`/ws/${ws.id}/dashboard`)}
                                             >
-                                                이동하기
+                                                {t('explore.go')}
                                                 <ArrowRight className="w-4 h-4 ml-1" />
                                             </Button>
                                         ) : (
@@ -260,7 +261,7 @@ export const WorkspaceExplore = () => {
                                                 className="bg-indigo-600 hover:bg-indigo-700 text-white"
                                                 onClick={() => handleJoin(ws.id, ws.name)}
                                             >
-                                                참여하기
+                                                {t('explore.join')}
                                             </Button>
                                         )}
                                     </div>

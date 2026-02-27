@@ -6,9 +6,11 @@ import { getWorkspaceMembers, getMyMembership, inviteMember, updateMemberRole, r
 import type { WorkspaceMemberResponse } from '@/api/workspace';
 import { extractErrorDetail } from './utils';
 import { UserPlus, AlertTriangle, MoreHorizontal } from 'lucide-react';
+import { useT } from '@/i18n';
 
 export const WsMembersTab = () => {
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
+  const t = useT();
 
   // Members tab state
   const [members, setMembers] = useState<WorkspaceMemberResponse[]>([]);
@@ -117,9 +119,9 @@ export const WsMembersTab = () => {
 
   const roleLabel = (role?: string) => {
     switch (role) {
-      case 'OWNER': return '소유자';
-      case 'MANAGER': return '매니저';
-      default: return '멤버';
+      case 'OWNER': return t('settings.members.owner');
+      case 'MANAGER': return t('settings.members.manager');
+      default: return t('settings.members.member');
     }
   };
 
@@ -135,25 +137,25 @@ export const WsMembersTab = () => {
     <div className="space-y-8 animate-in fade-in duration-300">
       <div className="flex items-center justify-between pb-4 border-b border-border-default">
         <div>
-          <h2 className="text-xl font-bold text-text-primary">멤버</h2>
-          <p className="text-sm text-text-faint mt-1">워크스페이스의 멤버를 관리하세요.</p>
+          <h2 className="text-xl font-bold text-text-primary">{t('settings.members.title')}</h2>
+          <p className="text-sm text-text-faint mt-1">{t('settings.members.titleDesc')}</p>
         </div>
         <Button
           className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
           onClick={() => { setShowInviteModal(true); setInviteEmail(''); setInviteError(''); setInviteSuccess(false); }}
         >
-          <UserPlus className="w-4 h-4" /> 멤버 초대
+          <UserPlus className="w-4 h-4" /> {t('settings.members.invite')}
         </Button>
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-sm font-bold text-text-secondary">워크스페이스 멤버 ({members.length})</h3>
+        <h3 className="text-sm font-bold text-text-secondary">{t('settings.members.wsMembers')} ({members.length})</h3>
 
         {membersLoading ? (
-          <div className="text-sm text-text-faint text-center py-8">불러오는 중...</div>
+          <div className="text-sm text-text-faint text-center py-8">{t('common.loading')}</div>
         ) : members.length === 0 ? (
           <div className="text-sm text-text-faint bg-surface-subtle/50 p-4 rounded-lg text-center">
-            멤버가 없습니다.
+            {t('settings.members.noMembers')}
           </div>
         ) : (
           <div className="rounded-lg border border-border-subtle overflow-hidden divide-y-2 divide-border-default">
@@ -172,7 +174,7 @@ export const WsMembersTab = () => {
                     </div>
                     <div>
                       <div className="text-sm font-medium text-text-secondary">
-                        {member.nickname ?? '(닉네임 없음)'}
+                        {member.nickname ?? t('settings.members.noNickname')}
                       </div>
                     </div>
                   </div>
@@ -197,7 +199,7 @@ export const WsMembersTab = () => {
                                   className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-hover-bg"
                                   onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'MANAGER'); }}
                                 >
-                                  매니저로 변경
+                                  {t('settings.members.changeToManager')}
                                 </button>
                               )}
                               {role !== 'MEMBER' && (
@@ -205,7 +207,7 @@ export const WsMembersTab = () => {
                                   className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-hover-bg"
                                   onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'MEMBER'); }}
                                 >
-                                  멤버로 변경
+                                  {t('settings.members.changeToMember')}
                                 </button>
                               )}
                               {myRole === 'OWNER' && (
@@ -213,7 +215,7 @@ export const WsMembersTab = () => {
                                   className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-hover-bg"
                                   onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'OWNER'); }}
                                 >
-                                  소유자로 변경
+                                  {t('settings.members.changeToOwner')}
                                 </button>
                               )}
                               <div className="border-t border-border-subtle my-1" />
@@ -221,7 +223,7 @@ export const WsMembersTab = () => {
                                 className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-500/10"
                                 onClick={() => { setMemberMenuOpen(null); confirmRemoveMember(member); }}
                               >
-                                워크스페이스에서 제거
+                                {t('settings.members.removeFromWs')}
                               </button>
                             </div>
                           </>
@@ -244,11 +246,11 @@ export const WsMembersTab = () => {
               <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
                 <UserPlus className="w-5 h-5 text-emerald-600" />
               </div>
-              <h3 className="text-lg font-bold text-text-primary">멤버 초대</h3>
+              <h3 className="text-lg font-bold text-text-primary">{t('settings.members.invite')}</h3>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-text-faint mb-1.5">이메일 주소</label>
+              <label className="block text-xs font-medium text-text-faint mb-1.5">{t('settings.members.inviteEmail')}</label>
               <input
                 type="email"
                 value={inviteEmail}
@@ -264,17 +266,17 @@ export const WsMembersTab = () => {
               <p className="text-xs text-red-500 bg-red-500/10 rounded px-3 py-2">{inviteError}</p>
             )}
             {inviteSuccess && (
-              <p className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded px-3 py-2">초대가 완료되었습니다.</p>
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded px-3 py-2">{t('settings.members.inviteSuccess')}</p>
             )}
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="ghost" onClick={() => setShowInviteModal(false)} disabled={inviting}>취소</Button>
+              <Button variant="ghost" onClick={() => setShowInviteModal(false)} disabled={inviting}>{t('common.cancel')}</Button>
               <Button
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
                 onClick={handleInvite}
                 disabled={!inviteEmail.trim() || inviting}
               >
-                {inviting ? '초대 중...' : '초대하기'}
+                {inviting ? t('settings.members.inviting') : t('settings.members.inviteButton')}
               </Button>
             </div>
           </div>
@@ -285,10 +287,9 @@ export const WsMembersTab = () => {
       {showRoleChangeModal && roleChangeMember && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => !roleChangeLoading && setShowRoleChangeModal(false)}>
           <div className="bg-surface-overlay rounded-xl shadow-2xl border border-border-subtle/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-text-primary">역할 변경</h3>
+            <h3 className="text-lg font-bold text-text-primary">{t('settings.members.roleChange')}</h3>
             <p className="text-sm text-text-faint">
-              <span className="font-bold text-text-secondary">{roleChangeMember.nickname}</span>의 역할을{' '}
-              <span className="font-bold text-text-secondary">{roleLabel(roleChangeTarget)}</span>(으)로 변경하시겠습니까?
+              {t('settings.members.roleChangeConfirm', { name: roleChangeMember.nickname ?? '', role: roleLabel(roleChangeTarget) })}
             </p>
 
             {roleChangeError && (
@@ -296,13 +297,13 @@ export const WsMembersTab = () => {
             )}
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="ghost" onClick={() => setShowRoleChangeModal(false)} disabled={roleChangeLoading}>취소</Button>
+              <Button variant="ghost" onClick={() => setShowRoleChangeModal(false)} disabled={roleChangeLoading}>{t('common.cancel')}</Button>
               <Button
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
                 onClick={handleRoleChange}
                 disabled={roleChangeLoading}
               >
-                {roleChangeLoading ? '변경 중...' : '변경'}
+                {roleChangeLoading ? t('common.changing') : t('common.change')}
               </Button>
             </div>
           </div>
@@ -317,10 +318,10 @@ export const WsMembersTab = () => {
               <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
               </div>
-              <h3 className="text-lg font-bold text-text-primary">멤버 제거</h3>
+              <h3 className="text-lg font-bold text-text-primary">{t('settings.members.memberRemove')}</h3>
             </div>
             <p className="text-sm text-text-faint">
-              <span className="font-bold text-text-secondary">{removingMember.nickname}</span>을(를) 워크스페이스에서 제거하시겠습니까? 이 멤버는 더 이상 워크스페이스에 접근할 수 없습니다.
+              {t('settings.members.memberRemoveDesc', { name: removingMember.nickname ?? '' })}
             </p>
 
             {removeMemberError && (
@@ -328,13 +329,13 @@ export const WsMembersTab = () => {
             )}
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="ghost" onClick={() => setShowRemoveMemberModal(false)} disabled={removingLoading}>취소</Button>
+              <Button variant="ghost" onClick={() => setShowRemoveMemberModal(false)} disabled={removingLoading}>{t('common.cancel')}</Button>
               <Button
                 className="bg-red-600 hover:bg-red-700 text-white"
                 onClick={handleRemoveMember}
                 disabled={removingLoading}
               >
-                {removingLoading ? '제거 중...' : '제거'}
+                {removingLoading ? t('common.removing') : t('common.remove')}
               </Button>
             </div>
           </div>

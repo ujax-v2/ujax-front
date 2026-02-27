@@ -4,9 +4,11 @@ import { currentChallengeState } from '@/store/atoms';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { Button, Card, Badge } from '@/components/ui/Base';
 import { ArrowLeft, Calendar, CheckCircle2, XCircle, Flame, Trophy, Clock, Code2, Medal } from 'lucide-react';
+import { useT } from '@/i18n';
 
 export const ChallengeDetail = () => {
   const { navigate, toWs } = useWorkspaceNavigate();
+  const t = useT();
   const currentChallenge = useRecoilValue(currentChallengeState);
 
   // If no challenge is selected (e.g. direct load), fallback or redirect
@@ -40,7 +42,7 @@ export const ChallengeDetail = () => {
         {/* Header */}
         <div className="flex flex-col gap-6">
           <Button variant="ghost" className="w-fit -ml-2 text-text-muted" onClick={() => toWs('challenges')}>
-            <ArrowLeft className="w-4 h-4 mr-2" /> 챌린지 목록
+            <ArrowLeft className="w-4 h-4 mr-2" /> {t('challenges.detail.backToList')}
           </Button>
 
           <div className="flex items-end justify-between">
@@ -69,7 +71,7 @@ export const ChallengeDetail = () => {
                 </div>
               ) : (
                 <>
-                  <div className="text-sm text-text-muted mb-1">남은 시간</div>
+                  <div className="text-sm text-text-muted mb-1">{t('challenges.detail.remaining')}</div>
                   <div className="text-2xl font-mono font-bold text-emerald-500">14:22:05</div>
                 </>
               )}
@@ -80,7 +82,7 @@ export const ChallengeDetail = () => {
           <div className="bg-input-bg/50 border border-border-default rounded-xl p-6">
             <div className="flex justify-between text-sm mb-2">
               <span className="text-text-secondary">
-                {isEndedView ? '최종 달성률' : '전체 진행률'}
+                {isEndedView ? t('challenges.detail.finalAchievement') : t('challenges.detail.overallProgress')}
               </span>
               <span className="text-emerald-500 font-bold">
                 {isEndedView ? '92%' : '40%'}
@@ -95,15 +97,15 @@ export const ChallengeDetail = () => {
             </div>
             <div className="grid grid-cols-3 gap-4 mt-6">
               <div className="text-center p-3 bg-surface-subtle/30 rounded-lg">
-                <div className="text-xs text-text-faint mb-1">{isEndedView ? '완주자' : '생존자'}</div>
+                <div className="text-xs text-text-faint mb-1">{isEndedView ? t('challenges.detail.completers') : t('challenges.detail.survivors')}</div>
                 <div className="text-xl font-bold text-text-secondary">124<span className="text-text-faint text-sm font-normal">/156</span></div>
               </div>
               <div className="text-center p-3 bg-surface-subtle/30 rounded-lg">
-                <div className="text-xs text-text-faint mb-1">평균 문제 해결</div>
+                <div className="text-xs text-text-faint mb-1">{t('challenges.detail.avgSolved')}</div>
                 <div className="text-xl font-bold text-text-secondary">{isEndedView ? '28.5' : '12'}</div>
               </div>
               <div className="text-center p-3 bg-surface-subtle/30 rounded-lg">
-                <div className="text-xs text-text-faint mb-1">총 상금 포인트</div>
+                <div className="text-xs text-text-faint mb-1">{t('challenges.detail.totalPoints')}</div>
                 <div className="text-xl font-bold text-yellow-500">50,000 P</div>
               </div>
             </div>
@@ -119,7 +121,7 @@ export const ChallengeDetail = () => {
               /* ENDED VIEW: Ranking & Results */
               <>
                 <h2 className="text-xl font-bold text-text-secondary flex items-center gap-2">
-                  <Medal className="w-5 h-5 text-yellow-500" /> 최종 랭킹
+                  <Medal className="w-5 h-5 text-yellow-500" /> {t('challenges.detail.finalRanking')}
                 </h2>
                 <div className="bg-input-bg/50 border border-border-default rounded-xl overflow-hidden">
                   <table className="w-full text-left border-collapse">
@@ -166,7 +168,7 @@ export const ChallengeDetail = () => {
               /* ACTIVE VIEW: Daily Mission */
               <>
                 <h2 className="text-xl font-bold text-text-secondary flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-emerald-500" /> 오늘의 미션
+                  <Calendar className="w-5 h-5 text-emerald-500" /> {t('challenges.detail.todayMission')}
                 </h2>
 
                 <div className="bg-gradient-to-br from-surface-raised to-surface dark:from-slate-900 dark:to-slate-900/50 border border-border-subtle/50 rounded-2xl p-6 relative overflow-hidden group hover:border-emerald-500/50 transition-colors">
@@ -184,10 +186,10 @@ export const ChallengeDetail = () => {
 
                     <div className="flex gap-3">
                       <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700 py-6 text-lg" onClick={() => navigate('/ide')}>
-                        도전하기
+                        {t('challenges.detail.challenge')}
                       </Button>
                       <Button variant="secondary" className="px-6">
-                        문제 보기
+                        {t('challenges.detail.viewProblem')}
                       </Button>
                     </div>
                   </div>
@@ -195,7 +197,7 @@ export const ChallengeDetail = () => {
 
                 {/* Upcoming Schedule (Mini) */}
                 <div className="bg-input-bg/50 border border-border-default rounded-xl p-6">
-                  <h3 className="font-bold text-text-secondary mb-4">내일 예고</h3>
+                  <h3 className="font-bold text-text-secondary mb-4">{t('challenges.detail.tomorrowPreview')}</h3>
                   <div className="flex items-center gap-4 text-text-muted">
                     <div className="w-12 h-12 rounded-lg bg-surface-subtle flex items-center justify-center font-bold text-text-faint">?</div>
                     <div>
@@ -211,7 +213,7 @@ export const ChallengeDetail = () => {
           {/* Sidebar: Participants */}
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-text-secondary flex items-center gap-2">
-              <Flame className="w-5 h-5 text-orange-500" /> {isEndedView ? '참가자' : '생존자 현황'}
+              <Flame className="w-5 h-5 text-orange-500" /> {isEndedView ? t('challenges.detail.participantsList') : t('challenges.detail.survivorStatus')}
             </h2>
 
             <div className="bg-input-bg/50 border border-border-default rounded-xl overflow-hidden">

@@ -27,10 +27,12 @@ import {
   UserCircle
 } from 'lucide-react';
 import { cn } from '../ui/Base';
+import { useT } from '@/i18n';
 
 export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const t = useT();
   const setSettingsTab = useSetRecoilState(settingsTabState);
   const [isOpen, setIsOpen] = useRecoilState(sidebarOpenState);
   const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
@@ -70,10 +72,10 @@ export const Sidebar = () => {
   // 메뉴 항목의 path는 wsId 없이 상대 경로만 정의
   // 실제 navigate 시 /ws/:wsId/ 접두사를 붙여줌
   const menuItems = [
-    { type: 'ws', subpath: 'dashboard', label: '워크스페이스', icon: LayoutDashboard },
-    { type: 'global', path: '/profile', label: '마이페이지', icon: UserCircle },
-    { type: 'ws', subpath: 'problems', label: '문제', icon: BookOpen },
-    { type: 'ws', subpath: 'community', label: '커뮤니티', icon: Users },
+    { type: 'ws', subpath: 'dashboard', label: t('nav.workspace'), icon: LayoutDashboard },
+    { type: 'global', path: '/profile', label: t('nav.mypage'), icon: UserCircle },
+    { type: 'ws', subpath: 'problems', label: t('nav.problems'), icon: BookOpen },
+    { type: 'ws', subpath: 'community', label: t('nav.community'), icon: Users },
   ];
 
   // wsId 포함된 전체 경로 생성
@@ -151,7 +153,7 @@ export const Sidebar = () => {
                   }}
                   className="flex-1 py-1.5 text-xs text-text-secondary bg-border-subtle/50 hover:bg-border-subtle rounded border border-border-subtle/50 flex items-center justify-center gap-1.5 transition-colors"
                 >
-                  <Settings className="w-3.5 h-3.5" /> 설정
+                  <Settings className="w-3.5 h-3.5" /> {t('nav.settings')}
                 </button>
                 <button
                   onClick={() => {
@@ -161,7 +163,7 @@ export const Sidebar = () => {
                   }}
                   className="flex-1 py-1.5 text-xs text-text-secondary bg-border-subtle/50 hover:bg-border-subtle rounded border border-border-subtle/50 flex items-center justify-center gap-1.5 transition-colors"
                 >
-                  <UserPlus className="w-3.5 h-3.5" /> 멤버 초대
+                  <UserPlus className="w-3.5 h-3.5" /> {t('nav.inviteMember')}
                 </button>
               </div>
             </div>
@@ -198,7 +200,7 @@ export const Sidebar = () => {
                 <div className="w-6 h-6 flex items-center justify-center">
                   <Plus className="w-4 h-4" />
                 </div>
-                <span className="text-sm">새 워크스페이스</span>
+                <span className="text-sm">{t('nav.newWorkspace')}</span>
               </div>
             </div>
 
@@ -209,7 +211,7 @@ export const Sidebar = () => {
       {/* Main Navigation — 워크스페이스 스코프 메뉴 */}
       <div className="flex-1 px-2 py-4 overflow-y-auto flex flex-col">
         <div>
-          <div className="text-xs font-bold text-text-muted mb-2 px-2 tracking-widest uppercase">메뉴</div>
+          <div className="text-xs font-bold text-text-muted mb-2 px-2 tracking-widest uppercase">{t('nav.menu')}</div>
           <div className="space-y-1">
             {menuItems.map((item, idx) => (
               <button
@@ -231,7 +233,7 @@ export const Sidebar = () => {
 
         {/* 탐색 섹션 (글로벌) */}
         <div className="mt-8">
-          <div className="text-xs font-bold text-text-muted mb-2 px-2 tracking-widest uppercase">탐색</div>
+          <div className="text-xs font-bold text-text-muted mb-2 px-2 tracking-widest uppercase">{t('nav.explore')}</div>
           <button
             onClick={() => navigate('/explore')}
             className={cn(
@@ -242,7 +244,7 @@ export const Sidebar = () => {
             )}
           >
             <Compass className={cn("w-5 h-5", location.pathname.startsWith('/explore') ? "text-text-primary" : "text-text-faint group-hover:text-text-muted")} />
-            <span className="flex-1 text-left">워크스페이스 탐색</span>
+            <span className="flex-1 text-left">{t('nav.exploreWorkspaces')}</span>
           </button>
         </div>
       </div>
@@ -257,7 +259,7 @@ export const Sidebar = () => {
           className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium text-text-muted hover:text-text-primary hover:bg-hover-bg transition-colors"
         >
           <SlidersHorizontal className="w-4 h-4" />
-          <span className="flex-1 text-left">설정</span>
+          <span className="flex-1 text-left">{t('nav.settings')}</span>
         </button>
 
         {/* Logout */}
@@ -266,7 +268,7 @@ export const Sidebar = () => {
           className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm font-medium text-text-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-hover-bg transition-colors"
         >
           <LogOut className="w-4 h-4" />
-          <span className="flex-1 text-left">로그아웃</span>
+          <span className="flex-1 text-left">{t('nav.logout')}</span>
         </button>
       </div>
     </div>

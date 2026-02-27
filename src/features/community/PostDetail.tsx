@@ -15,6 +15,7 @@ import {
   pinBoard,
   BOARD_TYPE_LABEL,
 } from '@/api/board';
+import { useT } from '@/i18n';
 import type { BoardDetailResponse, CommentResponse, MemberRole } from '@/api/board';
 import { getMyMembership } from '@/api/workspace';
 import ReactMarkdown from 'react-markdown';
@@ -38,6 +39,7 @@ export const PostDetail = () => {
   const { boardId } = useParams<{ boardId: string }>();
   const wsId = useRecoilValue(currentWorkspaceState);
   const { toWs } = useWorkspaceNavigate();
+  const t = useT();
 
   const [post, setPost] = useState<BoardDetailResponse | null>(null);
   const [comments, setComments] = useState<CommentResponse[]>([]);
@@ -67,7 +69,7 @@ export const PostDetail = () => {
         if (membership.role) setMyRole(membership.role as MemberRole);
         if (membership.workspaceMemberId) setMyMemberId(membership.workspaceMemberId);
       } catch {
-        if (!cancelled) setError('게시물을 불러올 수 없습니다.');
+        if (!cancelled) setError(t('post.detail.loadFailed'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -112,16 +114,16 @@ export const PostDetail = () => {
       const msg = err?.message || '';
       const jsonMatch = msg.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        try { alert(JSON.parse(jsonMatch[0]).detail || '댓글 작성에 실패했습니다.'); }
-        catch { alert('댓글 작성에 실패했습니다.'); }
-      } else { alert('댓글 작성에 실패했습니다.'); }
+        try { alert(JSON.parse(jsonMatch[0]).detail || t('common.error')); }
+        catch { alert(t('common.error')); }
+      } else { alert(t('common.error')); }
     } finally {
       setCommentSubmitting(false);
     }
   };
 
   const handleCommentDelete = async (commentId: number) => {
-    if (!confirm('댓글을 삭제하시겠습니까?')) return;
+    if (!confirm(t('post.detail.confirmDeleteComment'))) return;
     try {
       await deleteComment(wsId, numericBoardId, commentId);
       await loadComments(commentPage);
@@ -130,7 +132,7 @@ export const PostDetail = () => {
   };
 
   const handlePostDelete = async () => {
-    if (!confirm('게시물을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+    if (!confirm(t('post.detail.confirmDeletePost'))) return;
     try {
       await deleteBoard(wsId, numericBoardId);
       toWs('community');
@@ -138,9 +140,9 @@ export const PostDetail = () => {
       const msg = err?.message || '';
       const jsonMatch = msg.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        try { alert(JSON.parse(jsonMatch[0]).detail || '삭제에 실패했습니다.'); }
-        catch { alert('삭제에 실패했습니다.'); }
-      } else { alert('삭제에 실패했습니다.'); }
+        try { alert(JSON.parse(jsonMatch[0]).detail || t('common.error')); }
+        catch { alert(t('common.error')); }
+      } else { alert(t('common.error')); }
     }
   };
 
@@ -153,9 +155,9 @@ export const PostDetail = () => {
       const msg = err?.message || '';
       const jsonMatch = msg.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        try { alert(JSON.parse(jsonMatch[0]).detail || '고정 상태 변경에 실패했습니다.'); }
-        catch { alert('고정 상태 변경에 실패했습니다.'); }
-      } else { alert('고정 상태 변경에 실패했습니다.'); }
+        try { alert(JSON.parse(jsonMatch[0]).detail || t('common.error')); }
+        catch { alert(t('common.error')); }
+      } else { alert(t('common.error')); }
     }
   };
 
@@ -165,7 +167,8 @@ export const PostDetail = () => {
   const canPin = myRole === 'OWNER' && post?.type === 'NOTICE';
 
   const getTagBadge = (type: string) => {
-    const label = BOARD_TYPE_LABEL[type as keyof typeof BOARD_TYPE_LABEL] || type;
+    const labelKey = BOARD_TYPE_LABEL[type as keyof typeof BOARD_TYPE_LABEL] || type;
+    const label = t(labelKey);
     switch (type) {
       case 'NOTICE': return <Badge variant="destructive" className="bg-red-500/10 text-red-500 border-red-500/20">{label}</Badge>;
       case 'FREE': return <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/10">{label}</Badge>;
@@ -192,9 +195,9 @@ export const PostDetail = () => {
     return (
       <div className="flex-1 p-8 bg-page h-full">
         <div className="max-w-4xl mx-auto text-center py-20">
-          <p className="text-text-muted text-lg mb-4">{error || '게시물을 찾을 수 없습니다.'}</p>
+          <p className="text-text-muted text-lg mb-4">{error || t('post.detail.notFound')}</p>
           <Button variant="outline" onClick={() => toWs('community')} className="border-border-subtle text-text-secondary">
-            <ArrowLeft className="w-4 h-4 mr-2" /> 목록으로
+            <ArrowLeft className="w-4 h-4 mr-2" /> {t('post.detail.backToList')}
           </Button>
         </div>
       </div>
@@ -210,7 +213,7 @@ export const PostDetail = () => {
           onClick={() => toWs('community')}
           className="flex items-center gap-2 text-text-muted hover:text-text-secondary transition-colors text-sm"
         >
-          <ArrowLeft className="w-4 h-4" /> 목록으로
+          <ArrowLeft className="w-4 h-4" /> {t('post.detail.backToList')}
         </button>
 
         {/* ─── 게시물 본문 카드 ─── */}
@@ -224,7 +227,7 @@ export const PostDetail = () => {
                 {getTagBadge(post.type ?? 'FREE')}
                 {post.pinned && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-yellow-500/10 text-yellow-400 text-xs font-semibold border border-yellow-500/20">
-                    <Pin className="w-3 h-3" /> 고정
+                    <Pin className="w-3 h-3" /> {t('post.detail.pin')}
                   </span>
                 )}
               </div>
@@ -235,7 +238,7 @@ export const PostDetail = () => {
                       onClick={handleTogglePin}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-yellow-400 hover:bg-yellow-500/10 transition-colors"
                     >
-                      {post.pinned ? <><PinOff className="w-3.5 h-3.5" /> 고정 해제</> : <><Pin className="w-3.5 h-3.5" /> 상단 고정</>}
+                      {post.pinned ? <><PinOff className="w-3.5 h-3.5" /> {t('post.detail.unpin')}</> : <><Pin className="w-3.5 h-3.5" /> {t('post.detail.pinnedPost')}</>}
                     </button>
                   )}
                   {isAuthor && (
@@ -243,14 +246,14 @@ export const PostDetail = () => {
                       onClick={() => toWs(`community/${numericBoardId}/edit`)}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-text-muted hover:text-text-secondary hover:bg-surface-subtle transition-colors"
                     >
-                      <Edit3 className="w-3.5 h-3.5" /> 수정
+                      <Edit3 className="w-3.5 h-3.5" /> {t('post.detail.edit')}
                     </button>
                   )}
                   <button
                     onClick={handlePostDelete}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
                   >
-                    <Trash2 className="w-3.5 h-3.5" /> 삭제
+                    <Trash2 className="w-3.5 h-3.5" /> {t('post.detail.delete')}
                   </button>
                 </div>
               )}
@@ -318,7 +321,7 @@ export const PostDetail = () => {
               }`}
             >
               <ThumbsUp className={`w-[18px] h-[18px] ${post.myLike ? 'fill-emerald-400' : ''}`} />
-              추천 {(post.likeCount ?? 0) > 0 && <span className="tabular-nums">{post.likeCount}</span>}
+              {t('post.detail.recommend')} {(post.likeCount ?? 0) > 0 && <span className="tabular-nums">{post.likeCount}</span>}
             </button>
             <span className="text-xs text-text-faint">
               {post.updatedAt !== post.createdAt && `수정됨 ${formatDate(post.updatedAt ?? '')}`}
@@ -331,7 +334,7 @@ export const PostDetail = () => {
           <div className="px-7 py-5">
             <h3 className="text-[15px] font-bold text-text-primary flex items-center gap-2 mb-5">
               <MessageCircle className="w-[18px] h-[18px] text-emerald-500" />
-              댓글 <span className="text-emerald-500 tabular-nums">{post.commentCount}</span>
+              {t('post.detail.comments')} <span className="text-emerald-500 tabular-nums">{post.commentCount}</span>
             </h3>
 
             {/* 댓글 입력 */}
@@ -341,7 +344,7 @@ export const PostDetail = () => {
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCommentSubmit(); } }}
-                placeholder="댓글을 입력하세요..."
+                placeholder={t('post.detail.commentPlaceholder')}
                 maxLength={255}
                 className="flex-1 bg-input-bg/80 border border-border-subtle/50 rounded-lg py-2.5 px-4 text-sm text-text-secondary focus:outline-none focus:border-emerald-500/50 transition-colors placeholder:text-text-faint"
               />
@@ -357,7 +360,7 @@ export const PostDetail = () => {
             {/* 댓글 목록 */}
             <div className="divide-y divide-border-default">
               {comments.length === 0 ? (
-                <p className="text-text-faint text-sm py-8 text-center">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>
+                <p className="text-text-faint text-sm py-8 text-center">{t('post.detail.noComments')}</p>
               ) : (
                 comments.map(c => {
                   const isCommentAuthor = myMemberId !== null && c.author?.workspaceMemberId === myMemberId;
@@ -377,7 +380,7 @@ export const PostDetail = () => {
                             onClick={() => handleCommentDelete(c.boardCommentId!)}
 
                             className="p-1.5 text-text-faint hover:text-red-600 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-                            title="삭제"
+                            title={t('common.delete')}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>

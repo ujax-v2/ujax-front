@@ -14,25 +14,26 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { useT, useLang } from '@/i18n';
 
 type MemberRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'MEMBER';
 
-function relativeTime(dateStr: string): string {
+function relativeTime(dateStr: string, t: (key: string, vars?: Record<string, string | number>) => string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
   const diff = now - then;
 
   const seconds = Math.floor(diff / 1000);
-  if (seconds < 60) return '방금 전';
+  if (seconds < 60) return t('time.justNow');
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}분 전`;
+  if (minutes < 60) return t('time.minutesAgo', { n: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}시간 전`;
+  if (hours < 24) return t('time.hoursAgo', { n: hours });
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}일 전`;
+  if (days < 30) return t('time.daysAgo', { n: days });
   const months = Math.floor(days / 30);
-  if (months < 12) return `${months}개월 전`;
-  return `${Math.floor(months / 12)}년 전`;
+  if (months < 12) return t('time.monthsAgo', { n: months });
+  return t('time.yearsAgo', { n: Math.floor(months / 12) });
 }
 
 function parseApiError(err: any, fallback: string): string {
@@ -50,6 +51,8 @@ function parseApiError(err: any, fallback: string): string {
 export const ProblemList = () => {
   const { navigate, toWs, currentWsId } = useWorkspaceNavigate();
   const [currentBox, setCurrentBox] = useRecoilState(currentProblemBoxState);
+  const t = useT();
+  const lang = useLang();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // 권한
@@ -181,13 +184,13 @@ export const ProblemList = () => {
 
   const getTierColor = (tier: string | null) => {
     if (!tier) return 'text-text-faint bg-surface-subtle border-border-subtle';
-    const t = tier.toLowerCase();
-    if (t.includes('gold')) return 'text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
-    if (t.includes('silver')) return 'text-text-secondary bg-surface-subtle border-border-subtle';
-    if (t.includes('bronze')) return 'text-amber-700 dark:text-amber-500 bg-amber-500/10 border-amber-500/20';
-    if (t.includes('platinum')) return 'text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/20';
-    if (t.includes('diamond')) return 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20';
-    if (t.includes('ruby')) return 'text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/20';
+    const tl = tier.toLowerCase();
+    if (tl.includes('gold')) return 'text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+    if (tl.includes('silver')) return 'text-text-secondary bg-surface-subtle border-border-subtle';
+    if (tl.includes('bronze')) return 'text-amber-700 dark:text-amber-500 bg-amber-500/10 border-amber-500/20';
+    if (tl.includes('platinum')) return 'text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/20';
+    if (tl.includes('diamond')) return 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20';
+    if (tl.includes('ruby')) return 'text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/20';
     return 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
   };
 
@@ -292,16 +295,16 @@ export const ProblemList = () => {
           {/* 헤더 */}
           <div className="border-b border-border-default pb-8 mt-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex-1">
-              <h1 className="text-4xl font-extrabold text-text-primary tracking-tight mb-3">나의 문제집</h1>
+              <h1 className="text-4xl font-extrabold text-text-primary tracking-tight mb-3">{t('problems.myProblemBoxes')}</h1>
               <p className="text-base text-text-muted font-medium leading-relaxed max-w-3xl">
-                풀고 싶은 문제들을 테마별 그룹으로 분류하여 체계적으로 학습하고 관리해보세요.
+                {t('problems.myProblemBoxesDesc')}
               </p>
             </div>
             <Button
               className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shrink-0 items-center justify-center py-2 px-4 shadow-sm transition-all"
               onClick={() => setIsCreateModalOpen(true)}
             >
-              <FolderPlus className="w-5 h-5 mr-1" /> 문제집 생성
+              <FolderPlus className="w-5 h-5 mr-1" /> {t('problems.createBox')}
             </Button>
           </div>
 
@@ -316,7 +319,7 @@ export const ProblemList = () => {
           {!loading && error && (
             <div className="text-center py-12">
               <p className="text-red-400 mb-4">{error}</p>
-              <Button variant="ghost" onClick={fetchBoxes}>다시 시도</Button>
+              <Button variant="ghost" onClick={fetchBoxes}>{t('common.retry')}</Button>
             </div>
           )}
 
@@ -346,14 +349,14 @@ export const ProblemList = () => {
                       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenuItem onClick={() => openEditModal(box.id)}>
                           <Pencil className="w-4 h-4 mr-2" />
-                          수정
+                          {t('common.edit')}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           variant="destructive"
                           disabled={deletingId === box.id}
                           onClick={() => {
-                            if (confirm('이 문제집을 삭제하시겠습니까?')) {
+                            if (confirm(t('problems.confirmDeleteBox'))) {
                               handleDeleteBox(box.id);
                             }
                           }}
@@ -363,7 +366,7 @@ export const ProblemList = () => {
                           ) : (
                             <Trash2 className="w-4 h-4 mr-2" />
                           )}
-                          삭제
+                          {t('common.delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -372,7 +375,7 @@ export const ProblemList = () => {
 
                   {/* 하단: 상대 시간 */}
                   <div className="flex items-center text-xs text-text-faint mt-auto pt-4 border-t border-border-default/50">
-                    <span className="font-medium">{relativeTime(box.updatedAt)} 업데이트</span>
+                    <span className="font-medium">{relativeTime(box.updatedAt, t)} {t('problems.updated')}</span>
                   </div>
                 </Card>
               ))}
@@ -386,7 +389,7 @@ export const ProblemList = () => {
                   <div className="w-12 h-12 rounded-full bg-surface-inset border border-border-default flex items-center justify-center transition-all shadow-inner">
                     <Plus className="w-6 h-6" />
                   </div>
-                  <span className="font-bold text-sm">첫 문제집 만들기</span>
+                  <span className="font-bold text-sm">{t('problems.firstBox')}</span>
                 </button>
               )}
             </div>
@@ -430,25 +433,25 @@ export const ProblemList = () => {
         </div>
 
         {/* 생성 모달 */}
-        <Modal isOpen={isCreateModalOpen} onClose={() => { setIsCreateModalOpen(false); setCreateError(''); }} title="새 문제집 만들기">
+        <Modal isOpen={isCreateModalOpen} onClose={() => { setIsCreateModalOpen(false); setCreateError(''); }} title={t('problems.newBox')}>
           <form onSubmit={handleCreateBox} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-text-muted">문제집 이름</label>
+              <label className="text-sm font-medium text-text-muted">{t('problems.boxName')}</label>
               <input
                 type="text"
                 required
                 value={newBox.title}
                 onChange={(e) => setNewBox({ ...newBox, title: e.target.value })}
-                placeholder="예: 코딩테스트 대비 100제"
+                placeholder={t('problems.boxNamePlaceholder')}
                 className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-2.5 text-text-secondary focus:outline-none focus:border-emerald-500"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-text-muted">설명</label>
+              <label className="text-sm font-medium text-text-muted">{t('problems.boxDesc')}</label>
               <textarea
                 value={newBox.description}
                 onChange={(e) => setNewBox({ ...newBox, description: e.target.value })}
-                placeholder="문제집에 대한 설명을 적어주세요."
+                placeholder={t('problems.boxDescPlaceholder')}
                 className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-2.5 text-text-secondary focus:outline-none focus:border-emerald-500 min-h-[80px]"
               />
             </div>
@@ -458,35 +461,35 @@ export const ProblemList = () => {
               </div>
             )}
             <div className="flex justify-end gap-3 mt-6">
-              <Button type="button" variant="ghost" onClick={() => { setIsCreateModalOpen(false); setCreateError(''); }}>취소</Button>
+              <Button type="button" variant="ghost" onClick={() => { setIsCreateModalOpen(false); setCreateError(''); }}>{t('common.cancel')}</Button>
               <Button type="submit" disabled={creating}>
                 {creating ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-                생성하기
+                {creating ? t('common.creating') : t('common.createButton')}
               </Button>
             </div>
           </form>
         </Modal>
 
         {/* 수정 모달 */}
-        <Modal isOpen={!!editTarget} onClose={() => { setEditTarget(null); setEditError(''); }} title="문제집 수정">
+        <Modal isOpen={!!editTarget} onClose={() => { setEditTarget(null); setEditError(''); }} title={t('problems.editBox')}>
           <form onSubmit={handleEditBox} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-text-muted">문제집 이름</label>
+              <label className="text-sm font-medium text-text-muted">{t('problems.boxName')}</label>
               <input
                 type="text"
                 required
                 value={editTarget?.title || ''}
                 onChange={(e) => setEditTarget(prev => prev ? { ...prev, title: e.target.value } : prev)}
-                placeholder="문제집 이름"
+                placeholder={t('problems.boxNamePlaceholder')}
                 className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-2.5 text-text-secondary focus:outline-none focus:border-emerald-500"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-text-muted">설명</label>
+              <label className="text-sm font-medium text-text-muted">{t('problems.boxDesc')}</label>
               <textarea
                 value={editTarget?.description || ''}
                 onChange={(e) => setEditTarget(prev => prev ? { ...prev, description: e.target.value } : prev)}
-                placeholder="문제집에 대한 설명을 적어주세요."
+                placeholder={t('problems.boxDescPlaceholder')}
                 className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-2.5 text-text-secondary focus:outline-none focus:border-emerald-500 min-h-[80px]"
               />
             </div>
@@ -496,10 +499,10 @@ export const ProblemList = () => {
               </div>
             )}
             <div className="flex justify-end gap-3 mt-6">
-              <Button type="button" variant="ghost" onClick={() => { setEditTarget(null); setEditError(''); }}>취소</Button>
+              <Button type="button" variant="ghost" onClick={() => { setEditTarget(null); setEditError(''); }}>{t('common.cancel')}</Button>
               <Button type="submit" disabled={editing}>
                 {editing ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-                저장
+                {editing ? t('common.saving') : t('common.save')}
               </Button>
             </div>
           </form>
@@ -516,7 +519,7 @@ export const ProblemList = () => {
         {/* Navigation & Header */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 text-sm text-text-faint font-medium tracking-wide">
-            <button onClick={() => setCurrentBox(null)} className="hover:text-text-secondary transition-colors">문제집</button>
+            <button onClick={() => setCurrentBox(null)} className="hover:text-text-secondary transition-colors">{t('problems.problemBox')}</button>
             <span className="text-text-faint">/</span>
             <span className="text-text-secondary font-semibold">{currentBox.title}</span>
           </div>
@@ -536,7 +539,7 @@ export const ProblemList = () => {
                 className="bg-emerald-600 border border-emerald-500 text-white font-bold hover:bg-emerald-700 shrink-0 shadow-sm transition-all"
                 onClick={() => toWs('problems/new')}
               >
-                <Plus className="w-4 h-4 mr-1" /> 문제 가져오기
+                <Plus className="w-4 h-4 mr-1" /> {t('problems.importProblems')}
               </Button>
             </div>
             {currentBox.description && (
@@ -551,7 +554,7 @@ export const ProblemList = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-faint" />
             <input
               type="text"
-              placeholder="문제 검색..."
+              placeholder={t('problems.searchProblems')}
               className="w-full h-12 bg-surface-raised border border-border-default rounded-xl pl-12 pr-4 text-text-secondary placeholder:text-text-faint focus:outline-none focus:border-emerald-500 transition-all shadow-sm"
             />
           </div>
@@ -564,9 +567,9 @@ export const ProblemList = () => {
           </div>
         ) : problems.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-text-faint mb-4">아직 등록된 문제가 없습니다.</p>
+            <p className="text-text-faint mb-4">{t('problems.noProblems')}</p>
             <Button onClick={() => toWs('problems/new')} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
-              <Plus className="w-4 h-4 mr-1" /> 첫 문제 등록하기
+              <Plus className="w-4 h-4 mr-1" /> {t('problems.firstProblem')}
             </Button>
           </div>
         ) : (
@@ -575,10 +578,10 @@ export const ProblemList = () => {
             <div className="overflow-x-auto">
               <div className="min-w-[700px]">
                 <div className="grid grid-cols-[80px_1fr_120px_120px_80px] gap-4 p-4 border-b border-border-default bg-page text-sm font-bold text-text-muted">
-                  <div className="text-center">번호</div>
-                  <div>제목</div>
-                  <div>티어</div>
-                  <div>마감일</div>
+                  <div className="text-center">{t('problems.number')}</div>
+                  <div>{t('problems.title')}</div>
+                  <div>{t('problems.tier')}</div>
+                  <div>{t('problems.deadline')}</div>
                   {canManage && <div></div>}
                 </div>
 
@@ -603,7 +606,7 @@ export const ProblemList = () => {
                         )}
                       </div>
                       <div className="text-text-muted text-xs">
-                        {p.deadline ? new Date(p.deadline).toLocaleDateString('ko-KR') : '-'}
+                        {p.deadline ? new Date(p.deadline).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US') : '-'}
                       </div>
                       {canManage && (
                         <div className="text-center">
@@ -619,14 +622,14 @@ export const ProblemList = () => {
                             <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                               <DropdownMenuItem onClick={() => openEditProblemModal(p)}>
                                 <Pencil className="w-4 h-4 mr-2" />
-                                수정
+                                {t('common.edit')}
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 variant="destructive"
                                 disabled={deletingProblemId === p.id}
                                 onClick={() => {
-                                  if (confirm('이 문제를 삭제하시겠습니까?')) handleDeleteProblem(p.id);
+                                  if (confirm(t('problems.confirmDeleteProblem'))) handleDeleteProblem(p.id);
                                 }}
                               >
                                 {deletingProblemId === p.id ? (
@@ -634,7 +637,7 @@ export const ProblemList = () => {
                                 ) : (
                                   <Trash2 className="w-4 h-4 mr-2" />
                                 )}
-                                삭제
+                                {t('common.delete')}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -686,7 +689,7 @@ export const ProblemList = () => {
       </div>
 
       {/* 문제 수정 모달 */}
-      <Modal isOpen={!!editProblemTarget} onClose={closeEditProblemModal} title="문제 수정">
+      <Modal isOpen={!!editProblemTarget} onClose={closeEditProblemModal} title={t('problems.editProblem')}>
         <div className="space-y-6">
           <div className="flex items-center gap-3 bg-surface-subtle/50 rounded-lg px-4 py-3">
             <span className="text-xs font-bold text-text-muted bg-surface-subtle rounded px-2 py-1 font-mono">{editProblemTarget?.problemNumber}</span>
@@ -695,13 +698,13 @@ export const ProblemList = () => {
 
           {/* 마감일 */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-text-muted">마감일</label>
+            <label className="text-sm font-bold text-text-muted">{t('problems.deadlineLabel')}</label>
             <div className="relative">
               <DateTimePicker
                 value={editDeadline}
                 onChange={(v) => setEditDeadline(v)}
                 ampm={false}
-                format="YYYY년 MM월 DD일 HH:mm"
+                format={t('problems.dateFormat')}
                 slotProps={{
                   textField: { fullWidth: true, size: 'small' },
                 }}
@@ -711,7 +714,7 @@ export const ProblemList = () => {
               />
               {!editDeadline && (
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint pointer-events-none text-sm">
-                  마감일을 선택하세요
+                  {t('problems.deadlinePlaceholder')}
                 </span>
               )}
             </div>
@@ -725,7 +728,7 @@ export const ProblemList = () => {
                 onCheckedChange={setEditReminderEnabled}
                 disabled={!editDeadline}
               />
-              <label className="text-sm text-text-secondary">마감 전 알림</label>
+              <label className="text-sm text-text-secondary">{t('problems.reminderLabel')}</label>
             </div>
 
             {editReminderEnabled && editDeadline && (
@@ -737,12 +740,12 @@ export const ProblemList = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1시간 전</SelectItem>
-                  <SelectItem value="2">2시간 전</SelectItem>
-                  <SelectItem value="3">3시간 전</SelectItem>
-                  <SelectItem value="6">6시간 전</SelectItem>
-                  <SelectItem value="12">12시간 전</SelectItem>
-                  <SelectItem value="24">24시간 전</SelectItem>
+                  <SelectItem value="1">{t('reminder.1hour')}</SelectItem>
+                  <SelectItem value="2">{t('reminder.2hours')}</SelectItem>
+                  <SelectItem value="3">{t('reminder.3hours')}</SelectItem>
+                  <SelectItem value="6">{t('reminder.6hours')}</SelectItem>
+                  <SelectItem value="12">{t('reminder.12hours')}</SelectItem>
+                  <SelectItem value="24">{t('reminder.24hours')}</SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -755,10 +758,10 @@ export const ProblemList = () => {
           )}
 
           <div className="flex justify-end gap-3 pt-2">
-            <Button type="button" variant="ghost" onClick={closeEditProblemModal}>취소</Button>
+            <Button type="button" variant="ghost" onClick={closeEditProblemModal}>{t('common.cancel')}</Button>
             <Button onClick={handleEditProblem} disabled={editingProblem}>
               {editingProblem ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-              저장
+              {editingProblem ? t('common.saving') : t('common.save')}
             </Button>
           </div>
         </div>

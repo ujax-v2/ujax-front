@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRecoilState, useRecoilValue, RecoilRoot } from 'recoil';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, Workspace, themeState, ThemeMode } from './store/atoms';
+import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, Workspace, themeState, ThemeMode, languageState } from './store/atoms';
 import { Sidebar } from './components/layout/Sidebar';
 import { getWorkspaces } from './api/workspace';
 import { Dashboard } from './features/dashboard/Dashboard';
@@ -28,6 +28,8 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import 'dayjs/locale/ko';
+import 'dayjs/locale/en';
+import { LangSync, useT } from './i18n';
 
 const darkTheme = createTheme({
   palette: {
@@ -158,6 +160,7 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
  */
 function WorkspaceScope({ children }: { children: React.ReactNode }) {
   const { wsId } = useParams();
+  const t = useT();
   const [currentWsId, setCurrentWsId] = useRecoilState(currentWorkspaceState);
   const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
   const navigate = useNavigate();
@@ -218,23 +221,22 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-text-primary">접근 권한이 없습니다</h1>
-          <p className="text-text-muted">
-            요청하신 워크스페이스에 접근할 수 없습니다.<br />
-            멤버가 아니거나 존재하지 않는 워크스페이스일 수 있습니다.
+          <h1 className="text-2xl font-bold text-text-primary">{t('app.noAccess')}</h1>
+          <p className="text-text-muted whitespace-pre-line">
+            {t('app.noAccessDesc')}
           </p>
           <div className="flex gap-3 justify-center pt-2">
             <button
               onClick={() => navigate('/')}
               className="px-5 py-2.5 bg-surface-subtle hover:bg-border-subtle text-text-secondary rounded-lg transition-colors font-medium text-sm"
             >
-              홈으로
+              {t('app.goHome')}
             </button>
             <button
               onClick={() => navigate('/explore')}
               className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-medium text-sm"
             >
-              다른 스터디 찾기
+              {t('app.findOtherStudy')}
             </button>
           </div>
         </div>
@@ -364,17 +366,27 @@ function MuiThemeWrapper({ children }: { children: React.ReactNode }) {
   return <ThemeProvider theme={isDark ? darkTheme : lightTheme}>{children}</ThemeProvider>;
 }
 
+function LocaleProvider({ children }: { children: React.ReactNode }) {
+  const language = useRecoilValue(languageState);
+  return (
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={language}>
+      {children}
+    </LocalizationProvider>
+  );
+}
+
 export default function App() {
   return (
     <RecoilRoot>
       <MuiThemeWrapper>
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ko">
+        <LocaleProvider>
           <BrowserRouter>
             <ThemeSync />
+            <LangSync />
             <AppContent />
             <CreateWorkspaceModal />
           </BrowserRouter>
-        </LocalizationProvider>
+        </LocaleProvider>
       </MuiThemeWrapper>
     </RecoilRoot>
   );

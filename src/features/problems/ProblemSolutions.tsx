@@ -14,11 +14,13 @@ import {
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useIsDark } from '@/App';
+import { useT } from '@/i18n';
 
 export const ProblemSolutions = () => {
   const { navigate, toWs } = useWorkspaceNavigate();
   const isDark = useIsDark();
   const { id } = useParams();
+  const t = useT();
   const [activeSolutionId, setActiveSolutionId] = useState(1);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(0);
 
@@ -151,7 +153,7 @@ int main() {
       <div className="w-80 bg-page border-r border-border-subtle flex flex-col">
         <div className="p-4 border-b border-border-default flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => toWs(`ide/${id || '1000'}`)} className="-ml-2 text-text-muted hover:text-text-primary">
-            <ArrowLeft className="w-4 h-4 mr-2" /> 문제로 돌아가기
+            <ArrowLeft className="w-4 h-4 mr-2" /> {t('problems.solutions.backToProblem')}
           </Button>
         </div>
         <div className="p-4 border-b border-border-default bg-surface">
@@ -216,7 +218,7 @@ int main() {
         <div className="h-10 border-b border-border-default bg-surface-overlay flex items-center justify-between px-4">
           <div className="flex items-center gap-2 text-xs text-text-muted">
             <History className="w-3.5 h-3.5" />
-            <span>제출 기록 (Version {totalVersions - currentVersionIndex} / {totalVersions})</span>
+            <span>{t('problems.solutions.submissionHistory')} (Version {totalVersions - currentVersionIndex} / {totalVersions})</span>
             <span className="text-text-faint ml-2">{activeVersion.timestamp}</span>
           </div>
 
@@ -258,7 +260,7 @@ int main() {
         {/* Comments (Collapsible or Fixed Height) */}
         <div className="h-64 border-t border-border-default bg-page flex flex-col">
           <div className="p-3 border-b border-border-default font-bold text-text-secondary text-sm flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-emerald-500" /> 댓글
+            <MessageSquare className="w-4 h-4 text-emerald-500" /> {t('problems.solutions.comments')}
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {comments.map(c => (
@@ -273,7 +275,7 @@ int main() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="댓글 작성..."
+                placeholder={t('problems.solutions.writeComment')}
                 className="w-full bg-input-bg border border-border-default rounded-lg py-2 pl-3 pr-10 text-sm text-text-secondary focus:outline-none focus:border-emerald-500"
               />
               <button className="absolute right-2 top-1/2 -translate-y-1/2 text-emerald-500 hover:text-emerald-400">

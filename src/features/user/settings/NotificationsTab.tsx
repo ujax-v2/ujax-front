@@ -1,12 +1,16 @@
+import { useT } from '@/i18n';
+
 export const NotificationsTab = () => {
+  const t = useT();
+
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      <h2 className="text-xl font-bold text-text-primary pb-4 border-b border-border-default">알림 설정</h2>
+      <h2 className="text-xl font-bold text-text-primary pb-4 border-b border-border-default">{t('settings.notifications.title')}</h2>
       <div className="space-y-6">
         <div className="flex items-center justify-between py-2">
           <div>
-            <div className="text-sm font-medium text-text-secondary">이메일 알림</div>
-            <div className="text-xs text-text-faint">새로운 멘션, 페이지 초대 등에 대한 알림을 받습니다.</div>
+            <div className="text-sm font-medium text-text-secondary">{t('settings.notifications.emailNotifications')}</div>
+            <div className="text-xs text-text-faint">{t('settings.notifications.emailDesc')}</div>
           </div>
           <div className="relative inline-block w-10 h-5">
             <input type="checkbox" defaultChecked className="peer absolute opacity-0 w-0 h-0" />
@@ -15,8 +19,8 @@ export const NotificationsTab = () => {
         </div>
         <div className="flex items-center justify-between py-2">
           <div>
-            <div className="text-sm font-medium text-text-secondary">모바일 푸시 알림</div>
-            <div className="text-xs text-text-faint">모바일 기기로 중요 알림을 전송합니다.</div>
+            <div className="text-sm font-medium text-text-secondary">{t('settings.notifications.pushNotifications')}</div>
+            <div className="text-xs text-text-faint">{t('settings.notifications.pushDesc')}</div>
           </div>
           <div className="relative inline-block w-10 h-5">
             <input type="checkbox" className="peer absolute opacity-0 w-0 h-0" />

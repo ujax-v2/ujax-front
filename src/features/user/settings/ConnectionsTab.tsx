@@ -1,12 +1,15 @@
 import { Button } from '@/components/ui/Base';
 import { Github, Trello, Slack } from 'lucide-react';
+import { useT } from '@/i18n';
 
 export const ConnectionsTab = () => {
+  const t = useT();
+
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      <h2 className="text-xl font-bold text-text-primary pb-4 border-b border-border-default">연결된 계정</h2>
+      <h2 className="text-xl font-bold text-text-primary pb-4 border-b border-border-default">{t('settings.connections.title')}</h2>
       <div className="space-y-4">
-        <p className="text-sm text-text-faint">다른 서비스와 연결하여 UJAX의 기능을 확장하세요.</p>
+        <p className="text-sm text-text-faint">{t('settings.connections.desc')}</p>
 
         <div className="flex items-center justify-between p-4 bg-surface-subtle/50 rounded-lg border border-border-subtle">
           <div className="flex items-center gap-3">
@@ -15,10 +18,10 @@ export const ConnectionsTab = () => {
             </div>
             <div>
               <div className="text-sm font-bold text-text-primary">GitHub</div>
-              <div className="text-xs text-text-faint">PR 및 이슈 상태 동기화</div>
+              <div className="text-xs text-text-faint">{t('settings.connections.githubDesc')}</div>
             </div>
           </div>
-          <Button variant="secondary" size="sm">연결하기</Button>
+          <Button variant="secondary" size="sm">{t('settings.connections.connect')}</Button>
         </div>
 
         <div className="flex items-center justify-between p-4 bg-surface-subtle/50 rounded-lg border border-border-subtle">
@@ -28,10 +31,10 @@ export const ConnectionsTab = () => {
             </div>
             <div>
               <div className="text-sm font-bold text-text-primary">Trello</div>
-              <div className="text-xs text-text-faint">보드 가져오기 및 동기화</div>
+              <div className="text-xs text-text-faint">{t('settings.connections.trelloDesc')}</div>
             </div>
           </div>
-          <Button variant="secondary" size="sm">연결하기</Button>
+          <Button variant="secondary" size="sm">{t('settings.connections.connect')}</Button>
         </div>
 
         <div className="flex items-center justify-between p-4 bg-surface-subtle/50 rounded-lg border border-border-subtle">
@@ -41,10 +44,10 @@ export const ConnectionsTab = () => {
             </div>
             <div>
               <div className="text-sm font-bold text-text-primary">Slack</div>
-              <div className="text-xs text-text-faint">알림 전송 및 미리보기</div>
+              <div className="text-xs text-text-faint">{t('settings.connections.slackDesc')}</div>
             </div>
           </div>
-          <Button variant="secondary" size="sm">연결하기</Button>
+          <Button variant="secondary" size="sm">{t('settings.connections.connect')}</Button>
         </div>
       </div>
     </div>

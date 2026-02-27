@@ -6,9 +6,11 @@ import { getWorkspaces } from '@/api/workspace';
 import { logoutApi } from '@/api/auth';
 import { Button, Card } from '@/components/ui/Base';
 import { Code2, Users, Zap, Layout, Monitor, Search, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { useT } from '@/i18n';
 
 export const Home = () => {
     const navigate = useNavigate();
+    const t = useT();
     const [user, setUser] = useRecoilState(userState);
     const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
     const currentWsId = useRecoilValue(currentWorkspaceState);
@@ -72,7 +74,7 @@ export const Home = () => {
     if (loading) {
         return (
             <div className="min-h-screen bg-page flex items-center justify-center">
-                <div className="text-text-muted">워크스페이스 로딩 중...</div>
+                <div className="text-text-muted">{t('home.loadingWorkspaces')}</div>
             </div>
         );
     }
@@ -131,14 +133,14 @@ export const Home = () => {
                                                 className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-text-secondary hover:bg-hover-bg transition-colors"
                                             >
                                                 <Settings className="w-4 h-4 text-text-muted" />
-                                                설정
+                                                {t('nav.settings')}
                                             </button>
                                             <button
                                                 onClick={handleLogout}
                                                 className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-400 hover:bg-hover-bg transition-colors"
                                             >
                                                 <LogOut className="w-4 h-4" />
-                                                로그아웃
+                                                {t('nav.logout')}
                                             </button>
                                         </div>
                                     </div>
@@ -147,10 +149,10 @@ export const Home = () => {
                         ) : (
                             <>
                                 <Button variant="ghost" className="text-text-muted hover:text-text-primary" onClick={() => navigate('/login')}>
-                                    로그인
+                                    {t('auth.login')}
                                 </Button>
                                 <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => navigate('/signup')}>
-                                    회원가입
+                                    {t('auth.signup')}
                                 </Button>
                             </>
                         )}
@@ -165,11 +167,11 @@ export const Home = () => {
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/10 rounded-full blur-3xl -z-10 animate-pulse" />
 
                     <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-text-muted mt-[-4rem]">
-                        함께 코딩하고,<br />함께 성장하세요.
+                        {t('home.heroTitle1')}<br />{t('home.heroTitle2')}
                     </h1>
                     <p className="text-lg md:text-xl text-text-muted max-w-2xl mb-10 leading-relaxed">
-                        실시간 알고리즘 스터디 플랫폼 UJAX에서<br className="hidden md:block" />
-                        팀원들과 함께 코드를 리뷰하고 성장하세요.
+                        {t('home.heroSubtitle1')}<br className="hidden md:block" />
+                        {t('home.heroSubtitle2')}
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 mb-4 z-10">
@@ -179,14 +181,14 @@ export const Home = () => {
                                 onClick={() => setCreateWorkspaceOpen(true)}
                             >
                                 <Zap className="w-5 h-5 mr-2" />
-                                워크스페이스 생성하기
+                                {t('home.ctaCreate')}
                             </Button>
                         ) : (
                             <Button
                                 className="h-12 px-8 text-lg bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-900/20"
                                 onClick={() => navigate('/login')}
                             >
-                                지금 무료로 시작하기
+                                {t('home.ctaStart')}
                             </Button>
                         )}
                     </div>
@@ -208,10 +210,10 @@ export const Home = () => {
                     <div className="max-w-7xl mx-auto px-6 relative z-10 w-full mb-12">
                         <div className="text-center mb-16 mt-[-2rem]">
                             <h2 className="text-4xl lg:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-indigo-500 dark:via-indigo-200 to-text-muted">
-                                왜 UJAX인가요?
+                                {t('home.whyUjax')}
                             </h2>
                             <p className="text-lg text-text-muted max-w-2xl mx-auto">
-                                성장에 필요한 모든 것을 담았습니다. 압도적인 몰입감과 실용성을 바탕으로 알고리즘 스터디의 새로운 표준을 제시합니다.
+                                {t('home.whyUjaxDesc')}
                             </p>
                         </div>
 
@@ -223,9 +225,9 @@ export const Home = () => {
                                     <div className="w-14 h-14 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-indigo-500/20">
                                         <Layout className="w-7 h-7 text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-500 dark:group-hover:text-indigo-300" />
                                     </div>
-                                    <h3 className="text-2xl font-bold mb-4 text-text-primary group-hover:text-text-primary transition-colors">독립된 워크스페이스</h3>
+                                    <h3 className="text-2xl font-bold mb-4 text-text-primary group-hover:text-text-primary transition-colors">{t('home.featureWorkspace')}</h3>
                                     <p className="text-text-muted leading-relaxed group-hover:text-text-secondary transition-colors">
-                                        스터디별로 완벽히 분리된 팀 공간을 제공합니다. 멤버 초대부터 문제집 공유, 공지사항 관리까지 스터디 운영이 한결 쉬워집니다.
+                                        {t('home.featureWorkspaceDesc')}
                                     </p>
                                 </div>
                             </div>
@@ -237,9 +239,9 @@ export const Home = () => {
                                     <div className="w-14 h-14 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-emerald-500/20">
                                         <Code2 className="w-7 h-7 text-emerald-400 group-hover:text-emerald-300" />
                                     </div>
-                                    <h3 className="text-2xl font-bold mb-4 text-text-primary group-hover:text-text-primary transition-colors">강력한 브라우저 IDE</h3>
+                                    <h3 className="text-2xl font-bold mb-4 text-text-primary group-hover:text-text-primary transition-colors">{t('home.featureIde')}</h3>
                                     <p className="text-text-muted leading-relaxed group-hover:text-text-secondary transition-colors">
-                                        번거로운 환경 설정 없이 브라우저에서 즉시 코딩을 시작하세요. 다크 테마, 문법 강조 및 코드 자동 완성을 지원하는 편집기를 경험할 수 있습니다.
+                                        {t('home.featureIdeDesc')}
                                     </p>
                                 </div>
                             </div>
@@ -251,9 +253,9 @@ export const Home = () => {
                                     <div className="w-14 h-14 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-purple-500/20">
                                         <Monitor className="w-7 h-7 text-purple-400 group-hover:text-purple-300" />
                                     </div>
-                                    <h3 className="text-2xl font-bold mb-4 text-text-primary group-hover:text-text-primary transition-colors">실시간 코드 피드백</h3>
+                                    <h3 className="text-2xl font-bold mb-4 text-text-primary group-hover:text-text-primary transition-colors">{t('home.featureFeedback')}</h3>
                                     <p className="text-text-muted leading-relaxed group-hover:text-text-secondary transition-colors">
-                                        문제 풀이 결과를 투명하게 공유하고 동료들과 의견을 나눕니다. 집단 지성을 통한 코드 리뷰로 더 우수하고 효율적인 최적의 알고리즘을 발견하세요.
+                                        {t('home.featureFeedbackDesc')}
                                     </p>
                                 </div>
                             </div>
@@ -275,10 +277,10 @@ export const Home = () => {
                 <section id="explore" className="min-h-screen py-16 bg-page-deep flex flex-col justify-center shrink-0 relative">
                     <div className="max-w-3xl mx-auto px-6 text-center w-full mt-[-2rem]">
                         <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
-                            워크스페이스 탐색
+                            {t('home.exploreTitle')}
                         </h2>
                         <p className="text-lg text-text-muted mb-10">
-                            공개 스터디를 찾아 참여하세요. 같은 목표를 가진 동료들과 함께 성장할 수 있습니다.
+                            {t('home.exploreDesc')}
                         </p>
 
                         {/* 탐색 검색바 */}
@@ -289,7 +291,7 @@ export const Home = () => {
                                     type="text"
                                     value={exploreQuery}
                                     onChange={(e) => setExploreQuery(e.target.value)}
-                                    placeholder="스터디 이름, 태그 검색..."
+                                    placeholder={t('home.searchPlaceholder')}
                                     className="w-full h-14 bg-surface border border-border-subtle rounded-xl pl-12 pr-4 text-text-secondary placeholder:text-text-faint focus:outline-none focus:border-indigo-500 transition-colors shadow-lg"
                                 />
                             </div>
@@ -297,7 +299,7 @@ export const Home = () => {
                                 type="submit"
                                 className="h-14 px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-lg"
                             >
-                                검색
+                                {t('common.search')}
                             </Button>
                         </form>
 

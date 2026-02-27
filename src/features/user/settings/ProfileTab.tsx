@@ -6,6 +6,7 @@ import { userState, workspacesState, currentWorkspaceState } from '@/store/atoms
 import { getMe, updateMe, deleteMe, getProfileImagePresignedUrl } from '@/api/user';
 import { extractErrorDetail } from './utils';
 import { AlertTriangle } from 'lucide-react';
+import { useT } from '@/i18n';
 
 export const ProfileTab = () => {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ export const ProfileTab = () => {
   const [saveResult, setSaveResult] = useState<'success' | 'error' | null>(null);
   const [saveError, setSaveError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const t = useT();
 
   // Account deletion state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -85,13 +87,13 @@ export const ProfileTab = () => {
     if (!file) return;
     if (!ALLOWED_TYPES.includes(file.type)) {
       setSaveResult('error');
-      setSaveError('JPG, PNG, WEBP 형식만 지원합니다.');
+      setSaveError(t('settings.profile.fileTypeError'));
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
     if (file.size > MAX_SIZE) {
       setSaveResult('error');
-      setSaveError('파일 크기는 5MB 이하여야 합니다.');
+      setSaveError(t('settings.profile.fileSizeError'));
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
@@ -209,7 +211,7 @@ export const ProfileTab = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      <h2 className="text-xl font-bold text-text-primary pb-4 border-b border-border-default">내 프로필</h2>
+      <h2 className="text-xl font-bold text-text-primary pb-4 border-b border-border-default">{t('settings.profile.title')}</h2>
 
       <div className="flex items-start gap-6">
         <div className="w-24 h-24 rounded-full bg-surface-subtle overflow-hidden flex-shrink-0 flex items-center justify-center">
@@ -228,31 +230,31 @@ export const ProfileTab = () => {
               className="hidden"
               onChange={handleFileChange}
             />
-            <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>사진 변경</Button>
-            <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600" onClick={handleRemovePhoto}>제거</Button>
+            <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>{t('settings.profile.changePhoto')}</Button>
+            <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600" onClick={handleRemovePhoto}>{t('settings.profile.removePhoto')}</Button>
           </div>
-          <p className="text-xs text-text-faint">최대 5MB의 JPG, PNG 또는 WEBP 형식을 지원합니다.</p>
+          <p className="text-xs text-text-faint">{t('settings.profile.photoDesc')}</p>
         </div>
       </div>
 
       <div className="space-y-4 max-w-md">
-        <h3 className="text-sm font-bold text-text-secondary">기본 정보</h3>
+        <h3 className="text-sm font-bold text-text-secondary">{t('settings.profile.basicInfo')}</h3>
         <div>
-          <label className="block text-xs font-bold text-text-faint mb-1">이메일</label>
+          <label className="block text-xs font-bold text-text-faint mb-1">{t('settings.profile.email')}</label>
           <input type="email" value={email} disabled className="w-full bg-surface-subtle border border-border-subtle rounded px-3 py-1.5 text-sm text-text-faint cursor-not-allowed" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-text-faint mb-1">이름</label>
+          <label className="block text-xs font-bold text-text-faint mb-1">{t('settings.profile.name')}</label>
           <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
         </div>
       </div>
 
       <div className="pt-2 space-y-4 max-w-md">
-        <h3 className="text-sm font-bold text-text-secondary">연동 계정</h3>
+        <h3 className="text-sm font-bold text-text-secondary">{t('settings.profile.linkedAccounts')}</h3>
         <div>
-          <label className="block text-xs font-bold text-text-faint mb-1">백준 아이디</label>
-          <input type="text" value={baekjoonId} onChange={e => setBaekjoonId(e.target.value)} placeholder="백준 아이디를 입력하세요" className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
-          <p className="text-[11px] text-text-faint mt-1">solved.ac 티어 연동에 사용됩니다.</p>
+          <label className="block text-xs font-bold text-text-faint mb-1">{t('settings.profile.baekjoonId')}</label>
+          <input type="text" value={baekjoonId} onChange={e => setBaekjoonId(e.target.value)} placeholder={t('settings.profile.baekjoonPlaceholder')} className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+          <p className="text-[11px] text-text-faint mt-1">{t('settings.profile.baekjoonDesc')}</p>
         </div>
         <div className="space-y-2 pt-2">
           <Button
@@ -260,7 +262,7 @@ export const ProfileTab = () => {
             onClick={handleSave}
             disabled={saving}
           >
-            {saving ? '저장 중...' : saveResult === 'success' ? '저장됨' : saveResult === 'error' ? '저장 실패' : '저장'}
+            {saving ? t('common.saving') : saveResult === 'success' ? t('common.saved') : saveResult === 'error' ? t('common.saveFailed') : t('common.save')}
           </Button>
           {saveError && (
             <p className="text-xs text-red-500">{saveError}</p>
@@ -269,18 +271,18 @@ export const ProfileTab = () => {
       </div>
 
       <div className="pt-6 border-t border-red-500/20">
-        <h3 className="text-sm font-bold text-red-500 mb-4">위험 구역</h3>
+        <h3 className="text-sm font-bold text-red-500 mb-4">{t('settings.profile.dangerZone')}</h3>
         <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 flex items-center justify-between">
           <div>
-            <div className="text-sm font-medium text-text-secondary">계정 삭제</div>
-            <div className="text-xs text-text-faint mt-0.5">계정을 삭제하면 모든 데이터가 영구적으로 제거됩니다.</div>
+            <div className="text-sm font-medium text-text-secondary">{t('settings.profile.deleteAccount')}</div>
+            <div className="text-xs text-text-faint mt-0.5">{t('settings.profile.deleteAccountDesc')}</div>
           </div>
           <Button
             variant="ghost"
             className="text-red-500 hover:text-white hover:bg-red-600 border border-red-500/30 ml-4 flex-shrink-0"
             onClick={() => { setShowDeleteModal(true); setDeleteConfirmEmail(''); setDeleteError(''); }}
           >
-            계정 삭제
+            {t('settings.profile.deleteAccount')}
           </Button>
         </div>
       </div>
@@ -292,16 +294,16 @@ export const ProfileTab = () => {
               <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
               </div>
-              <h3 className="text-lg font-bold text-text-primary">계정 삭제</h3>
+              <h3 className="text-lg font-bold text-text-primary">{t('settings.profile.deleteAccount')}</h3>
             </div>
 
             <p className="text-sm text-text-faint">
-              이 작업은 되돌릴 수 없습니다. 모든 데이터가 영구 삭제됩니다.
+              {t('settings.profile.irreversible')}
             </p>
 
             <div>
               <label className="block text-xs font-medium text-text-faint mb-1.5">
-                확인을 위해 이메일(<span className="font-bold text-text-secondary">{email}</span>)을 입력하세요
+                {t('settings.profile.deleteEmailLabel', { email })}
               </label>
               <input
                 type="email"
@@ -323,14 +325,14 @@ export const ProfileTab = () => {
                 onClick={() => setShowDeleteModal(false)}
                 disabled={deleting}
               >
-                취소
+                {t('common.cancel')}
               </Button>
               <Button
                 className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={deleteConfirmEmail !== email || deleting}
                 onClick={handleDeleteAccount}
               >
-                {deleting ? '삭제 중...' : '계정 삭제'}
+                {deleting ? t('settings.profile.deleting') : t('settings.profile.deleteAccount')}
               </Button>
             </div>
           </div>

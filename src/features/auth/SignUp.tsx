@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
+import { useT } from '@/i18n';
 import { userState, workspacesState, currentWorkspaceState } from '@/store/atoms';
 import { signupApi } from '@/api/auth';
 import { getMe } from '@/api/user';
@@ -9,6 +10,7 @@ import { Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export const SignUp = () => {
   const navigate = useNavigate();
+  const t = useT();
   const setUser = useSetRecoilState(userState);
   const setWorkspaces = useSetRecoilState(workspacesState);
   const setCurrentWsId = useSetRecoilState(currentWorkspaceState);
@@ -90,13 +92,13 @@ export const SignUp = () => {
     <div className="min-h-screen flex items-center justify-center bg-page p-4">
       <Card className="w-full max-w-md p-8 bg-surface border-border-default">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-text-primary mb-2">회원가입</h1>
-          <p className="text-text-muted text-sm">개발자 커뮤니티에 참여하세요.</p>
+          <h1 className="text-2xl font-bold text-text-primary mb-2">{t('auth.signup')}</h1>
+          <p className="text-text-muted text-sm">{t('auth.joinCommunity')}</p>
         </div>
 
         <form onSubmit={handleSignup} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-medium text-text-muted">이메일</label>
+            <label className="text-xs font-medium text-text-muted">{t('auth.email')}</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint" />
               <input
@@ -112,7 +114,7 @@ export const SignUp = () => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-text-muted">닉네임</label>
+            <label className="text-xs font-medium text-text-muted">{t('auth.nickname')}</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint" />
               <input
@@ -127,7 +129,7 @@ export const SignUp = () => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-text-muted">비밀번호</label>
+            <label className="text-xs font-medium text-text-muted">{t('auth.password')}</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint" />
               <input
@@ -143,10 +145,10 @@ export const SignUp = () => {
             {/* Password Validation Feedback Area */}
             <div className="grid grid-cols-2 gap-2 mt-2">
               <div className={`text-xs flex items-center gap-1 ${formData.password.length >= 8 ? 'text-emerald-500' : 'text-text-faint'}`}>
-                <CheckCircle2 className="w-3 h-3" /> 8자 이상
+                <CheckCircle2 className="w-3 h-3" /> {t('auth.passwordMinLength')}
               </div>
               <div className={`text-xs flex items-center gap-1 ${/[0-9]/.test(formData.password) ? 'text-emerald-500' : 'text-text-faint'}`}>
-                <CheckCircle2 className="w-3 h-3" /> 숫자 포함
+                <CheckCircle2 className="w-3 h-3" /> {t('auth.passwordNumber')}
               </div>
             </div>
           </div>
@@ -158,14 +160,14 @@ export const SignUp = () => {
             disabled={loading}
             className="w-full bg-emerald-600 hover:bg-emerald-700 py-2.5 mt-2"
           >
-            {loading ? '가입 중...' : '가입하기'}
+            {loading ? t('auth.signupLoading') : t('auth.signupButton')}
           </Button>
         </form>
 
         <div className="mt-6 text-center text-sm text-text-muted">
-          이미 계정이 있으신가요?{' '}
+          {t('auth.hasAccount')}{' '}
           <button onClick={() => navigate('/login')} className="text-emerald-500 hover:text-emerald-400 font-medium">
-            로그인
+            {t('auth.login')}
           </button>
         </div>
       </Card>

@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { getT } from '@/i18n';
 
 interface Props {
     children?: ReactNode;
@@ -42,6 +43,8 @@ class ErrorBoundary extends Component<Props, State> {
         if (this.state.hasError) {
             if (this.props.fallback) return this.props.fallback;
 
+            const t = getT();
+
             return (
                 <div className="flex flex-col items-center justify-center min-h-screen bg-page text-text-primary p-4">
                     <div className="max-w-md w-full bg-surface border border-border-default rounded-xl p-8 shadow-2xl text-center space-y-6">
@@ -50,10 +53,9 @@ class ErrorBoundary extends Component<Props, State> {
                         </div>
 
                         <div>
-                            <h2 className="text-xl font-bold text-text-primary mb-2">예기치 못한 오류가 발생했습니다</h2>
-                            <p className="text-sm text-text-muted">
-                                죄송합니다. 요청을 처리하는 중에 문제가 발생했습니다.<br />
-                                지속적으로 발생할 경우 캐시를 삭제해 보세요.
+                            <h2 className="text-xl font-bold text-text-primary mb-2">{t('error.unexpectedError')}</h2>
+                            <p className="text-sm text-text-muted whitespace-pre-line">
+                                {t('error.unexpectedErrorDesc')}
                             </p>
                         </div>
 
@@ -68,14 +70,14 @@ class ErrorBoundary extends Component<Props, State> {
                                 onClick={() => window.location.reload()}
                                 className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors"
                             >
-                                페이지 새로고침
+                                {t('error.refreshPage')}
                             </button>
 
                             <button
                                 onClick={this.handleReset}
                                 className="w-full py-3 bg-surface-subtle hover:bg-border-subtle text-text-secondary font-medium rounded-lg transition-colors text-sm"
                             >
-                                초기화 후 메인으로 (로그아웃)
+                                {t('error.resetAndGoHome')}
                             </button>
                         </div>
                     </div>

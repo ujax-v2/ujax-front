@@ -20,15 +20,17 @@ import {
   ChevronRight,
   Loader2,
 } from 'lucide-react';
+import { useT } from '@/i18n';
 
-type TagLabel = '전체' | '자유' | '질문' | '자료';
+type TagLabel = 'all' | 'free' | 'question' | 'data';
 
 export const Community = () => {
   const { toWs } = useWorkspaceNavigate();
+  const t = useT();
   const wsId = useRecoilValue(currentWorkspaceState);
 
   const [posts, setPosts] = useState<BoardListItemResponse[]>([]);
-  const [selectedTag, setSelectedTag] = useState<TagLabel>('전체');
+  const [selectedTag, setSelectedTag] = useState<TagLabel>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(0);
@@ -36,13 +38,13 @@ export const Community = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const filterTags: TagLabel[] = ['전체', '자유', '질문', '자료'];
+  const filterTags: TagLabel[] = ['all', 'free', 'question', 'data'];
 
   const fetchPosts = useCallback(async (p: number, tag: TagLabel, keyword: string) => {
     if (!wsId) return;
     setLoading(true);
     try {
-      const typeParam: BoardType | undefined = tag !== '전체' ? LABEL_TO_BOARD_TYPE[tag] : undefined;
+      const typeParam: BoardType | undefined = tag !== 'all' ? LABEL_TO_BOARD_TYPE[tag] : undefined;
       const res = await getBoards(wsId, {
         type: typeParam,
         keyword: keyword || undefined,
@@ -81,7 +83,7 @@ export const Community = () => {
 
   const getTagBadge = (type: BoardType | undefined, pinned: boolean | undefined) => {
     if (!type) return null;
-    const label = BOARD_TYPE_LABEL[type];
+    const label = t(BOARD_TYPE_LABEL[type]);
     if (type === 'NOTICE') return <Badge variant="destructive" className="bg-red-500/10 text-red-500 border-red-500/20 w-12 justify-center">{label}</Badge>;
     if (type === 'FREE') return <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/10 w-12 justify-center">{label}</Badge>;
     if (type === 'QNA') return <Badge variant="outline" className="border-orange-500/30 text-orange-400 bg-orange-500/10 w-12 justify-center">{label}</Badge>;
@@ -100,11 +102,11 @@ export const Community = () => {
         {/* Header */}
         <div className="flex justify-between items-center border-b border-border-default pb-6">
           <div>
-            <h1 className="text-3xl font-extrabold text-text-primary tracking-tight mb-2">커뮤니티</h1>
-            <p className="text-text-muted text-sm">팀원들과 자유롭게 이야기를 나누고 지식을 공유하세요.</p>
+            <h1 className="text-3xl font-extrabold text-text-primary tracking-tight mb-2">{t('community.title')}</h1>
+            <p className="text-text-muted text-sm">{t('community.desc')}</p>
           </div>
           <Button className="bg-emerald-600 hover:bg-emerald-700 gap-2 font-bold px-5" onClick={() => toWs('community/new')}>
-            <PenSquare className="w-4 h-4" /> 새 게시물 작성
+            <PenSquare className="w-4 h-4" /> {t('community.newPost')}
           </Button>
         </div>
 
@@ -113,7 +115,7 @@ export const Community = () => {
           {/* Tags */}
           <div className="flex items-center gap-3">
             <Filter className="w-4 h-4 text-text-faint" />
-            <span className="text-sm font-medium text-text-muted mr-2">태그 필터:</span>
+            <span className="text-sm font-medium text-text-muted mr-2">{t('community.tagFilter')}</span>
             {filterTags.map(tag => (
               <button
                 key={tag}
@@ -124,7 +126,7 @@ export const Community = () => {
                 }`}
               >
                 {selectedTag === tag && <Check className="w-3 h-3" />}
-                {tag}
+                {t(`community.tags.${tag}`)}
               </button>
             ))}
           </div>
@@ -134,7 +136,7 @@ export const Community = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint" />
             <input
               type="text"
-              placeholder="게시물 검색..."
+              placeholder={t('community.searchPosts')}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={handleSearchKeyDown}
@@ -148,12 +150,12 @@ export const Community = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-border-default bg-surface-raised text-text-muted text-xs uppercase tracking-wider">
-                <th className="p-4 font-bold w-20 text-center">분류</th>
-                <th className="p-4 font-bold">제목</th>
-                <th className="p-4 font-bold w-32">작성자</th>
-                <th className="p-4 font-bold w-32 text-center">작성일</th>
-                <th className="p-4 font-bold w-20 text-center">조회</th>
-                <th className="p-4 font-bold w-20 text-center">추천</th>
+                <th className="p-4 font-bold w-20 text-center">{t('community.table.category')}</th>
+                <th className="p-4 font-bold">{t('community.table.title')}</th>
+                <th className="p-4 font-bold w-32">{t('community.table.author')}</th>
+                <th className="p-4 font-bold w-32 text-center">{t('community.table.date')}</th>
+                <th className="p-4 font-bold w-20 text-center">{t('community.table.views')}</th>
+                <th className="p-4 font-bold w-20 text-center">{t('community.table.likes')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-default text-sm">
@@ -167,7 +169,7 @@ export const Community = () => {
                 <tr>
                   <td colSpan={6} className="p-12 text-center text-text-faint">
                     <MessageCircle className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                    게시글이 없습니다.
+                    {t('community.noPosts')}
                   </td>
                 </tr>
               ) : (
@@ -211,7 +213,7 @@ export const Community = () => {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
-            <span className="text-xs text-text-faint">총 {totalElements}개 게시물</span>
+            <span className="text-xs text-text-faint">{t('community.totalPosts', { n: totalElements })}</span>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setPage(p => Math.max(0, p - 1))}
