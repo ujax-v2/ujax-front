@@ -12,6 +12,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { useT } from '@/i18n';
 
 type FlowStatus = 'idle' | 'loading' | 'found' | 'crawling' | 'registering' | 'done' | 'error' | 'timeout';
 
@@ -30,6 +31,7 @@ function parseApiError(err: any): { detail: string; status?: number } {
 export const ProblemRegistration = () => {
   const { toWs, currentWsId } = useWorkspaceNavigate();
   const currentBox = useRecoilValue(currentProblemBoxState);
+  const t = useT();
   const { status: crawlStatus, reason: crawlReason, requestCrawl, reset: resetCrawl } = useExtensionCrawl();
 
   const [problemNumber, setProblemNumber] = useState('');
@@ -153,7 +155,7 @@ export const ProblemRegistration = () => {
     resetCrawl();
   };
 
-  const tags = problem?.algorithmTags?.map((t: any) => t.name).join(', ') || '';
+  const tags = problem?.algorithmTags?.map((tag: any) => tag.name).join(', ') || '';
   const isProcessing = flowStatus === 'loading' || flowStatus === 'crawling' || flowStatus === 'registering';
 
   return (
@@ -163,7 +165,7 @@ export const ProblemRegistration = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-text-primary">문제 등록</h1>
+            <h1 className="text-xl font-bold text-text-primary">{t('problems.registration.title')}</h1>
             {currentBox && (
               <p className="text-sm text-text-faint mt-1">
                 <span className="text-text-muted font-medium">{currentBox.title}</span>에 문제 추가
@@ -171,7 +173,7 @@ export const ProblemRegistration = () => {
             )}
           </div>
           <Button variant="secondary" onClick={() => toWs('problems')} className="gap-2">
-            <ArrowLeft className="w-4 h-4" /> 돌아가기
+            <ArrowLeft className="w-4 h-4" /> {t('problems.registration.goBack')}
           </Button>
         </div>
 
@@ -179,7 +181,7 @@ export const ProblemRegistration = () => {
 
           {/* 문제 번호 입력 */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-text-muted">백준 문제 번호</label>
+            <label className="text-sm font-bold text-text-muted">{t('problems.registration.baekjoonNumber')}</label>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -209,19 +211,19 @@ export const ProblemRegistration = () => {
             {/* 상태 메시지 */}
             <div className="min-h-[20px]">
               {flowStatus === 'loading' && (
-                <span className="text-text-muted text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> 조회 중...</span>
+                <span className="text-text-muted text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {t('problems.registration.searching')}</span>
               )}
               {flowStatus === 'crawling' && (
-                <span className="text-yellow-600 dark:text-yellow-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> 백준에서 문제를 수집하고 있습니다...</span>
+                <span className="text-yellow-600 dark:text-yellow-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {t('problems.registration.crawling')}</span>
               )}
               {flowStatus === 'registering' && (
-                <span className="text-indigo-600 dark:text-indigo-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> 문제집에 등록 중...</span>
+                <span className="text-indigo-600 dark:text-indigo-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {t('common.creating')}</span>
               )}
               {flowStatus === 'found' && (
-                <span className="text-green-400 text-sm flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> 문제를 찾았습니다</span>
+                <span className="text-green-400 text-sm flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> {t('problems.registration.found')}</span>
               )}
               {flowStatus === 'done' && (
-                <span className="text-green-400 text-sm flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> 등록 완료!</span>
+                <span className="text-green-400 text-sm flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> {t('problems.registration.registered')}</span>
               )}
               {(flowStatus === 'error' || flowStatus === 'timeout') && (
                 <span className="text-red-400 text-sm flex items-center gap-2"><AlertCircle className="w-4 h-4" /> {errorMsg}</span>
@@ -231,7 +233,7 @@ export const ProblemRegistration = () => {
 
           {/* 문제 정보 미리보기 */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-text-muted">문제 제목</label>
+            <label className="text-sm font-bold text-text-muted">{t('problems.registration.problemTitle')}</label>
             <div className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-3 text-text-secondary min-h-[48px]">
               {problem?.title || <span className="text-text-faint">문제 번호를 조회하면 자동으로 채워집니다</span>}
             </div>
@@ -239,13 +241,13 @@ export const ProblemRegistration = () => {
 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-text-muted">티어</label>
+              <label className="text-sm font-bold text-text-muted">{t('problems.registration.tier')}</label>
               <div className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-3 text-text-secondary min-h-[48px]">
                 {problem?.tier || <span className="text-text-faint">-</span>}
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-text-muted">태그</label>
+              <label className="text-sm font-bold text-text-muted">{t('problems.registration.tags')}</label>
               <div className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-3 min-h-[48px]">
                 {tags
                   ? <span className="text-text-secondary">{tags}</span>
@@ -257,14 +259,14 @@ export const ProblemRegistration = () => {
           {/* 마감일 & 알림 */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-text-muted">마감일</label>
+              <label className="text-sm font-bold text-text-muted">{t('problems.registration.deadline')}</label>
               <div className="relative">
                 <DateTimePicker
                   value={deadline}
                   onChange={(v) => setDeadline(v)}
                   minDateTime={dayjs()}
                   ampm={false}
-                  format="YYYY년 MM월 DD일 HH:mm"
+                  format={t('problems.dateFormat')}
                   slotProps={{
                     textField: { fullWidth: true, size: 'small' },
                   }}
@@ -274,7 +276,7 @@ export const ProblemRegistration = () => {
                 />
                 {!deadline && (
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint pointer-events-none text-sm">
-                    마감일을 선택하세요
+                    {t('problems.deadlinePlaceholder')}
                   </span>
                 )}
               </div>
@@ -287,7 +289,7 @@ export const ProblemRegistration = () => {
                   onCheckedChange={setReminderEnabled}
                   disabled={!deadline}
                 />
-                <label className="text-sm text-text-secondary">마감 전 알림</label>
+                <label className="text-sm text-text-secondary">{t('problems.registration.reminder')}</label>
               </div>
 
               {reminderEnabled && deadline && (
@@ -299,12 +301,12 @@ export const ProblemRegistration = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">1시간 전</SelectItem>
-                    <SelectItem value="2">2시간 전</SelectItem>
-                    <SelectItem value="3">3시간 전</SelectItem>
-                    <SelectItem value="6">6시간 전</SelectItem>
-                    <SelectItem value="12">12시간 전</SelectItem>
-                    <SelectItem value="24">24시간 전</SelectItem>
+                    <SelectItem value="1">{t('reminder.1hour')}</SelectItem>
+                    <SelectItem value="2">{t('reminder.2hours')}</SelectItem>
+                    <SelectItem value="3">{t('reminder.3hours')}</SelectItem>
+                    <SelectItem value="6">{t('reminder.6hours')}</SelectItem>
+                    <SelectItem value="12">{t('reminder.12hours')}</SelectItem>
+                    <SelectItem value="24">{t('reminder.24hours')}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -319,14 +321,14 @@ export const ProblemRegistration = () => {
                   className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6"
                   onClick={handleReset}
                 >
-                  다른 문제 등록
+                  {t('problems.registration.registerAnother')}
                 </Button>
                 <Button
                   variant="secondary"
                   className="bg-white hover:bg-slate-100 text-slate-900 font-bold px-6 border-none"
                   onClick={() => toWs('problems')}
                 >
-                  문제집으로 돌아가기
+                  {t('problems.registration.backToBox')}
                 </Button>
               </>
             ) : (
@@ -337,15 +339,15 @@ export const ProblemRegistration = () => {
                   disabled={!problem || isProcessing}
                 >
                   {flowStatus === 'registering'
-                    ? <><Loader2 className="w-4 h-4 animate-spin mr-1" /> 등록 중...</>
-                    : '등록'}
+                    ? <><Loader2 className="w-4 h-4 animate-spin mr-1" /> {t('common.creating')}</>
+                    : t('problems.registration.register')}
                 </Button>
                 <Button
                   variant="secondary"
                   className="bg-white hover:bg-slate-100 text-slate-900 font-bold px-6 border-none"
                   onClick={() => toWs('problems')}
                 >
-                  취소
+                  {t('common.cancel')}
                 </Button>
               </>
             )}

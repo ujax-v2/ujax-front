@@ -19,6 +19,7 @@ import { ConnectionsTab } from './settings/ConnectionsTab';
 import { WsGeneralTab } from './settings/WsGeneralTab';
 import { WsMembersTab } from './settings/WsMembersTab';
 import { WsImportTab } from './settings/WsImportTab';
+import { useT } from '@/i18n';
 
 export const Settings = () => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export const Settings = () => {
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
   const workspaces = useRecoilValue(workspacesState);
   const [user, setUser] = useRecoilState(userState);
+  const t = useT();
 
   // 설정 진입 시 최신 프로필 데이터로 Recoil/localStorage 동기화
   useEffect(() => {
@@ -62,16 +64,16 @@ export const Settings = () => {
   }, [workspaces.length, activeTab, setActiveTab]);
 
   const accountTabs = [
-    { id: 'profile', label: '내 프로필', icon: User },
-    { id: 'general', label: '기본 설정', icon: SettingsIcon },
-    { id: 'notifications', label: '알림', icon: Bell },
-    { id: 'connections', label: '연결', icon: Globe },
+    { id: 'profile', label: t('settings.tabs.profile'), icon: User },
+    { id: 'general', label: t('settings.tabs.general'), icon: SettingsIcon },
+    { id: 'notifications', label: t('settings.tabs.notifications'), icon: Bell },
+    { id: 'connections', label: t('settings.tabs.connections'), icon: Globe },
   ];
 
   const workspaceTabs = [
-    { id: 'ws-general', label: '일반', icon: SettingsIcon },
-    { id: 'ws-members', label: '멤버', icon: Users },
-    { id: 'ws-import', label: '가져오기', icon: Database },
+    { id: 'ws-general', label: t('settings.tabs.wsGeneral'), icon: SettingsIcon },
+    { id: 'ws-members', label: t('settings.tabs.members'), icon: Users },
+    { id: 'ws-import', label: t('settings.tabs.import'), icon: Database },
   ];
 
   return (
@@ -99,7 +101,7 @@ export const Settings = () => {
           <div className="flex-1 overflow-y-auto py-3">
             {/* Account Section */}
             <div className="px-3">
-              <div className="text-[11px] font-bold text-text-faint mb-1 px-2">계정</div>
+              <div className="text-[11px] font-bold text-text-faint mb-1 px-2">{t('settings.account')}</div>
               {accountTabs.map(tab => (
                 <button
                   key={tab.id}
@@ -118,7 +120,7 @@ export const Settings = () => {
             {/* Workspace Section - only show when workspaces exist */}
             {workspaces.length > 0 && (
               <div className="px-3 mt-3 pt-3">
-                <div className="text-[11px] font-bold text-text-faint mb-1 px-2">워크스페이스</div>
+                <div className="text-[11px] font-bold text-text-faint mb-1 px-2">{t('settings.workspace')}</div>
                 {workspaceTabs.map(tab => (
                   <button
                     key={tab.id}

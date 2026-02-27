@@ -21,6 +21,14 @@ export const themeState = atom<ThemeMode>({
   effects: [localStorageEffect('theme')],
 });
 
+export type Language = 'ko' | 'en';
+
+export const languageState = atom<Language>({
+  key: 'languageState',
+  default: 'ko',
+  effects: [localStorageEffect('language')],
+});
+
 export const sidebarOpenState = atom({
   key: 'sidebarOpenState',
   default: true,

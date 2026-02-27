@@ -8,6 +8,7 @@ import type { MemberRole } from '@/api/board';
 import { getMyMembership } from '@/api/workspace';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useT } from '@/i18n';
 import {
   PenSquare,
   ArrowLeft,
@@ -33,25 +34,26 @@ import {
 type EditorTab = 'write' | 'preview';
 
 const TOOLBAR_ACTIONS = [
-  { icon: Heading1, label: 'H1', insert: '# ', type: 'prefix' as const },
-  { icon: Heading2, label: 'H2', insert: '## ', type: 'prefix' as const },
-  { icon: Bold, label: '굵게', insert: '**', type: 'wrap' as const },
-  { icon: Italic, label: '기울임', insert: '_', type: 'wrap' as const },
-  { icon: Code, label: '코드', insert: '`', type: 'wrap' as const },
-  { icon: Quote, label: '인용', insert: '> ', type: 'prefix' as const },
-  { icon: Minus, label: '구분선', insert: '\n---\n', type: 'insert' as const },
-  { icon: List, label: '목록', insert: '- ', type: 'prefix' as const },
-  { icon: ListOrdered, label: '번호 목록', insert: '1. ', type: 'prefix' as const },
-  { icon: Link, label: '링크', insert: '[텍스트](url)', type: 'insert' as const },
-  { icon: Image, label: '이미지', insert: '![대체텍스트](url)', type: 'insert' as const },
+  { icon: Heading1, labelKey: 'H1', insert: '# ', type: 'prefix' as const },
+  { icon: Heading2, labelKey: 'H2', insert: '## ', type: 'prefix' as const },
+  { icon: Bold, labelKey: 'post.toolbar.bold', insert: '**', type: 'wrap' as const },
+  { icon: Italic, labelKey: 'post.toolbar.italic', insert: '_', type: 'wrap' as const },
+  { icon: Code, labelKey: 'post.toolbar.code', insert: '`', type: 'wrap' as const },
+  { icon: Quote, labelKey: 'post.toolbar.quote', insert: '> ', type: 'prefix' as const },
+  { icon: Minus, labelKey: 'post.toolbar.divider', insert: '\n---\n', type: 'insert' as const },
+  { icon: List, labelKey: 'post.toolbar.list', insert: '- ', type: 'prefix' as const },
+  { icon: ListOrdered, labelKey: 'post.toolbar.numberedList', insert: '1. ', type: 'prefix' as const },
+  { icon: Link, labelKey: 'post.toolbar.link', insert: '[텍스트](url)', type: 'insert' as const },
+  { icon: Image, labelKey: 'post.toolbar.image', insert: '![대체텍스트](url)', type: 'insert' as const },
 ];
 
 export const PostCreate = () => {
   const { toWs } = useWorkspaceNavigate();
   const wsId = useRecoilValue(currentWorkspaceState);
+  const t = useT();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [selectedTag, setSelectedTag] = useState<string>('자유');
+  const [selectedTag, setSelectedTag] = useState<string>('free');
   const [activeTab, setActiveTab] = useState<EditorTab>('write');
   const [pinned, setPinned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -66,9 +68,16 @@ export const PostCreate = () => {
     }).catch(() => { /* 권한 조회 실패 시 기본 MEMBER */ });
   }, [wsId]);
 
+  const TAG_LABEL_MAP: Record<string, string> = {
+    free: 'community.tags.free',
+    question: 'community.tags.question',
+    data: 'community.tags.data',
+    notice: 'community.tags.notice',
+  };
+
   const availableTags = myRole === 'OWNER'
-    ? ['자유', '질문', '자료', '공지']
-    : ['자유', '질문', '자료'];
+    ? ['free', 'question', 'data', 'notice']
+    : ['free', 'question', 'data'];
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   const IMAGE_URL_RE = /^https?:\/\/\S+\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?\S*)?$/i;
@@ -150,15 +159,15 @@ export const PostCreate = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
-      setError('제목과 내용을 모두 입력해주세요.');
+      setError(t('post.validation.titleContentRequired'));
       return;
     }
     if (title.trim().length > 50) {
-      setError('제목은 50자 이내로 입력해주세요.');
+      setError(t('post.validation.titleMaxLength'));
       return;
     }
     if (content.trim().length > 2000) {
-      setError('내용은 2000자 이내로 입력해주세요.');
+      setError(t('post.validation.contentMaxLength'));
       return;
     }
 
@@ -180,12 +189,12 @@ export const PostCreate = () => {
       if (jsonMatch) {
         try {
           const parsed = JSON.parse(jsonMatch[0]);
-          setError(parsed.detail || '요청에 실패했습니다.');
+          setError(parsed.detail || t('common.error'));
         } catch {
-          setError('요청에 실패했습니다.');
+          setError(t('common.error'));
         }
       } else {
-        setError('요청에 실패했습니다.');
+        setError(t('common.error'));
       }
     } finally {
       setSubmitting(false);
@@ -208,8 +217,7 @@ export const PostCreate = () => {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-extrabold text-text-primary tracking-tight">새 게시물 작성</h1>
-            <p className="text-text-muted text-sm mt-1">마크다운 문법을 지원합니다. 팀원들에게 유용한 정보를 공유하거나 질문해보세요.</p>
+            <h1 className="text-2xl font-extrabold text-text-primary tracking-tight">{t('post.create')}</h1>
           </div>
         </div>
 
@@ -219,7 +227,7 @@ export const PostCreate = () => {
 
             {/* Tag Selection */}
             <div>
-              <label className="block text-sm font-bold text-text-secondary mb-3">태그 분류</label>
+              <label className="block text-sm font-bold text-text-secondary mb-3">{t('post.tagCategory')}</label>
               <div className="flex gap-2">
                 {availableTags.map(tag => (
                   <button
@@ -232,12 +240,12 @@ export const PostCreate = () => {
                     }`}
                   >
                     {selectedTag === tag && <Check className="w-3.5 h-3.5" />}
-                    {tag}
+                    {t(TAG_LABEL_MAP[tag])}
                   </button>
                 ))}
               </div>
               {/* 공지 선택 시 고정 토글 */}
-              {selectedTag === '공지' && (
+              {selectedTag === 'notice' && (
                 <button
                   type="button"
                   onClick={() => setPinned(!pinned)}
@@ -248,7 +256,7 @@ export const PostCreate = () => {
                   }`}
                 >
                   {pinned ? <Pin className="w-3.5 h-3.5" /> : <PinOff className="w-3.5 h-3.5" />}
-                  {pinned ? '상단에 고정됨' : '상단에 고정하지 않음'}
+                  {pinned ? t('post.pin.pinned') : t('post.pin.notPinned')}
                 </button>
               )}
             </div>
@@ -259,7 +267,7 @@ export const PostCreate = () => {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="게시물 제목을 입력하세요"
+                placeholder={t('post.titlePlaceholder')}
                 maxLength={50}
                 className="w-full bg-transparent border-0 border-b border-border-default focus:outline-none focus:ring-0 text-2xl font-bold text-text-primary placeholder:text-text-faint focus:border-emerald-500/50 transition-colors pb-3"
                 autoFocus
@@ -286,7 +294,7 @@ export const PostCreate = () => {
                     }`}
                   >
                     <Edit3 className="w-4 h-4" />
-                    작성
+                    {t('post.editorTabs.write')}
                   </button>
                   <button
                     type="button"
@@ -298,7 +306,7 @@ export const PostCreate = () => {
                     }`}
                   >
                     <Eye className="w-4 h-4" />
-                    미리보기
+                    {t('post.editorTabs.preview')}
                   </button>
                 </div>
                 <span className={`text-xs font-mono ${charOver ? 'text-red-400' : 'text-text-faint'}`}>
@@ -314,7 +322,7 @@ export const PostCreate = () => {
                       key={i}
                       type="button"
                       onClick={() => handleToolbarAction(action)}
-                      title={action.label}
+                      title={t(action.labelKey)}
                       className="p-1.5 text-text-faint hover:text-text-secondary hover:bg-surface-subtle rounded transition-colors"
                     >
                       <action.icon className="w-4 h-4" />
@@ -377,7 +385,7 @@ export const PostCreate = () => {
                 onClick={() => toWs('community')}
                 className="border-border-subtle text-text-secondary hover:bg-surface-subtle hover:text-text-primary"
               >
-                취소
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -385,9 +393,9 @@ export const PostCreate = () => {
                 className="bg-emerald-600 hover:bg-emerald-700 font-bold px-6 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> 작성 중...</>
+                  <><Loader2 className="w-4 h-4 animate-spin" /> {t('post.creating')}</>
                 ) : (
-                  <><PenSquare className="w-4 h-4" /> 작성 완료</>
+                  <><PenSquare className="w-4 h-4" /> {t('post.created')}</>
                 )}
               </Button>
             </div>

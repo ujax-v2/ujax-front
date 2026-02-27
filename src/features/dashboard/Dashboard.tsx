@@ -5,6 +5,7 @@ import { workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { Button, Card, Badge } from '@/components/ui/Base';
 import { ChevronLeft, ChevronRight, X, Trophy, Activity, CheckCircle2, Clock, UserCircle } from 'lucide-react';
+import { useT } from '@/i18n';
 
 const mockNotices = [
   { id: 1, title: '이번 주 스터디 진행 방식 안내', author: '고스디님', date: '2025. 01. 18', type: '공지사항', content: '이번 주는 각자 온라인으로 진행됩니다. 각자 과제를 마친 뒤, 오후 2시에 화상 회의 방에 들어와 주시기 바랍니다.\\n\\n불참 시 사전에 꼭 말씀해 주세요!' },
@@ -46,12 +47,13 @@ const mockProblems = [
 
 export const Dashboard = () => {
   const { navigate, toWs } = useWorkspaceNavigate();
+  const t = useT();
   const workspaces = useRecoilValue(workspacesState);
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
   const setCreateWorkspaceOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
 
   const [selectedNotice, setSelectedNotice] = useState<any>(null);
-  const [activeRankingTab, setActiveRankingTab] = useState<'정답률' | '풀이 수' | '연속 출석'>('정답률');
+  const [activeRankingTab, setActiveRankingTab] = useState<'accuracy' | 'solved' | 'streak'>('accuracy');
 
   const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
 
@@ -59,13 +61,13 @@ export const Dashboard = () => {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-page text-text-muted p-8">
         <div className="text-center space-y-4">
-          <p className="text-lg">선택된 워크스페이스가 없습니다.</p>
+          <p className="text-lg">{t('dashboard.noWorkspace')}</p>
           <Button onClick={() => setCreateWorkspaceOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white">
-            새 워크스페이스 생성하기
+            {t('dashboard.createWorkspace')}
           </Button>
           <div className="mt-4">
             <Button variant="ghost" onClick={() => navigate('/explore')} className="text-text-faint hover:text-text-secondary">
-              워크스페이스 탐색하기
+              {t('dashboard.exploreWorkspace')}
             </Button>
           </div>
         </div>
@@ -82,7 +84,7 @@ export const Dashboard = () => {
           <div className="flex-1">
             <h1 className="text-4xl font-extrabold text-text-primary tracking-tight mb-3">{currentWorkspace.name}</h1>
             <p className="text-base text-text-muted font-medium leading-relaxed max-w-3xl">
-              {currentWorkspace.description || '알고리즘 문제 풀이와 코딩 테스트 대비를 위한 공용 스터디 워크스페이스입니다. 다같이 목표를 달성해봅시다!'}
+              {currentWorkspace.description || t('dashboard.defaultDesc')}
             </p>
           </div>
           <Button
@@ -91,7 +93,7 @@ export const Dashboard = () => {
             className="border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-500 dark:hover:text-indigo-300 font-bold shrink-0 items-center justify-center py-2 px-4 shadow-sm transition-all"
           >
             <UserCircle className="w-5 h-5 mr-1" />
-            마이페이지 이동
+            {t('dashboard.goToMypage')}
           </Button>
         </div>
 
@@ -103,9 +105,9 @@ export const Dashboard = () => {
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-lg font-bold text-text-secondary flex items-center gap-2">
                 <span className="w-1.5 h-6 bg-indigo-500 rounded-full"></span>
-                최근 공지사항
+                {t('dashboard.recentNotices')}
               </h2>
-              <span onClick={() => toWs('community')} className="text-xs text-indigo-600 dark:text-indigo-400 font-medium cursor-pointer hover:underline">더보기</span>
+              <span onClick={() => toWs('community')} className="text-xs text-indigo-600 dark:text-indigo-400 font-medium cursor-pointer hover:underline">{t('common.more')}</span>
             </div>
             <div className="flex flex-col gap-2.5 flex-1 w-full relative">
               {mockNotices.map(notice => (
@@ -132,9 +134,9 @@ export const Dashboard = () => {
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-lg font-bold text-text-secondary flex items-center gap-2">
                 <span className="w-1.5 h-6 bg-emerald-500 rounded-full"></span>
-                기한 만료 임박 문제
+                {t('dashboard.upcomingDeadlines')}
               </h2>
-              <span onClick={() => toWs('problems')} className="text-xs text-emerald-600 dark:text-emerald-400 font-medium cursor-pointer hover:underline">문제 보러가기</span>
+              <span onClick={() => toWs('problems')} className="text-xs text-emerald-600 dark:text-emerald-400 font-medium cursor-pointer hover:underline">{t('dashboard.goToProblems')}</span>
             </div>
             <div className="flex flex-col gap-2.5 flex-1 w-full relative">
               {mockProblems.slice(0, 3).map((problem) => (
@@ -164,17 +166,17 @@ export const Dashboard = () => {
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-lg font-bold text-text-secondary flex items-center gap-2">
                 <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
-                요약 통계
+                {t('dashboard.summaryStats')}
               </h2>
             </div>
             <div className="flex flex-col gap-2.5 flex-1 w-full relative">
               <Card className="bg-surface-raised border-border-default p-4 flex-1 flex flex-col justify-center shadow-md hover:border-border-subtle transition-colors cursor-pointer">
-                <h3 className="text-sm font-medium text-text-muted mb-1">이번 달 해결</h3>
+                <h3 className="text-sm font-medium text-text-muted mb-1">{t('dashboard.monthSolved')}</h3>
                 <div className="text-2xl font-extrabold text-text-primary tracking-tight">342<span className="text-xs ml-1 text-text-faint font-medium">문제</span></div>
                 <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-bold">+15% (상승곡선 유지 중)</div>
               </Card>
               <Card className="bg-surface-raised border-border-default p-4 flex-1 flex flex-col justify-center shadow-md hover:border-border-subtle transition-colors cursor-pointer">
-                <h3 className="text-sm font-medium text-text-muted mb-1">전체 평균 정답률</h3>
+                <h3 className="text-sm font-medium text-text-muted mb-1">{t('dashboard.avgAccuracy')}</h3>
                 <div className="text-2xl font-extrabold text-text-primary tracking-tight">87<span className="text-xs ml-1 text-text-faint font-medium">%</span></div>
                 <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-1 font-bold">오답 노트 적극 활용 요망</div>
               </Card>
@@ -189,15 +191,15 @@ export const Dashboard = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-text-secondary flex items-center gap-2">
               <span className="w-1.5 h-6 bg-yellow-500 rounded-full"></span>
-              명예의 전당
+              {t('dashboard.hallOfFame')}
             </h2>
-            <span className="text-xs text-text-faint font-medium">Top 5 순위표</span>
+            <span className="text-xs text-text-faint font-medium">{t('dashboard.top5')}</span>
           </div>
 
           <Card className="bg-surface-raised border-border-default p-0 overflow-hidden shadow-md">
             {/* 탭 헤더 영역 */}
             <div className="flex border-b border-border-default/60 bg-page/50">
-              {(['정답률', '풀이 수', '연속 출석'] as const).map(tab => (
+              {(['accuracy', 'solved', 'streak'] as const).map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveRankingTab(tab)}
@@ -207,10 +209,10 @@ export const Dashboard = () => {
                     }`}
                 >
                   <div className="flex items-center justify-center gap-2">
-                    {tab === '정답률' && <Trophy className="w-4 h-4" />}
-                    {tab === '풀이 수' && <Activity className="w-4 h-4" />}
-                    {tab === '연속 출석' && <CheckCircle2 className="w-4 h-4" />}
-                    {tab}
+                    {tab === 'accuracy' && <Trophy className="w-4 h-4" />}
+                    {tab === 'solved' && <Activity className="w-4 h-4" />}
+                    {tab === 'streak' && <CheckCircle2 className="w-4 h-4" />}
+                    {tab === 'accuracy' ? t('dashboard.rankingAccuracy') : tab === 'solved' ? t('dashboard.rankingSolved') : t('dashboard.rankingStreak')}
                   </div>
                 </button>
               ))}
@@ -219,8 +221,8 @@ export const Dashboard = () => {
             {/* 리스트 렌더링 영역 (Clean & Modern) */}
             <div className="p-6">
               <div className="flex flex-col">
-                {(activeRankingTab === '정답률' ? mockRankingsLevel
-                  : activeRankingTab === '풀이 수' ? mockRankingsSolved
+                {(activeRankingTab === 'accuracy' ? mockRankingsLevel
+                  : activeRankingTab === 'solved' ? mockRankingsSolved
                     : mockRankingsComments).map((rank, idx) => (
                       <div key={rank.id} className="flex items-center justify-between py-3.5 border-b border-border-default/40 last:border-0 group hover:px-2 rounded-lg hover:bg-hover-bg transition-all duration-200 cursor-default">
                         <div className="flex items-center gap-4">
@@ -245,9 +247,9 @@ export const Dashboard = () => {
                         </div>
 
                         {/* 기록 데이터 */}
-                        <span className={`font-black tracking-tight ${idx === 0 && activeRankingTab === '정답률' ? 'text-yellow-600 dark:text-yellow-400 text-lg' :
-                          idx === 0 && activeRankingTab === '풀이 수' ? 'text-emerald-600 dark:text-emerald-400 text-lg' :
-                            idx === 0 && activeRankingTab === '연속 출석' ? 'text-blue-600 dark:text-blue-400 text-lg' :
+                        <span className={`font-black tracking-tight ${idx === 0 && activeRankingTab === 'accuracy' ? 'text-yellow-600 dark:text-yellow-400 text-lg' :
+                          idx === 0 && activeRankingTab === 'solved' ? 'text-emerald-600 dark:text-emerald-400 text-lg' :
+                            idx === 0 && activeRankingTab === 'streak' ? 'text-blue-600 dark:text-blue-400 text-lg' :
                               'text-text-muted text-sm'
                           }`}>
                           {rank.count}
@@ -276,7 +278,7 @@ export const Dashboard = () => {
               <div className="flex items-center gap-2 mt-3 text-sm text-text-muted">
                 <span>{selectedNotice.date}</span>
                 <span className="w-1 h-1 rounded-full bg-slate-600"></span>
-                <span>작성자: {selectedNotice.author}</span>
+                <span>{t('dashboard.author')} {selectedNotice.author}</span>
               </div>
             </div>
             <div className="p-6 text-text-secondary leading-relaxed whitespace-pre-line text-sm min-h-[150px]">

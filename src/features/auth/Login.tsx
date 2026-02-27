@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
+import { useT } from '@/i18n';
 import { userState, workspacesState } from '@/store/atoms';
 import { loginApi } from '@/api/auth';
 import { getMe } from '@/api/user';
@@ -14,6 +15,7 @@ interface LoginProps {
 
 export const Login = ({ oauthError, onClearError }: LoginProps) => {
   const navigate = useNavigate();
+  const t = useT();
   const setUser = useSetRecoilState(userState);
   const setWorkspaces = useSetRecoilState(workspacesState);
   const [email, setEmail] = useState('');
@@ -72,13 +74,13 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
     <div className="min-h-screen flex items-center justify-center bg-page p-4">
       <Card className="w-full max-w-md p-8 bg-surface border-border-default">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-text-primary mb-2">로그인</h1>
-          <p className="text-text-muted text-sm">알고리즘 문제 풀이 플랫폼에 오신 것을 환영합니다.</p>
+          <h1 className="text-2xl font-bold text-text-primary mb-2">{t('auth.login')}</h1>
+          <p className="text-text-muted text-sm">{t('auth.joinCommunity')}</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-medium text-text-muted">이메일</label>
+            <label className="text-xs font-medium text-text-muted">{t('auth.email')}</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint" />
               <input
@@ -92,7 +94,7 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium text-text-muted">비밀번호</label>
+            <label className="text-xs font-medium text-text-muted">{t('auth.password')}</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-faint" />
               <input
@@ -110,13 +112,13 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
           )}
 
           <Button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 py-2.5">
-            {loading ? '로그인 중...' : '로그인'}
+            {loading ? t('auth.loginLoading') : t('auth.login')}
           </Button>
         </form>
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border-default"></div></div>
-          <div className="relative flex justify-center text-xs uppercase"><span className="bg-surface px-2 text-text-faint">또는 소셜 계정으로 로그인</span></div>
+          <div className="relative flex justify-center text-xs uppercase"><span className="bg-surface px-2 text-text-faint">{t('auth.socialLogin')}</span></div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -135,9 +137,9 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
         </div>
 
         <div className="mt-6 text-center text-sm text-text-muted">
-          계정이 없으신가요?{' '}
+          {t('auth.noAccount')}{' '}
           <button onClick={() => navigate('/signup')} className="text-emerald-500 hover:text-emerald-400 font-medium">
-            회원가입
+            {t('auth.signup')}
           </button>
         </div>
       </Card>

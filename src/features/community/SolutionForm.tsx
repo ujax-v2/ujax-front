@@ -6,9 +6,11 @@ import { useRecoilValue } from 'recoil';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { ideCodeState, ideLanguageState } from '@/store/atoms';
 import { useIsDark } from '@/App';
+import { useT } from '@/i18n';
 
 export const SolutionForm = () => {
   const { toWs } = useWorkspaceNavigate();
+  const t = useT();
   const isDark = useIsDark();
   const code = useRecoilValue(ideCodeState);
   const language = useRecoilValue(ideLanguageState);
@@ -25,10 +27,10 @@ export const SolutionForm = () => {
       <div className="h-14 border-b border-border-default flex items-center justify-between px-4 bg-page">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={() => toWs('ide')} className="text-text-muted hover:text-text-primary">
-            <ArrowLeft className="w-4 h-4 mr-2" /> 돌아가기
+            <ArrowLeft className="w-4 h-4 mr-2" /> {t('solution.goBack')}
           </Button>
           <div className="h-4 w-px bg-surface-subtle" />
-          <h1 className="font-semibold text-text-primary">풀이 공유하기</h1>
+          <h1 className="font-semibold text-text-primary">{t('solution.shareTitle')}</h1>
         </div>
 
         <Button
@@ -36,7 +38,7 @@ export const SolutionForm = () => {
           size="sm"
           onClick={handleRegister}
         >
-          <Save className="w-4 h-4 mr-2" /> 게시글 등록
+          <Save className="w-4 h-4 mr-2" /> {t('solution.submitPost')}
         </Button>
       </div>
 
@@ -71,7 +73,7 @@ export const SolutionForm = () => {
         <div className="flex-1 flex flex-col bg-page overflow-y-auto">
           <div className="p-8 max-w-2xl mx-auto w-full space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-text-secondary">제목</label>
+              <label className="text-sm font-semibold text-text-secondary">{t('solution.title')}</label>
               <input
                 type="text"
                 placeholder="풀이의 핵심 내용을 요약해주세요"
@@ -83,7 +85,7 @@ export const SolutionForm = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-text-secondary flex items-center gap-2">
-                <Tag className="w-4 h-4" /> 태그
+                <Tag className="w-4 h-4" /> {t('solution.tags')}
               </label>
               <div className="p-3 bg-input-bg border border-border-default rounded-lg flex flex-wrap gap-2 min-h-[50px]">
                 <Badge variant="default" className="bg-surface-subtle pr-1 gap-1">
@@ -103,7 +105,7 @@ export const SolutionForm = () => {
             <Card className="p-4 bg-emerald-500/5 border-emerald-500/10 flex gap-4">
               <MessageSquare className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-sm font-semibold text-emerald-400 mb-1">풀이 공유 팁</h4>
+                <h4 className="text-sm font-semibold text-emerald-400 mb-1">{t('solution.tips')}</h4>
                 <p className="text-xs text-text-muted leading-relaxed">
                   다른 사용자들이 이해하기 쉽도록 변수명과 로직을 명확하게 설명해주세요.
                   코드 복잡도(Big-O)를 포함하면 더 좋은 평가를 받을 수 있습니다.

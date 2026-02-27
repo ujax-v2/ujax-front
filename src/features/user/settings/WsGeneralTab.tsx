@@ -5,6 +5,7 @@ import { currentWorkspaceState, workspacesState, settingsTabState } from '@/stor
 import { getWorkspaceSettings, updateWorkspace, deleteWorkspace, leaveWorkspace, getMyMembership, updateMyNickname } from '@/api/workspace';
 import { extractErrorDetail } from './utils';
 import { AlertTriangle, LogOut } from 'lucide-react';
+import { useT } from '@/i18n';
 
 export const WsGeneralTab = () => {
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
@@ -12,6 +13,7 @@ export const WsGeneralTab = () => {
   const setWorkspaces = useSetRecoilState(workspacesState);
   const setCurrentWorkspaceId = useSetRecoilState(currentWorkspaceState);
   const setActiveTab = useSetRecoilState(settingsTabState);
+  const t = useT();
 
   // Workspace general settings state
   const [wsName, setWsName] = useState('');
@@ -150,26 +152,26 @@ export const WsGeneralTab = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
-      <h2 className="text-xl font-bold text-text-primary pb-4 border-b border-border-default">워크스페이스 일반 설정</h2>
+      <h2 className="text-xl font-bold text-text-primary pb-4 border-b border-border-default">{t('settings.wsGeneral.title')}</h2>
 
       <div className="space-y-4 max-w-md">
-        <h3 className="text-sm font-bold text-text-secondary">워크스페이스 정보</h3>
+        <h3 className="text-sm font-bold text-text-secondary">{t('settings.wsGeneral.wsInfo')}</h3>
         <div>
-          <label className="block text-xs font-bold text-text-faint mb-1">이름</label>
+          <label className="block text-xs font-bold text-text-faint mb-1">{t('settings.wsGeneral.name')}</label>
           <input type="text" value={wsName} onChange={e => setWsName(e.target.value)} className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-text-faint mb-1">설명</label>
-          <input type="text" value={wsDescription} onChange={e => setWsDescription(e.target.value)} placeholder="워크스페이스 설명을 입력하세요" className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+          <label className="block text-xs font-bold text-text-faint mb-1">{t('settings.wsGeneral.description')}</label>
+          <input type="text" value={wsDescription} onChange={e => setWsDescription(e.target.value)} placeholder={t('settings.wsGeneral.descPlaceholder')} className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
         </div>
       </div>
 
       <div className="pt-2 space-y-4 max-w-md">
-        <h3 className="text-sm font-bold text-text-secondary">연동</h3>
+        <h3 className="text-sm font-bold text-text-secondary">{t('settings.wsGeneral.integration')}</h3>
         <div>
           <label className="block text-xs font-bold text-text-faint mb-1">Mattermost Webhook URL</label>
           <input type="text" value={wsMmWebhookUrl} onChange={e => setWsMmWebhookUrl(e.target.value)} placeholder="https://mattermost.example.com/hooks/..." className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
-          <p className="text-[11px] text-text-faint mt-1">알림을 받을 Mattermost 채널의 Webhook URL을 입력하세요.</p>
+          <p className="text-[11px] text-text-faint mt-1">{t('settings.wsGeneral.mmWebhookDesc')}</p>
         </div>
         <div className="space-y-2 pt-2">
           <Button
@@ -177,7 +179,7 @@ export const WsGeneralTab = () => {
             onClick={handleWsSave}
             disabled={wsSaving}
           >
-            {wsSaving ? '저장 중...' : wsSaveResult === 'success' ? '저장됨' : wsSaveResult === 'error' ? '저장 실패' : '저장'}
+            {wsSaving ? t('common.saving') : wsSaveResult === 'success' ? t('common.saved') : wsSaveResult === 'error' ? t('common.saveFailed') : t('common.save')}
           </Button>
           {wsSaveError && (
             <p className="text-xs text-red-500">{wsSaveError}</p>
@@ -186,11 +188,11 @@ export const WsGeneralTab = () => {
       </div>
 
       <div className="pt-6 border-t border-border-default space-y-4 max-w-md">
-        <h3 className="text-sm font-bold text-text-secondary">내 설정</h3>
+        <h3 className="text-sm font-bold text-text-secondary">{t('settings.wsGeneral.mySettings')}</h3>
         <div>
-          <label className="block text-xs font-bold text-text-faint mb-1">닉네임</label>
-          <input type="text" value={wsNickname} onChange={e => setWsNickname(e.target.value)} placeholder="이 워크스페이스에서 사용할 닉네임" className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
-          <p className="text-[11px] text-text-faint mt-1">이 워크스페이스에서 다른 멤버에게 보이는 이름입니다.</p>
+          <label className="block text-xs font-bold text-text-faint mb-1">{t('settings.wsGeneral.nickname')}</label>
+          <input type="text" value={wsNickname} onChange={e => setWsNickname(e.target.value)} placeholder={t('settings.wsGeneral.nicknamePlaceholder')} className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+          <p className="text-[11px] text-text-faint mt-1">{t('settings.wsGeneral.nicknameDesc')}</p>
         </div>
         <div className="space-y-2 pt-2">
           <Button
@@ -198,7 +200,7 @@ export const WsGeneralTab = () => {
             onClick={handleWsNickSave}
             disabled={wsNickSaving}
           >
-            {wsNickSaving ? '저장 중...' : wsNickSaveResult === 'success' ? '저장됨' : wsNickSaveResult === 'error' ? '저장 실패' : '저장'}
+            {wsNickSaving ? t('common.saving') : wsNickSaveResult === 'success' ? t('common.saved') : wsNickSaveResult === 'error' ? t('common.saveFailed') : t('common.save')}
           </Button>
           {wsNickSaveError && (
             <p className="text-xs text-red-500">{wsNickSaveError}</p>
@@ -207,32 +209,32 @@ export const WsGeneralTab = () => {
       </div>
 
       <div className="pt-6 border-t border-red-500/20">
-        <h3 className="text-sm font-bold text-red-500 mb-4">위험 구역</h3>
+        <h3 className="text-sm font-bold text-red-500 mb-4">{t('settings.wsGeneral.dangerZone')}</h3>
         <div className="space-y-3">
           <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium text-text-secondary">워크스페이스 나가기</div>
-              <div className="text-xs text-text-faint mt-0.5">이 워크스페이스에서 나갑니다. 다시 참여하려면 초대가 필요합니다.</div>
+              <div className="text-sm font-medium text-text-secondary">{t('settings.wsGeneral.leaveWorkspace')}</div>
+              <div className="text-xs text-text-faint mt-0.5">{t('settings.wsGeneral.leaveWorkspaceDesc')}</div>
             </div>
             <Button
               variant="ghost"
               className="text-red-500 hover:text-white hover:bg-red-600 border border-red-500/30 ml-4 flex-shrink-0"
               onClick={() => { setShowWsLeaveModal(true); setWsLeaveError(''); }}
             >
-              <LogOut className="w-4 h-4 mr-1.5" />나가기
+              <LogOut className="w-4 h-4 mr-1.5" />{t('settings.wsGeneral.leave')}
             </Button>
           </div>
           <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium text-text-secondary">워크스페이스 삭제</div>
-              <div className="text-xs text-text-faint mt-0.5">워크스페이스와 모든 데이터가 영구적으로 삭제됩니다.</div>
+              <div className="text-sm font-medium text-text-secondary">{t('settings.wsGeneral.deleteWorkspace')}</div>
+              <div className="text-xs text-text-faint mt-0.5">{t('settings.wsGeneral.wsDeleteDesc')}</div>
             </div>
             <Button
               variant="ghost"
               className="text-red-500 hover:text-white hover:bg-red-600 border border-red-500/30 ml-4 flex-shrink-0"
               onClick={() => { setShowWsDeleteModal(true); setWsDeleteConfirmName(''); setWsDeleteError(''); }}
             >
-              삭제
+              {t('common.delete')}
             </Button>
           </div>
         </div>
@@ -246,11 +248,11 @@ export const WsGeneralTab = () => {
               <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
                 <LogOut className="w-5 h-5 text-red-500" />
               </div>
-              <h3 className="text-lg font-bold text-text-primary">워크스페이스 나가기</h3>
+              <h3 className="text-lg font-bold text-text-primary">{t('settings.wsGeneral.leaveConfirm')}</h3>
             </div>
 
             <p className="text-sm text-text-faint">
-              <span className="font-bold text-text-secondary">{wsName}</span> 워크스페이스에서 나가시겠습니까? 다시 참여하려면 초대가 필요합니다.
+              {t('settings.wsGeneral.leaveNameConfirm', { name: wsName })}
             </p>
 
             {wsLeaveError && (
@@ -258,13 +260,13 @@ export const WsGeneralTab = () => {
             )}
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="ghost" onClick={() => setShowWsLeaveModal(false)} disabled={wsLeaving}>취소</Button>
+              <Button variant="ghost" onClick={() => setShowWsLeaveModal(false)} disabled={wsLeaving}>{t('common.cancel')}</Button>
               <Button
                 className="bg-red-600 hover:bg-red-700 text-white"
                 onClick={handleWsLeave}
                 disabled={wsLeaving}
               >
-                {wsLeaving ? '나가는 중...' : '나가기'}
+                {wsLeaving ? t('settings.wsGeneral.leaving') : t('settings.wsGeneral.leave')}
               </Button>
             </div>
           </div>
@@ -279,16 +281,16 @@ export const WsGeneralTab = () => {
               <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
               </div>
-              <h3 className="text-lg font-bold text-text-primary">워크스페이스 삭제</h3>
+              <h3 className="text-lg font-bold text-text-primary">{t('settings.wsGeneral.deleteConfirm')}</h3>
             </div>
 
             <p className="text-sm text-text-faint">
-              이 작업은 되돌릴 수 없습니다. 워크스페이스의 모든 데이터가 영구 삭제됩니다.
+              {t('settings.wsGeneral.deleteConfirmIrreversible')}
             </p>
 
             <div>
               <label className="block text-xs font-medium text-text-faint mb-1.5">
-                확인을 위해 워크스페이스 이름(<span className="font-bold text-text-secondary">{wsName}</span>)을 입력하세요
+                {t('settings.wsGeneral.deleteConfirmLabel', { name: wsName })}
               </label>
               <input
                 type="text"
@@ -305,13 +307,13 @@ export const WsGeneralTab = () => {
             )}
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="ghost" onClick={() => setShowWsDeleteModal(false)} disabled={wsDeleting}>취소</Button>
+              <Button variant="ghost" onClick={() => setShowWsDeleteModal(false)} disabled={wsDeleting}>{t('common.cancel')}</Button>
               <Button
                 className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={wsDeleteConfirmName !== wsName || wsDeleting}
                 onClick={handleWsDelete}
               >
-                {wsDeleting ? '삭제 중...' : '워크스페이스 삭제'}
+                {wsDeleting ? t('settings.wsGeneral.deleting') : t('settings.wsGeneral.deleteButton')}
               </Button>
             </div>
           </div>

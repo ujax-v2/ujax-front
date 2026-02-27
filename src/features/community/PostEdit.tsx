@@ -4,8 +4,9 @@ import { Card, Button } from '@/components/ui/Base';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { useRecoilValue } from 'recoil';
 import { currentWorkspaceState } from '@/store/atoms';
-import { getBoardDetail, updateBoard, BOARD_TYPE_LABEL, LABEL_TO_BOARD_TYPE } from '@/api/board';
+import { getBoardDetail, updateBoard, LABEL_TO_BOARD_TYPE } from '@/api/board';
 import type { MemberRole } from '@/api/board';
+import { useT } from '@/i18n';
 import { getMyMembership } from '@/api/workspace';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -35,27 +36,28 @@ import {
 type EditorTab = 'write' | 'preview';
 
 const TOOLBAR_ACTIONS = [
-  { icon: Heading1, label: 'H1', insert: '# ', type: 'prefix' as const },
-  { icon: Heading2, label: 'H2', insert: '## ', type: 'prefix' as const },
-  { icon: Bold, label: '굵게', insert: '**', type: 'wrap' as const },
-  { icon: Italic, label: '기울임', insert: '_', type: 'wrap' as const },
-  { icon: Code, label: '코드', insert: '`', type: 'wrap' as const },
-  { icon: Quote, label: '인용', insert: '> ', type: 'prefix' as const },
-  { icon: Minus, label: '구분선', insert: '\n---\n', type: 'insert' as const },
-  { icon: List, label: '목록', insert: '- ', type: 'prefix' as const },
-  { icon: ListOrdered, label: '번호 목록', insert: '1. ', type: 'prefix' as const },
-  { icon: Link, label: '링크', insert: '[텍스트](url)', type: 'insert' as const },
-  { icon: Image, label: '이미지', insert: '![대체텍스트](url)', type: 'insert' as const },
+  { icon: Heading1, labelKey: 'H1', insert: '# ', type: 'prefix' as const },
+  { icon: Heading2, labelKey: 'H2', insert: '## ', type: 'prefix' as const },
+  { icon: Bold, labelKey: 'post.toolbar.bold', insert: '**', type: 'wrap' as const },
+  { icon: Italic, labelKey: 'post.toolbar.italic', insert: '_', type: 'wrap' as const },
+  { icon: Code, labelKey: 'post.toolbar.code', insert: '`', type: 'wrap' as const },
+  { icon: Quote, labelKey: 'post.toolbar.quote', insert: '> ', type: 'prefix' as const },
+  { icon: Minus, labelKey: 'post.toolbar.divider', insert: '\n---\n', type: 'insert' as const },
+  { icon: List, labelKey: 'post.toolbar.list', insert: '- ', type: 'prefix' as const },
+  { icon: ListOrdered, labelKey: 'post.toolbar.numberedList', insert: '1. ', type: 'prefix' as const },
+  { icon: Link, labelKey: 'post.toolbar.link', insert: '[텍스트](url)', type: 'insert' as const },
+  { icon: Image, labelKey: 'post.toolbar.image', insert: '![대체텍스트](url)', type: 'insert' as const },
 ];
 
 export const PostEdit = () => {
   const { boardId } = useParams<{ boardId: string }>();
   const { toWs } = useWorkspaceNavigate();
+  const t = useT();
   const wsId = useRecoilValue(currentWorkspaceState);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [selectedTag, setSelectedTag] = useState<string>('자유');
+  const [selectedTag, setSelectedTag] = useState<string>('free');
   const [activeTab, setActiveTab] = useState<EditorTab>('write');
   const [pinned, setPinned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -81,11 +83,14 @@ export const PostEdit = () => {
 
         setTitle(detail.title ?? '');
         setContent(detail.content ?? '');
-        if (detail.type) setSelectedTag(BOARD_TYPE_LABEL[detail.type]);
+        if (detail.type) {
+          const typeToTag: Record<string, string> = { FREE: 'free', QNA: 'question', DATA: 'data', NOTICE: 'notice' };
+          setSelectedTag(typeToTag[detail.type] ?? 'free');
+        }
         setPinned(detail.pinned ?? false);
         if (membership.role) setMyRole(membership.role as MemberRole);
       } catch {
-        if (!cancelled) setError('게시물을 불러올 수 없습니다.');
+        if (!cancelled) setError(t('post.detail.loadFailed'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -95,8 +100,8 @@ export const PostEdit = () => {
   }, [wsId, numericBoardId]);
 
   const availableTags = myRole === 'OWNER'
-    ? ['자유', '질문', '자료', '공지']
-    : ['자유', '질문', '자료'];
+    ? ['free', 'question', 'data', 'notice']
+    : ['free', 'question', 'data'];
 
   const IMAGE_URL_RE = /^https?:\/\/\S+\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?\S*)?$/i;
   const GENERAL_URL_RE = /^https?:\/\/\S+$/i;
@@ -173,15 +178,15 @@ export const PostEdit = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
-      setError('제목과 내용을 모두 입력해주세요.');
+      setError(t('post.validation.titleContentRequired'));
       return;
     }
     if (title.trim().length > 50) {
-      setError('제목은 50자 이내로 입력해주세요.');
+      setError(t('post.validation.titleMaxLength'));
       return;
     }
     if (content.trim().length > 2000) {
-      setError('내용은 2000자 이내로 입력해주세요.');
+      setError(t('post.validation.contentMaxLength'));
       return;
     }
 
@@ -203,12 +208,12 @@ export const PostEdit = () => {
       if (jsonMatch) {
         try {
           const parsed = JSON.parse(jsonMatch[0]);
-          setError(parsed.detail || '요청에 실패했습니다.');
+          setError(parsed.detail || t('common.error'));
         } catch {
-          setError('요청에 실패했습니다.');
+          setError(t('common.error'));
         }
       } else {
-        setError('요청에 실패했습니다.');
+        setError(t('common.error'));
       }
     } finally {
       setSubmitting(false);
@@ -239,8 +244,7 @@ export const PostEdit = () => {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-extrabold text-text-primary tracking-tight">게시물 수정</h1>
-            <p className="text-text-muted text-sm mt-1">마크다운 문법을 지원합니다.</p>
+            <h1 className="text-2xl font-extrabold text-text-primary tracking-tight">{t('post.edit')}</h1>
           </div>
         </div>
 
@@ -250,7 +254,7 @@ export const PostEdit = () => {
 
             {/* Tag Selection */}
             <div>
-              <label className="block text-sm font-bold text-text-secondary mb-3">태그 분류</label>
+              <label className="block text-sm font-bold text-text-secondary mb-3">{t('post.tagCategory')}</label>
               <div className="flex gap-2">
                 {availableTags.map(tag => (
                   <button
@@ -263,12 +267,12 @@ export const PostEdit = () => {
                     }`}
                   >
                     {selectedTag === tag && <Check className="w-3.5 h-3.5" />}
-                    {tag}
+                    {t(`community.tags.${tag}`)}
                   </button>
                 ))}
               </div>
               {/* 공지 선택 시 고정 토글 */}
-              {selectedTag === '공지' && myRole === 'OWNER' && (
+              {selectedTag === 'notice' && myRole === 'OWNER' && (
                 <button
                   type="button"
                   onClick={() => setPinned(!pinned)}
@@ -279,7 +283,7 @@ export const PostEdit = () => {
                   }`}
                 >
                   {pinned ? <Pin className="w-3.5 h-3.5" /> : <PinOff className="w-3.5 h-3.5" />}
-                  {pinned ? '상단에 고정됨' : '상단에 고정하지 않음'}
+                  {pinned ? t('post.pin.pinned') : t('post.pin.notPinned')}
                 </button>
               )}
             </div>
@@ -290,7 +294,7 @@ export const PostEdit = () => {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="게시물 제목을 입력하세요"
+                placeholder={t('post.titlePlaceholder')}
                 maxLength={50}
                 className="w-full bg-transparent border-0 border-b border-border-default focus:outline-none focus:ring-0 text-2xl font-bold text-text-primary placeholder:text-text-faint focus:border-emerald-500/50 transition-colors pb-3"
                 autoFocus
@@ -317,7 +321,7 @@ export const PostEdit = () => {
                     }`}
                   >
                     <Edit3 className="w-4 h-4" />
-                    작성
+                    {t('post.editorTabs.write')}
                   </button>
                   <button
                     type="button"
@@ -329,7 +333,7 @@ export const PostEdit = () => {
                     }`}
                   >
                     <Eye className="w-4 h-4" />
-                    미리보기
+                    {t('post.editorTabs.preview')}
                   </button>
                 </div>
                 <span className={`text-xs font-mono ${charOver ? 'text-red-400' : 'text-text-faint'}`}>
@@ -345,7 +349,7 @@ export const PostEdit = () => {
                       key={i}
                       type="button"
                       onClick={() => handleToolbarAction(action)}
-                      title={action.label}
+                      title={t(action.labelKey)}
                       className="p-1.5 text-text-faint hover:text-text-secondary hover:bg-surface-subtle rounded transition-colors"
                     >
                       <action.icon className="w-4 h-4" />
@@ -408,7 +412,7 @@ export const PostEdit = () => {
                 onClick={() => toWs(`community/${numericBoardId}`)}
                 className="border-border-subtle text-text-secondary hover:bg-surface-subtle hover:text-text-primary"
               >
-                취소
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -416,9 +420,9 @@ export const PostEdit = () => {
                 className="bg-emerald-600 hover:bg-emerald-700 font-bold px-6 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> 저장 중...</>
+                  <><Loader2 className="w-4 h-4 animate-spin" /> {t('post.editSaving')}</>
                 ) : (
-                  <><Save className="w-4 h-4" /> 수정 완료</>
+                  <><Save className="w-4 h-4" /> {t('post.editSaved')}</>
                 )}
               </Button>
             </div>

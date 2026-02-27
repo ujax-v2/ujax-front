@@ -7,8 +7,10 @@ import { useRecoilValue } from 'recoil';
 import { userState, workspacesState, currentWorkspaceState } from '@/store/atoms';
 import { ArrowLeft } from 'lucide-react';
 import { useIsDark } from '@/App';
+import { useT } from '@/i18n';
 // 잔디(Contribution) 그래프 컴포넌트
 const ContributionGraph = ({ title, activeColorClass = 'emerald' }: { title: string, activeColorClass?: string }) => {
+  const t = useT();
   const weeks = 39;
   const days = 7;
 
@@ -55,7 +57,7 @@ const ContributionGraph = ({ title, activeColorClass = 'emerald' }: { title: str
             className="fixed z-[9999] px-3 py-2 bg-surface-inset text-xs text-text-primary rounded shadow-xl border border-border-subtle pointer-events-none transform -translate-x-1/2 -translate-y-full mt-[-8px]"
             style={{ left: hoverInfo.x, top: hoverInfo.y }}
           >
-            <div className="font-bold text-text-secondary">{hoverInfo.count} 문제 해결</div>
+            <div className="font-bold text-text-secondary">{t('profile.contribution.count', { count: hoverInfo.count })}</div>
             <div className="text-text-faint">{hoverInfo.date}</div>
             <div className="absolute bottom-[-5px] left-1/2 -translate-x-1/2 w-2 h-2 bg-surface-inset border-r border-b border-border-subtle transform rotate-45"></div>
           </div>,
@@ -92,6 +94,7 @@ const ContributionGraph = ({ title, activeColorClass = 'emerald' }: { title: str
 
 export const Profile = () => {
   const navigate = useNavigate();
+  const t = useT();
   const isDark = useIsDark();
   const currentUser = useRecoilValue(userState);
   const workspaces = useRecoilValue(workspacesState);
@@ -115,10 +118,10 @@ export const Profile = () => {
   const COLORS = ['#34D399', isDark ? '#1b202c' : '#e2e8f0']; // emerald-400 and shade
 
   const tierSolveData = [
-    { tier: '브론즈', count: 120, fill: '#b45309' }, // amber-700
-    { tier: '실버', count: 210, fill: '#94a3b8' },   // slate-400
-    { tier: '골드', count: 85, fill: '#eab308' },    // yellow-500
-    { tier: '플래티넘', count: 12, fill: '#22d3ee' } // cyan-400
+    { tier: t('profile.tiers.bronze'), count: 120, fill: '#b45309' }, // amber-700
+    { tier: t('profile.tiers.silver'), count: 210, fill: '#94a3b8' },   // slate-400
+    { tier: t('profile.tiers.gold'), count: 85, fill: '#eab308' },    // yellow-500
+    { tier: t('profile.tiers.platinum'), count: 12, fill: '#22d3ee' } // cyan-400
   ];
 
   const algorithmData = [
@@ -153,7 +156,7 @@ export const Profile = () => {
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           </button>
-          <h1 className="text-2xl font-extrabold text-text-primary tracking-tight">내 프로필</h1>
+          <h1 className="text-2xl font-extrabold text-text-primary tracking-tight">{t('profile.title')}</h1>
         </div>
 
         {/* ROW 1: 내 정보 상세 & 활동 지표 */}
@@ -161,34 +164,34 @@ export const Profile = () => {
           {/* 1. 내 정보 상세 (좌측 1단) */}
           <Card className="bg-surface-raised border-border-default p-6 relative flex flex-col lg:col-span-1">
             <div className="flex justify-between items-start mb-5">
-              <h2 className="text-base font-bold text-text-secondary">내 정보 상세</h2>
+              <h2 className="text-base font-bold text-text-secondary">{t('profile.detailInfo')}</h2>
             </div>
             <div className="grid grid-cols-[80px_1fr] gap-y-3 text-xs items-center">
-              <div className="text-text-faint">닉네임</div>
+              <div className="text-text-faint">{t('profile.nickname')}</div>
               <div className="text-text-secondary font-medium">{user.name}</div>
 
-              <div className="text-text-faint">이메일</div>
+              <div className="text-text-faint">{t('profile.email')}</div>
               <div className="text-text-secondary truncate pr-2">{user.email}</div>
 
-              <div className="text-text-faint">참여 랩실</div>
-              <div className="text-text-secondary font-medium">{workspaces.length} 곳</div>
+              <div className="text-text-faint">{t('profile.participatingLabs')}</div>
+              <div className="text-text-secondary font-medium">{workspaces.length}</div>
 
-              <div className="text-text-faint">주력 언어</div>
+              <div className="text-text-faint">{t('profile.mainLanguage')}</div>
               <div className="text-text-secondary font-medium">{bestLanguage}</div>
 
-              <div className="text-text-faint">해결 문제 수</div>
-              <div className="text-text-secondary font-bold text-emerald-400">{totalSolved} 문제</div>
+              <div className="text-text-faint">{t('profile.solvedCount')}</div>
+              <div className="text-text-secondary font-bold text-emerald-400">{totalSolved}</div>
 
-              <div className="text-text-faint">연속 출석</div>
-              <div className="text-text-secondary font-bold text-blue-400">{currentStreak} 일</div>
+              <div className="text-text-faint">{t('profile.streak')}</div>
+              <div className="text-text-secondary font-bold text-blue-400">{currentStreak}</div>
             </div>
           </Card>
 
           {/* 2. 활동 지표 (우측 2단) */}
           <Card className="bg-surface-raised border-border-default p-6 flex flex-col justify-center lg:col-span-2">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-base font-bold text-text-secondary">활동 지표</h2>
-              <span className="text-[10px] text-text-faint">등급별 풀이 수 & 정답률</span>
+              <h2 className="text-base font-bold text-text-secondary">{t('profile.activityMetrics')}</h2>
+              <span className="text-[10px] text-text-faint">{t('profile.charts.tierSolvedAccuracy')}</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center flex-1 h-[200px]">
@@ -238,8 +241,8 @@ export const Profile = () => {
           {/* 3. 주력 알고리즘 (Radar Chart) */}
           <Card className="bg-surface-raised border-border-default p-6 flex flex-col justify-between shadow-md">
             <div className="flex justify-between items-center mb-2">
-              <h2 className="text-base font-bold text-text-secondary">주력 알고리즘</h2>
-              <span className="text-[10px] text-text-faint">풀이 유형</span>
+              <h2 className="text-base font-bold text-text-secondary">{t('profile.mainAlgorithm')}</h2>
+              <span className="text-[10px] text-text-faint">{t('profile.charts.solutionTypes')}</span>
             </div>
             <div className="w-full h-[320px] flex items-center justify-center mt-4">
               <ResponsiveContainer width="100%" height="100%">
@@ -256,8 +259,8 @@ export const Profile = () => {
           {/* 4. 주력 언어 (Pie Chart) */}
           <Card className="bg-surface-raised border-border-default p-6 flex flex-col justify-between shadow-md">
             <div className="flex justify-between items-center mb-2">
-              <h2 className="text-base font-bold text-text-secondary">주력 언어</h2>
-              <span className="text-[10px] text-text-faint">제출 언어 비중</span>
+              <h2 className="text-base font-bold text-text-secondary">{t('profile.mainLanguage')}</h2>
+              <span className="text-[10px] text-text-faint">{t('profile.charts.languageDistribution')}</span>
             </div>
 
             <div className="w-full flex-1 min-h-[250px] flex items-center justify-center mt-2 relative">
@@ -304,7 +307,7 @@ export const Profile = () => {
         {/* 5. 힌트보기 설정 */}
         <Card className="bg-surface-raised border-border-default p-8 flex justify-between items-center">
           <div>
-            <h2 className="text-lg font-bold text-text-secondary">힌트보기 설정</h2>
+            <h2 className="text-lg font-bold text-text-secondary">{t('profile.hintSettings')}</h2>
           </div>
           <div className="flex items-center gap-6">
             <span className="text-xs text-text-faint mr-2">문제 풀이 시 힌트 표시 여부</span>

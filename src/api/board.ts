@@ -89,17 +89,17 @@ export interface CommentListResponse {
 // ──── 태그 라벨 매핑 ────
 
 export const BOARD_TYPE_LABEL: Record<BoardType, string> = {
-  FREE: '자유',
-  NOTICE: '공지',
-  QNA: '질문',
-  DATA: '자료',
+  FREE: 'board.free',
+  NOTICE: 'board.notice',
+  QNA: 'board.qna',
+  DATA: 'board.data',
 };
 
 export const LABEL_TO_BOARD_TYPE: Record<string, BoardType> = {
-  '자유': 'FREE',
-  '공지': 'NOTICE',
-  '질문': 'QNA',
-  '자료': 'DATA',
+  'free': 'FREE',
+  'notice': 'NOTICE',
+  'question': 'QNA',
+  'data': 'DATA',
 };
 
 // ──── 게시물 CRUD ────
