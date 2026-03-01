@@ -183,6 +183,7 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
           id: w.id,
           name: w.name,
           description: w.description ?? null,
+          imageUrl: (w as any).imageUrl ?? null,
         })) as Workspace[];
         setWorkspaces(items);
       } catch (err) {

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Base';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { currentWorkspaceState, workspacesState, settingsTabState } from '@/store/atoms';
-import { getWorkspaceSettings, updateWorkspace, deleteWorkspace, leaveWorkspace, getMyMembership, updateMyNickname } from '@/api/workspace';
+import { getWorkspaceSettings, updateWorkspace, deleteWorkspace, leaveWorkspace, getMyMembership, updateMyNickname, getWorkspaceImagePresignedUrl } from '@/api/workspace';
 import { extractErrorDetail } from './utils';
 import { AlertTriangle, LogOut } from 'lucide-react';
 import { useT } from '@/i18n';
@@ -38,6 +38,17 @@ export const WsGeneralTab = () => {
   const [wsLeaving, setWsLeaving] = useState(false);
   const [wsLeaveError, setWsLeaveError] = useState('');
 
+  // Workspace image state
+  const [wsImageUrl, setWsImageUrl] = useState('');
+  const [wsOriginalImageUrl, setWsOriginalImageUrl] = useState('');
+  const [wsPreviewUrl, setWsPreviewUrl] = useState('');
+  const [wsPendingFile, setWsPendingFile] = useState<File | null>(null);
+  const [wsImageRemoved, setWsImageRemoved] = useState(false);
+  const wsFileInputRef = useRef<HTMLInputElement>(null);
+
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
   // Load workspace settings + my nickname
   useEffect(() => {
     if (!currentWorkspaceId) return;
@@ -48,6 +59,11 @@ export const WsGeneralTab = () => {
       setWsOriginalName(data.name ?? '');
       setWsOriginalDescription(data.description ?? '');
       setWsOriginalMmWebhookUrl(data.mmWebhookUrl ?? '');
+      setWsImageUrl((data as any).imageUrl ?? '');
+      setWsOriginalImageUrl((data as any).imageUrl ?? '');
+      setWsPreviewUrl('');
+      setWsPendingFile(null);
+      setWsImageRemoved(false);
     }).catch(err => {
       console.error('Failed to load workspace settings:', err);
     });
@@ -59,6 +75,36 @@ export const WsGeneralTab = () => {
     });
   }, [currentWorkspaceId]);
 
+  const handleWsFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setWsSaveResult('error');
+      setWsSaveError(t('settings.profile.fileTypeError'));
+      if (wsFileInputRef.current) wsFileInputRef.current.value = '';
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      setWsSaveResult('error');
+      setWsSaveError(t('settings.profile.fileSizeError'));
+      if (wsFileInputRef.current) wsFileInputRef.current.value = '';
+      return;
+    }
+    setWsPendingFile(file);
+    setWsImageRemoved(false);
+    const reader = new FileReader();
+    reader.onload = () => setWsPreviewUrl(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleWsRemoveImage = () => {
+    setWsPreviewUrl('');
+    setWsImageUrl('');
+    setWsPendingFile(null);
+    setWsImageRemoved(true);
+    if (wsFileInputRef.current) wsFileInputRef.current.value = '';
+  };
+
   const handleWsSave = async () => {
     if (!currentWorkspaceId) return;
     setWsSaving(true);
@@ -69,7 +115,28 @@ export const WsGeneralTab = () => {
       if (wsName !== wsOriginalName) body.name = wsName;
       if (wsDescription !== wsOriginalDescription) body.description = wsDescription || null;
       if (wsMmWebhookUrl !== wsOriginalMmWebhookUrl) body.mmWebhookUrl = wsMmWebhookUrl || null;
-      if (Object.keys(body).length === 0) {
+
+      if (wsImageRemoved) {
+        body.imageUrl = null;
+      } else if (wsPendingFile) {
+        const { presignedUrl, imageUrl } = await getWorkspaceImagePresignedUrl(
+          currentWorkspaceId,
+          wsPendingFile.size,
+          wsPendingFile.type,
+        );
+        const uploadRes = await fetch(presignedUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': wsPendingFile.type },
+          body: wsPendingFile,
+        });
+        if (!uploadRes.ok) {
+          throw new Error('이미지 업로드에 실패했습니다.');
+        }
+        body.imageUrl = imageUrl;
+      }
+
+      const hasImageChange = wsImageRemoved || wsPendingFile;
+      if (Object.keys(body).length === 0 && !hasImageChange) {
         setWsSaveResult('success');
         setWsSaving(false);
         setTimeout(() => setWsSaveResult(null), 3000);
@@ -79,7 +146,13 @@ export const WsGeneralTab = () => {
       setWsOriginalName(updated.name ?? '');
       setWsOriginalDescription(updated.description ?? '');
       setWsOriginalMmWebhookUrl(wsMmWebhookUrl);
-      setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, name: updated.name ?? w.name, description: updated.description ?? null } : w));
+      setWsImageUrl((updated as any).imageUrl ?? '');
+      setWsOriginalImageUrl((updated as any).imageUrl ?? '');
+      setWsPreviewUrl('');
+      setWsPendingFile(null);
+      setWsImageRemoved(false);
+      if (wsFileInputRef.current) wsFileInputRef.current.value = '';
+      setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, name: updated.name ?? w.name, description: updated.description ?? null, imageUrl: (updated as any).imageUrl ?? null } : w));
       setWsSaveResult('success');
     } catch (err: any) {
       setWsSaveResult('error');
@@ -153,6 +226,30 @@ export const WsGeneralTab = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       <h2 className="text-xl font-bold text-text-primary pb-4 border-b border-border-default">{t('settings.wsGeneral.title')}</h2>
+
+      <div className="flex items-start gap-6">
+        <div className="w-24 h-24 rounded-lg bg-surface-subtle overflow-hidden flex-shrink-0 flex items-center justify-center">
+          {(wsPreviewUrl || wsImageUrl) ? (
+            <img src={wsPreviewUrl || wsImageUrl} alt="Workspace" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-3xl font-bold text-text-muted">{wsName ? wsName.charAt(0).toUpperCase() : 'W'}</span>
+          )}
+        </div>
+        <div className="space-y-4 flex-1">
+          <div className="flex gap-2">
+            <input
+              ref={wsFileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleWsFileChange}
+            />
+            <Button variant="secondary" size="sm" onClick={() => wsFileInputRef.current?.click()}>{t('settings.wsGeneral.changeImage')}</Button>
+            <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600" onClick={handleWsRemoveImage}>{t('settings.wsGeneral.removeImage')}</Button>
+          </div>
+          <p className="text-xs text-text-faint">{t('settings.wsGeneral.imageDesc')}</p>
+        </div>
+      </div>
 
       <div className="space-y-4 max-w-md">
         <h3 className="text-sm font-bold text-text-secondary">{t('settings.wsGeneral.wsInfo')}</h3>

@@ -150,6 +150,7 @@ export interface Workspace {
   id: number;
   name: string;
   description: string | null;
+  imageUrl?: string | null;
 }
 
 export const currentWorkspaceState = atom<number>({
