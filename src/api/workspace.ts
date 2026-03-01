@@ -13,8 +13,8 @@ export type WorkspaceSettingsResponse = ApiWorkspaceSettings['data'];
 type ApiWorkspaceMember = components['schemas']['ApiResponse-WorkspaceMemberResponse'];
 export type WorkspaceMemberResponse = ApiWorkspaceMember['data'];
 
-type ApiWorkspaceMemberList = components['schemas']['ApiResponse-WorkspaceMemberList'];
-export type WorkspaceMemberListResponse = ApiWorkspaceMemberList['data'];
+type ApiWorkspaceMemberPage = components['schemas']['ApiResponse-WorkspaceMemberPage'];
+export type WorkspaceMemberPageResponse = ApiWorkspaceMemberPage['data'];
 
 export type CreateWorkspaceRequest = components['schemas']['CreateWorkspaceRequest'];
 export type UpdateWorkspaceRequest = components['schemas']['UpdateWorkspaceRequest'];
@@ -90,8 +90,8 @@ export async function getWorkspaceSettings(workspaceId: number): Promise<Workspa
 
 // ──── 멤버 ────
 
-export async function getWorkspaceMembers(workspaceId: number): Promise<WorkspaceMemberListResponse> {
-  const res = await authFetch(`/api/v1/workspaces/${workspaceId}/members`);
+export async function getWorkspaceMembers(workspaceId: number, page = 0, size = 10): Promise<WorkspaceMemberPageResponse> {
+  const res = await authFetch(`/api/v1/workspaces/${workspaceId}/members?page=${page}&size=${size}`);
   return res.data;
 }
 
