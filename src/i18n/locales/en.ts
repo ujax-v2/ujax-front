@@ -466,4 +466,7 @@ export const en: Record<string, string> = {
   'settings.wsGeneral.deleteConfirmIrreversible': 'This action cannot be undone. All workspace data will be permanently deleted.',
   'settings.wsGeneral.deleteButton': 'Delete Workspace',
   'settings.wsGeneral.wsDeleteDesc': 'The workspace and all data will be permanently deleted.',
+  'settings.wsGeneral.changeImage': 'Change Image',
+  'settings.wsGeneral.removeImage': 'Remove Image',
+  'settings.wsGeneral.imageDesc': 'JPG, PNG, WebP (max 5MB)',
 };

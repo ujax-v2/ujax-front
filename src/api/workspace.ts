@@ -70,6 +70,17 @@ export async function searchWorkspaces(name: string, page = 0, size = 20): Promi
   return res.data;
 }
 
+// ──── 이미지 ────
+
+export async function getWorkspaceImagePresignedUrl(workspaceId: number, fileSize: number, contentType: string) {
+  const res = await authFetch(`/api/v1/workspaces/${workspaceId}/image/presigned-url`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fileSize, contentType }),
+  });
+  return res.data as { presignedUrl: string; imageUrl: string };
+}
+
 // ──── 설정 ────
 
 export async function getWorkspaceSettings(workspaceId: number): Promise<WorkspaceSettingsResponse> {

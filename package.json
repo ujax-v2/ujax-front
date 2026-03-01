@@ -37,7 +37,7 @@
             "@radix-ui/react-tooltip": "^1.1.8",
             "@tailwindcss/postcss": "^4.1.18",
             "@tailwindcss/typography": "^0.5.19",
-            "@ujax/api-spec": "github:ujax-v2/ujax-api-spec#6677661",
+            "@ujax/api-spec": "github:ujax-v2/ujax-api-spec#d4dc37e",
             "class-variance-authority": "^0.7.1",
             "clsx": "*",
             "cmdk": "^1.1.1",

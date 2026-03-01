@@ -114,8 +114,12 @@ export const Sidebar = () => {
           className="h-10 flex items-center justify-between px-2 hover:bg-hover-bg transition-colors cursor-pointer rounded-lg group select-none"
         >
           <div className="flex items-center gap-2 overflow-hidden">
-            <div className="w-5 h-5 rounded bg-emerald-600 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-white">
-              {currentWorkspace?.name?.charAt(0) ?? ''}
+            <div className="w-5 h-5 rounded bg-emerald-600 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden">
+              {currentWorkspace?.imageUrl ? (
+                <img src={currentWorkspace.imageUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                currentWorkspace?.name?.charAt(0) ?? ''
+              )}
             </div>
             <span className="font-semibold text-sm text-text-secondary truncate">{currentWorkspace.name}</span>
             <ChevronsUpDown className="w-3 h-3 text-text-faint" />
@@ -137,8 +141,12 @@ export const Sidebar = () => {
             {/* Current Workspace Header */}
             <div className="p-4 bg-hover-bg border-b border-border-subtle/50">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center text-lg font-bold text-white">
-                  {currentWorkspace?.name?.charAt(0) ?? ''}
+                <div className="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center text-lg font-bold text-white overflow-hidden">
+                  {currentWorkspace?.imageUrl ? (
+                    <img src={currentWorkspace.imageUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    currentWorkspace?.name?.charAt(0) ?? ''
+                  )}
                 </div>
                 <div className="flex-1 overflow-hidden">
                   <div className="font-bold text-text-secondary text-sm truncate">{currentWorkspace?.name}</div>
@@ -178,8 +186,12 @@ export const Sidebar = () => {
                   className="flex items-center justify-between px-3 py-2 hover:bg-hover-bg cursor-pointer group"
                 >
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <div className="w-6 h-6 rounded bg-border-subtle flex items-center justify-center text-xs font-medium text-text-secondary">
-                      {ws.name.charAt(0)}
+                    <div className="w-6 h-6 rounded bg-border-subtle flex items-center justify-center text-xs font-medium text-text-secondary overflow-hidden">
+                      {ws.imageUrl ? (
+                        <img src={ws.imageUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        ws.name.charAt(0)
+                      )}
                     </div>
                     <span className={`text-sm truncate ${ws.id === currentWorkspaceId ? 'text-text-primary font-medium' : 'text-text-muted'}`}>
                       {ws.name}
