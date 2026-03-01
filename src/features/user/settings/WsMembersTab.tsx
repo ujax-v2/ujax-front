@@ -3,9 +3,11 @@ import { Button } from '@/components/ui/Base';
 import { useRecoilValue } from 'recoil';
 import { currentWorkspaceState } from '@/store/atoms';
 import { getWorkspaceMembers, getMyMembership, inviteMember, updateMemberRole, removeMember } from '@/api/workspace';
-import type { WorkspaceMemberResponse } from '@/api/workspace';
+import type { WorkspaceMemberResponse, WorkspaceMemberPageResponse } from '@/api/workspace';
+
+type MemberItem = WorkspaceMemberPageResponse['content'][number];
 import { extractErrorDetail } from './utils';
-import { UserPlus, AlertTriangle, MoreHorizontal } from 'lucide-react';
+import { UserPlus, AlertTriangle, MoreHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useT } from '@/i18n';
 
 export const WsMembersTab = () => {
@@ -13,7 +15,7 @@ export const WsMembersTab = () => {
   const t = useT();
 
   // Members tab state
-  const [members, setMembers] = useState<WorkspaceMemberResponse[]>([]);
+  const [members, setMembers] = useState<MemberItem[]>([]);
   const [myMemberId, setMyMemberId] = useState<number>(0);
   const [myRole, setMyRole] = useState<string>('MEMBER');
   const [membersLoading, setMembersLoading] = useState(false);
@@ -24,24 +26,32 @@ export const WsMembersTab = () => {
   const [inviteError, setInviteError] = useState('');
   const [inviteSuccess, setInviteSuccess] = useState(false);
   const [showRemoveMemberModal, setShowRemoveMemberModal] = useState(false);
-  const [removingMember, setRemovingMember] = useState<WorkspaceMemberResponse | null>(null);
+  const [removingMember, setRemovingMember] = useState<MemberItem | null>(null);
   const [removingLoading, setRemovingLoading] = useState(false);
   const [removeMemberError, setRemoveMemberError] = useState('');
   const [showRoleChangeModal, setShowRoleChangeModal] = useState(false);
-  const [roleChangeMember, setRoleChangeMember] = useState<WorkspaceMemberResponse | null>(null);
+  const [roleChangeMember, setRoleChangeMember] = useState<MemberItem | null>(null);
   const [roleChangeTarget, setRoleChangeTarget] = useState<string>('MEMBER');
   const [roleChangeLoading, setRoleChangeLoading] = useState(false);
   const [roleChangeError, setRoleChangeError] = useState('');
 
-  const loadMembers = useCallback(async () => {
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+
+  const loadMembers = useCallback(async (page = 0) => {
     if (!currentWorkspaceId) return;
     setMembersLoading(true);
     try {
       const [membersData, myData] = await Promise.all([
-        getWorkspaceMembers(currentWorkspaceId),
+        getWorkspaceMembers(currentWorkspaceId, page),
         getMyMembership(currentWorkspaceId),
       ]);
-      setMembers(membersData.items ?? []);
+      setMembers(membersData.content ?? []);
+      setCurrentPage(membersData.page.page);
+      setTotalPages(membersData.page.totalPages);
+      setTotalElements(membersData.page.totalElements);
       setMyMemberId(myData.workspaceMemberId ?? 0);
       setMyRole(myData.role ?? 'MEMBER');
     } catch (err) {
@@ -53,7 +63,8 @@ export const WsMembersTab = () => {
 
   useEffect(() => {
     if (!currentWorkspaceId) return;
-    loadMembers();
+    setCurrentPage(0);
+    loadMembers(0);
   }, [currentWorkspaceId, loadMembers]);
 
   const handleInvite = async () => {
@@ -65,7 +76,7 @@ export const WsMembersTab = () => {
       await inviteMember(currentWorkspaceId, inviteEmail.trim());
       setInviteSuccess(true);
       setInviteEmail('');
-      await loadMembers();
+      await loadMembers(currentPage);
       setTimeout(() => { setShowInviteModal(false); setInviteSuccess(false); }, 1200);
     } catch (err: any) {
       setInviteError(extractErrorDetail(err, '초대에 실패했습니다.'));
@@ -74,7 +85,7 @@ export const WsMembersTab = () => {
     }
   };
 
-  const confirmRoleChange = (member: WorkspaceMemberResponse, newRole: string) => {
+  const confirmRoleChange = (member: MemberItem, newRole: string) => {
     setRoleChangeMember(member);
     setRoleChangeTarget(newRole);
     setRoleChangeError('');
@@ -88,7 +99,7 @@ export const WsMembersTab = () => {
     try {
       await updateMemberRole(currentWorkspaceId, roleChangeMember.workspaceMemberId!, roleChangeTarget as 'OWNER' | 'ADMIN' | 'MEMBER');
       setShowRoleChangeModal(false);
-      await loadMembers();
+      await loadMembers(currentPage);
     } catch (err: any) {
       setRoleChangeError(extractErrorDetail(err, '역할 변경에 실패했습니다.'));
     } finally {
@@ -96,7 +107,7 @@ export const WsMembersTab = () => {
     }
   };
 
-  const confirmRemoveMember = (member: WorkspaceMemberResponse) => {
+  const confirmRemoveMember = (member: MemberItem) => {
     setRemovingMember(member);
     setRemoveMemberError('');
     setShowRemoveMemberModal(true);
@@ -109,7 +120,7 @@ export const WsMembersTab = () => {
     try {
       await removeMember(currentWorkspaceId, removingMember.workspaceMemberId!);
       setShowRemoveMemberModal(false);
-      await loadMembers();
+      await loadMembers(currentPage);
     } catch (err: any) {
       setRemoveMemberError(extractErrorDetail(err, '멤버 제거에 실패했습니다.'));
     } finally {
@@ -149,7 +160,7 @@ export const WsMembersTab = () => {
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-sm font-bold text-text-secondary">{t('settings.members.wsMembers')} ({members.length})</h3>
+        <h3 className="text-sm font-bold text-text-secondary">{t('settings.members.wsMembers')} ({totalElements})</h3>
 
         {membersLoading ? (
           <div className="text-sm text-text-faint text-center py-8">{t('common.loading')}</div>
@@ -158,6 +169,7 @@ export const WsMembersTab = () => {
             {t('settings.members.noMembers')}
           </div>
         ) : (
+          <>
           <div className="rounded-lg border border-border-subtle overflow-hidden divide-y-2 divide-border-default">
             {members.map(member => {
               const isMe = member.workspaceMemberId === myMemberId;
@@ -235,6 +247,41 @@ export const WsMembersTab = () => {
               );
             })}
           </div>
+
+          {/* 페이지네이션 */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-3">
+              <button
+                onClick={() => loadMembers(currentPage - 1)}
+                disabled={currentPage === 0 || membersLoading}
+                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-hover-bg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => loadMembers(i)}
+                  disabled={membersLoading}
+                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                    i === currentPage
+                      ? 'bg-emerald-600 text-white'
+                      : 'text-text-muted hover:text-text-primary hover:bg-hover-bg'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => loadMembers(currentPage + 1)}
+                disabled={currentPage >= totalPages - 1 || membersLoading}
+                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-hover-bg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          </>
         )}
       </div>
 
