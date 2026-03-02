@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, Button, Modal } from '@/components/ui/Base';
-import { Search, FolderPlus, ArrowLeft, Plus, MoreVertical, Pencil, Trash2, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, FolderPlus, ArrowLeft, Plus, MoreVertical, Pencil, Trash2, Loader2, ChevronLeft, ChevronRight, ExternalLink, Code2, Eye, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useRecoilState } from 'recoil';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
-import { currentProblemBoxState } from '@/store/atoms';
+import { currentProblemBoxState, problemContextState } from '@/store/atoms';
 import { getProblemBoxes, getProblemBox, createProblemBox, updateProblemBox, deleteProblemBox } from '@/api/problemBox';
 import type { ProblemBoxListData } from '@/api/problemBox';
 import { getWorkspaceProblems, updateWorkspaceProblem, deleteWorkspaceProblem } from '@/api/workspaceProblem';
@@ -15,6 +15,8 @@ import dayjs, { Dayjs } from 'dayjs';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { useT, useLang } from '@/i18n';
+import { useExtensionBatchContext } from '@/hooks/useExtensionProblemContext';
+import { useSolutionPolling } from '@/hooks/useSolutionPolling';
 
 type MemberRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'MEMBER';
 
@@ -51,6 +53,7 @@ function parseApiError(err: any, fallback: string): string {
 export const ProblemList = () => {
   const { navigate, toWs, currentWsId } = useWorkspaceNavigate();
   const [currentBox, setCurrentBox] = useRecoilState(currentProblemBoxState);
+  const [, setProblemCtxMap] = useRecoilState(problemContextState);
   const t = useT();
   const lang = useLang();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -128,6 +131,32 @@ export const ProblemList = () => {
   useEffect(() => {
     if (currentBox) fetchProblems();
   }, [currentBox, fetchProblems]);
+
+  // Extension batch context: 문제 목록이 로드되면 extension에 전달
+  const batchContextProblems = useMemo(
+    () => problems.map(p => ({ problemNumber: p.problemNumber, workspaceProblemId: p.id })),
+    [problems],
+  );
+  useExtensionBatchContext(batchContextProblems);
+
+  // 인라인 알림 (직접 렌더링)
+  const [notification, setNotification] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
+  const notifTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showNotification = useCallback((message: string, type: 'info' | 'success' | 'error' = 'info') => {
+    if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
+    setNotification({ message, type });
+    notifTimerRef.current = setTimeout(() => setNotification(null), 5000);
+  }, []);
+
+  // Solution polling
+  const { solutionMap, loading: solutionLoading, pendingProblems, markPending, lastCheckedAt, refreshNow } = useSolutionPolling(
+    currentWsId,
+    currentBox?.id ?? null,
+    useMemo(() => problems.map(p => ({ id: p.id, problemNumber: p.problemNumber })), [problems]),
+    showNotification,
+  );
+  const [refreshing, setRefreshing] = useState(false);
 
   const openEditProblemModal = (p: WorkspaceProblemListData['content'][number]) => {
     setEditProblemTarget({ id: p.id, problemNumber: p.problemNumber, title: p.title });
@@ -548,6 +577,21 @@ export const ProblemList = () => {
           </div>
         </div>
 
+        {/* 인라인 알림 */}
+        {notification && (
+          <div className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium border animate-in fade-in slide-in-from-top-2 ${
+            notification.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+            notification.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
+            'bg-indigo-500/10 border-indigo-500/20 text-indigo-300'
+          }`}>
+            {notification.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> :
+             notification.type === 'error' ? <AlertCircle className="w-4 h-4 shrink-0" /> :
+             <Loader2 className="w-4 h-4 animate-spin shrink-0" />}
+            {notification.message}
+            <button onClick={() => setNotification(null)} className="ml-auto text-text-faint hover:text-text-secondary">✕</button>
+          </div>
+        )}
+
         {/* Search & Filter Bar */}
         <div className="flex gap-4">
           <div className="flex-1 relative">
@@ -577,38 +621,53 @@ export const ProblemList = () => {
           <Card className="bg-surface-raised border-border-default overflow-hidden shadow-md">
             <div className="overflow-x-auto">
               <div className="min-w-[700px]">
-                <div className="grid grid-cols-[80px_1fr_120px_120px_80px] gap-4 p-4 border-b border-border-default bg-page text-sm font-bold text-text-muted">
+                <div className="grid grid-cols-[80px_1fr_100px_120px_80px] gap-4 p-4 border-b border-border-default bg-page text-sm font-bold text-text-muted">
                   <div className="text-center">{t('problems.number')}</div>
                   <div>{t('problems.title')}</div>
                   <div>{t('problems.tier')}</div>
                   <div>{t('problems.deadline')}</div>
-                  {canManage && <div></div>}
+                  <div></div>
                 </div>
 
                 <div className="divide-y divide-border-default">
-                  {problems.map((p) => (
-                    <div
-                      key={p.id}
-                      onClick={() => navigate(`/ws/${currentWsId}/ide/${p.problemNumber}`)}
-                      className="grid grid-cols-[80px_1fr_120px_120px_80px] gap-4 p-4 items-center hover:bg-hover-bg transition-colors cursor-pointer group"
-                    >
-                      <div className="text-center text-emerald-600 dark:text-emerald-400 font-mono text-sm font-bold">{p.problemNumber}</div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-text-secondary font-bold group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{p.title}</span>
-                      </div>
-                      <div>
-                        {p.tier ? (
-                          <span className={`px-2 py-1 rounded text-xs font-extrabold border shadow-sm ${getTierColor(p.tier)}`}>
-                            {p.tier}
-                          </span>
-                        ) : (
-                          <span className="text-text-faint text-xs">-</span>
-                        )}
-                      </div>
-                      <div className="text-text-muted text-xs">
-                        {p.deadline ? new Date(p.deadline).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US') : '-'}
-                      </div>
-                      {canManage && (
+                  {problems.map((p) => {
+                    const sol = solutionMap.get(p.id);
+                    const isAccepted = sol?.status === 'ACCEPTED';
+                    const isWrong = sol && sol.status !== 'ACCEPTED';
+                    const isPending = pendingProblems.has(p.id);
+
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => {
+                          setProblemCtxMap(prev => ({
+                            ...prev,
+                            [String(p.problemNumber)]: {
+                              workspaceProblemId: p.id,
+                              problemBoxId: currentBox!.id,
+                            },
+                          }));
+                          navigate(`/ws/${currentWsId}/ide/${p.problemNumber}`);
+                        }}
+                        className="grid grid-cols-[80px_1fr_100px_120px_80px] gap-4 p-4 items-center hover:bg-hover-bg transition-colors cursor-pointer group"
+                      >
+                        <div className="text-center text-emerald-600 dark:text-emerald-400 font-mono text-sm font-bold">{p.problemNumber}</div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-text-secondary font-bold group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{p.title}</span>
+                        </div>
+                        <div>
+                          {p.tier ? (
+                            <span className={`px-2 py-1 rounded text-xs font-extrabold border shadow-sm ${getTierColor(p.tier)}`}>
+                              {p.tier}
+                            </span>
+                          ) : (
+                            <span className="text-text-faint text-xs">-</span>
+                          )}
+                        </div>
+                        <div className="text-text-muted text-xs">
+                          {p.deadline ? new Date(p.deadline).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US') : '-'}
+                        </div>
+                        {/* 액션 메뉴 */}
                         <div className="text-center">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -620,31 +679,34 @@ export const ProblemList = () => {
                               </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                              <DropdownMenuItem onClick={() => openEditProblemModal(p)}>
-                                <Pencil className="w-4 h-4 mr-2" />
-                                {t('common.edit')}
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                variant="destructive"
-                                disabled={deletingProblemId === p.id}
-                                onClick={() => {
-                                  if (confirm(t('problems.confirmDeleteProblem'))) handleDeleteProblem(p.id);
-                                }}
-                              >
-                                {deletingProblemId === p.id ? (
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                ) : (
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                )}
-                                {t('common.delete')}
-                              </DropdownMenuItem>
+                              {canManage && (
+                                <>
+                                  <DropdownMenuItem onSelect={() => openEditProblemModal(p)}>
+                                    <Pencil className="w-4 h-4 mr-2" />
+                                    {t('common.edit')}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    variant="destructive"
+                                    disabled={deletingProblemId === p.id}
+                                    onSelect={() => {
+                                      if (confirm(t('problems.confirmDeleteProblem'))) handleDeleteProblem(p.id);
+                                    }}
+                                  >
+                                    {deletingProblemId === p.id ? (
+                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <Trash2 className="w-4 h-4 mr-2" />
+                                    )}
+                                    {t('common.delete')}
+                                  </DropdownMenuItem>
+                                </>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
