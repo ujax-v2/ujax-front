@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Button, Badge } from '@/components/ui/Base';
-import { Play, RotateCcw, Settings, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, ChevronDown, ChevronRight, Plus, Code2, Clock, HardDrive } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Button, Badge } from '@/components/ui/Base';
+import { Play, RotateCcw, Settings, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, Plus, Code2, Clock, HardDrive, X } from 'lucide-react';
 import Editor from '@monaco-editor/react';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import { useParams } from 'react-router-dom';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
-import { ideCodeState, ideLanguageState, ideOutputState, ideIsExecutingState, IdeOutput } from '@/store/atoms';
+import { ideCodeState, ideLanguageState, ideIsExecutingState, ideTestCasesState, ideTestResultsState, currentWorkspaceState, problemContextState } from '@/store/atoms';
+import type { IdeTestCase, IdeTestResult } from '@/store/atoms';
 import { getProblemByNumber } from '@/api/problem';
 import type { ProblemResponse } from '@/api/problem';
+import { createSubmission, getSubmissionResults } from '@/api/submission';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useIsDark } from '@/App';
+import { useExtensionProblemContext } from '@/hooks/useExtensionProblemContext';
 
 // Language ID mapping for Judge0
 const LANGUAGE_OPTIONS = [
@@ -18,6 +21,13 @@ const LANGUAGE_OPTIONS = [
   { id: 54, name: 'C++ (GCC 9.2.0)', value: 'cpp', monaco: 'cpp' },
   { id: 62, name: 'Java (OpenJDK 13.0.1)', value: 'java', monaco: 'java' },
 ];
+
+const LANG_TO_BACKEND: Record<string, string> = {
+  javascript: 'JAVASCRIPT',
+  python: 'PYTHON',
+  cpp: 'CPP',
+  java: 'JAVA',
+};
 
 const CODE_TEMPLATES: Record<string, string> = {
   javascript: `const fs = require('fs');
@@ -60,6 +70,9 @@ public class Main {
 }`
 };
 
+const POLL_INTERVAL = 1500;
+const MAX_POLL_ATTEMPTS = 40;
+
 const Stopwatch = () => {
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
@@ -90,21 +103,62 @@ const Stopwatch = () => {
   );
 };
 
+// ─── Helper: parse error detail per CLAUDE.md ───
+function parseErrorDetail(err: any): string {
+  const msg = err?.message || '';
+  const jsonMatch = msg.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
+      const parsed = JSON.parse(jsonMatch[0]);
+      return parsed.detail || '요청에 실패했습니다.';
+    } catch {
+      return '요청에 실패했습니다.';
+    }
+  }
+  return '요청에 실패했습니다.';
+}
+
 export const IDE = () => {
   const isDark = useIsDark();
   const [code, setCode] = useRecoilState(ideCodeState);
   const [language, setLanguage] = useRecoilState(ideLanguageState);
-  const [output, setOutput] = useRecoilState(ideOutputState);
   const [isExecuting, setIsExecuting] = useRecoilState(ideIsExecutingState);
+  const [testCases, setTestCases] = useRecoilState(ideTestCasesState);
+  const [testResults, setTestResults] = useRecoilState(ideTestResultsState);
+  const currentWsId = useRecoilValue(currentWorkspaceState);
+  const problemCtxMap = useRecoilValue(problemContextState);
   const { navigate, toWs } = useWorkspaceNavigate();
   const { problemId } = useParams();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const ctx = problemId ? problemCtxMap[problemId] : undefined;
+
   const [problem, setProblem] = useState<ProblemResponse | null>(null);
   const [problemLoading, setProblemLoading] = useState(false);
   const [problemError, setProblemError] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const [testOpen, setTestOpen] = useState(false);
+  // Bottom panel tab: 'cases' | 'results'
+  const [bottomTab, setBottomTab] = useState<'cases' | 'results'>('cases');
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
 
+  // Add test case modal
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [modalInput, setModalInput] = useState('');
+  const [modalExpected, setModalExpected] = useState('');
+
+  // Extension에 problemContext 전달
+  useExtensionProblemContext(
+    problem?.problemNumber ?? null,
+    ctx?.workspaceProblemId ?? null,
+  );
+
+  // Polling cancel ref
+  const cancelledRef = useRef(false);
+
+  useEffect(() => {
+    return () => { cancelledRef.current = true; };
+  }, []);
+
+  // ─── Load problem & init test cases ───
   useEffect(() => {
     if (!problemId) return;
     const num = parseInt(problemId, 10);
@@ -112,14 +166,20 @@ export const IDE = () => {
     setProblemLoading(true);
     setProblemError('');
     getProblemByNumber(num)
-      .then((data) => setProblem(data))
+      .then((data) => {
+        setProblem(data);
+        // Initialize test cases from problem samples
+        const sampleCases: IdeTestCase[] = data.samples.map((s) => ({
+          id: `sample-${s.id}`,
+          input: s.input || '',
+          expected: s.output || '',
+          isCustom: false,
+        }));
+        setTestCases(sampleCases);
+        if (sampleCases.length > 0) setSelectedCaseId(sampleCases[0].id);
+      })
       .catch((err) => {
-        const msg = err?.message || '';
-        const jsonMatch = msg.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          try { setProblemError(JSON.parse(jsonMatch[0]).detail || '문제를 불러오는 데 실패했습니다.'); }
-          catch { setProblemError('문제를 불러오는 데 실패했습니다.'); }
-        } else { setProblemError('문제를 불러오는 데 실패했습니다.'); }
+        setProblemError(parseErrorDetail(err));
       })
       .finally(() => setProblemLoading(false));
   }, [problemId]);
@@ -135,36 +195,175 @@ export const IDE = () => {
     if (lang) { setLanguage(lang.value); setCode(CODE_TEMPLATES[lang.value] || ''); }
   };
 
-  const executeCode = async () => {
-    setIsExecuting(true);
-    setTestOpen(true);
-    setOutput(null);
-    try {
-      await new Promise(r => setTimeout(r, 1500));
-      if (code.includes("error")) {
-        setOutput({ stdout: null, stderr: "ReferenceError: error is not defined\n    at Object.<anonymous> (/script.js:1:1)", status: { id: 11, description: "Runtime Error" }, time: "0.050", memory: "13000" });
-      } else {
-        setOutput({ stdout: "3\n", stderr: null, status: { id: 3, description: "Accepted" }, time: "0.045", memory: "12480" });
+  // ─── Test case management ───
+  const openAddModal = useCallback(() => {
+    setModalInput('');
+    setModalExpected('');
+    setShowAddModal(true);
+  }, []);
+
+  const confirmAddTestCase = useCallback(() => {
+    const newCase: IdeTestCase = {
+      id: `custom-${Date.now()}`,
+      input: modalInput,
+      expected: modalExpected,
+      isCustom: true,
+    };
+    setTestCases((prev) => [...prev, newCase]);
+    setSelectedCaseId(newCase.id);
+    setBottomTab('cases');
+    setShowAddModal(false);
+  }, [setTestCases, modalInput, modalExpected]);
+
+  const updateTestCase = useCallback((id: string, field: 'input' | 'expected', value: string) => {
+    setTestCases((prev) => prev.map((tc) => tc.id === id ? { ...tc, [field]: value } : tc));
+  }, [setTestCases]);
+
+  const deleteTestCase = useCallback((id: string) => {
+    setTestCases((prev) => {
+      const next = prev.filter((tc) => tc.id !== id);
+      if (selectedCaseId === id) {
+        setSelectedCaseId(next.length > 0 ? next[0].id : null);
       }
+      return next;
+    });
+  }, [setTestCases, selectedCaseId]);
+
+  // ─── Polling logic ───
+  const pollResults = useCallback(async (token: string) => {
+    for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
+      if (cancelledRef.current) return;
+      await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+      if (cancelledRef.current) return;
+
+      try {
+        const results = await getSubmissionResults(token);
+        const mapped: IdeTestResult[] = results.map((r) => ({
+          input: r.input,
+          expected: r.expected,
+          stdout: r.stdout ?? null,
+          statusDescription: r.statusDescription,
+          statusId: r.statusId,
+          isCorrect: r.isCorrect,
+          time: r.time ?? null,
+          memory: r.memory ?? null,
+          token: r.token,
+        }));
+        setTestResults(mapped);
+
+        // statusId <= 2 means "In Queue" or "Processing"
+        const allDone = mapped.every((r) => r.statusId > 2);
+        if (allDone) return mapped;
+      } catch {
+        // polling error — keep going
+      }
+    }
+    // Timeout
+    setErrorMsg('채점 시간이 초과되었습니다. 부분 결과를 표시합니다.');
+    return null;
+  }, [setTestResults]);
+
+  // ─── Execute (실행) ───
+  const executeCode = async () => {
+    if (!problem || isExecuting) return;
+    if (testCases.length === 0) {
+      setErrorMsg('테스트 케이스가 없습니다. 테스트를 추가해주세요.');
+      return;
+    }
+
+    setIsExecuting(true);
+    setTestResults([]);
+    setErrorMsg('');
+    setBottomTab('results');
+    cancelledRef.current = false;
+
+    try {
+      const res = await createSubmission(currentWsId, problem.id, {
+        sourceCode: code,
+        language: LANG_TO_BACKEND[language] || 'JAVASCRIPT',
+        testCases: testCases.map((tc) => ({ input: tc.input, expected: tc.expected })),
+      });
+      await pollResults(res!.submissionToken);
     } catch {
-      setOutput({ stdout: null, stderr: "Failed to execute code.", status: { id: 0, description: "Network Error" }, time: null, memory: null } as IdeOutput);
-    } finally { setIsExecuting(false); }
+      setErrorMsg('실행에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsExecuting(false);
+    }
   };
 
-  const handleSubmit = async () => {
-    if (isSubmitting || isExecuting) return;
-    setIsSubmitting(true);
-    setTestOpen(true);
-    setOutput(null);
-    try {
-      await new Promise(r => setTimeout(r, 1500));
-      const res = { stdout: "", stderr: null, status: { id: 3, description: "Accepted" }, time: "0.045", memory: "12480" };
-      setOutput(res);
-      if (res.status?.id === 3) setTimeout(() => navigate(`/problems/${problemId || '1000'}/solutions`), 1500);
-    } catch {
-      setOutput({ stdout: null, stderr: "Submission failed.", status: { id: 0, description: "Error" }, time: null, memory: null } as IdeOutput);
-    } finally { setIsSubmitting(false); }
+  // ─── Submit (제출) → Extension을 통해 백준 자동 제출 ───
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitted' | 'accepted' | 'wrong' | 'timeout'>('idle');
+  const [submitResult, setSubmitResult] = useState<string | null>(null);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const submitTimeoutRef = useRef<number | null>(null);
+
+  // Extension에서 채점 결과 수신
+  useEffect(() => {
+    const handleExtResult = (event: MessageEvent) => {
+      if (event.source !== window) return;
+      if (event.data?.type !== 'ujaxSubmissionResult') return;
+      if (!problem || String(event.data.problemNum) !== String(problem.problemNumber)) return;
+
+      const verdict = event.data.verdict || '';
+      const ACCEPTED_KEYWORDS = ['맞았습니다', 'Accepted'];
+      const isAccepted = ACCEPTED_KEYWORDS.some((kw) => verdict.includes(kw));
+
+      if (isAccepted) {
+        setSubmitStatus('accepted');
+        setSubmitResult('맞았습니다!!');
+      } else {
+        setSubmitStatus('wrong');
+        setSubmitResult(verdict);
+      }
+
+      if (submitTimeoutRef.current) {
+        clearTimeout(submitTimeoutRef.current);
+        submitTimeoutRef.current = null;
+      }
+    };
+
+    window.addEventListener('message', handleExtResult);
+    return () => window.removeEventListener('message', handleExtResult);
+  }, [problem]);
+
+  useEffect(() => {
+    return () => {
+      if (submitTimeoutRef.current) clearTimeout(submitTimeoutRef.current);
+    };
+  }, []);
+
+  const handleSubmit = () => {
+    if (!problem) return;
+
+    window.postMessage({
+      type: 'ujaxSubmitRequest',
+      problemNum: problem.problemNumber,
+      code,
+      language,
+    }, '*');
+
+    setSubmitStatus('submitted');
+    setSubmitResult(null);
+    setShowSubmitModal(true);
+
+    // 60초 타임아웃
+    if (submitTimeoutRef.current) clearTimeout(submitTimeoutRef.current);
+    submitTimeoutRef.current = window.setTimeout(() => {
+      setSubmitStatus(prev => prev === 'submitted' ? 'timeout' : prev);
+    }, 60000);
   };
+
+  const closeSubmitModal = () => {
+    setShowSubmitModal(false);
+    setSubmitStatus('idle');
+    setSubmitResult(null);
+  };
+
+  // ─── Derived state for results summary ───
+  const passedCount = testResults.filter((r) => r.isCorrect).length;
+  const totalCount = testResults.length;
+  const allDone = testResults.length > 0 && testResults.every((r) => r.statusId > 2);
+  const selectedCase = testCases.find((tc) => tc.id === selectedCaseId) || null;
 
   return (
     <div className="flex h-full flex-col bg-page text-text-secondary">
@@ -261,7 +460,7 @@ export const IDE = () => {
                     </section>
                   )}
 
-                  {problem.samples.length > 0 && (
+                  {problem.samples && problem.samples.length > 0 && (
                     <div className="space-y-3">
                       {problem.samples.map((s) => (
                         <div key={s.id} className="grid grid-cols-2 gap-3">
@@ -277,6 +476,7 @@ export const IDE = () => {
                       ))}
                     </div>
                   )}
+
                 </>
               ) : (
                 <div className="text-center py-12 text-text-faint text-sm">문제를 선택해주세요.</div>
@@ -287,7 +487,7 @@ export const IDE = () => {
 
         <ResizableHandle withHandle className="bg-surface-subtle hover:bg-indigo-500/50 transition-colors w-[3px]" />
 
-        {/* ─── Right: Editor (top) + Test Results (bottom) ─── */}
+        {/* ─── Right: Editor (top) + Test Panel (bottom) ─── */}
         <ResizablePanel defaultSize={62} minSize={40}>
           <ResizablePanelGroup direction="vertical">
             {/* Editor */}
@@ -314,66 +514,179 @@ export const IDE = () => {
 
             <ResizableHandle withHandle className="bg-surface-subtle hover:bg-indigo-500/50 transition-colors h-[3px]" />
 
-            {/* Test Results */}
+            {/* Bottom Panel: Test Cases / Results */}
             <ResizablePanel defaultSize={35} minSize={15}>
               <div className="h-full flex flex-col bg-page overflow-hidden">
-                <button
-                  onClick={() => setTestOpen(!testOpen)}
-                  className="flex items-center justify-between px-4 py-2 bg-surface hover:bg-hover-bg transition-colors shrink-0 border-b border-border-default"
-                >
-                  <span className="font-bold text-xs text-text-secondary uppercase tracking-wider">테스트 결과</span>
-                  {testOpen ? <ChevronDown className="w-3.5 h-3.5 text-text-faint" /> : <ChevronRight className="w-3.5 h-3.5 text-text-faint" />}
-                </button>
-
-                {testOpen && (
-                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                    {isExecuting ? (
-                      <div className="flex flex-col items-center justify-center h-full text-text-faint">
-                        <Loader2 className="w-6 h-6 animate-spin mb-3 text-emerald-500" />
-                        <p className="text-xs">실행 중...</p>
-                      </div>
-                    ) : output ? (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          {output.status?.id === 3 ? (
-                            <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                              <CheckCircle2 className="w-4 h-4" />
-                              <span className="font-bold text-sm">테스트 통과</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1.5 text-red-400">
-                              <AlertCircle className="w-4 h-4" />
-                              <span className="font-bold text-sm">{output.status?.description || 'Error'}</span>
-                            </div>
-                          )}
-                          <div className="h-3 w-px bg-border-subtle" />
-                          <span className="text-xs text-text-faint">
-                            {output.time || '0'}s / {output.memory || '0'}KB
-                          </span>
-                        </div>
-
-                        <Card className="p-3 bg-input-bg/80 border-border-default">
-                          <h4 className="text-[10px] font-bold text-text-faint mb-1 uppercase tracking-wider">Stdout</h4>
-                          <pre className="text-xs font-mono text-text-secondary whitespace-pre-wrap">
-                            {output.stdout || <span className="text-text-faint italic">No output</span>}
-                          </pre>
-                        </Card>
-
-                        {output.stderr && (
-                          <Card className="p-3 bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-500/20">
-                            <h4 className="text-[10px] font-bold text-red-400 mb-1 uppercase tracking-wider">Stderr</h4>
-                            <pre className="text-xs font-mono text-red-600 dark:text-red-300 whitespace-pre-wrap">{output.stderr}</pre>
-                          </Card>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full text-text-faint">
-                        <Play className="w-8 h-8 mb-2 opacity-15" />
-                        <p className="text-xs">코드를 실행하여 결과를 확인하세요.</p>
-                      </div>
+                {/* Tab bar */}
+                <div className="flex items-center border-b border-border-default bg-surface shrink-0">
+                  <button
+                    onClick={() => setBottomTab('cases')}
+                    className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${bottomTab === 'cases' ? 'text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-500' : 'text-text-secondary hover:text-text-primary'}`}
+                  >
+                    테스트 케이스
+                  </button>
+                  <button
+                    onClick={() => setBottomTab('results')}
+                    className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${bottomTab === 'results' ? 'text-emerald-600 dark:text-emerald-400 border-b-2 border-emerald-500' : 'text-text-secondary hover:text-text-primary'}`}
+                  >
+                    테스트 결과
+                    {testResults.length > 0 && (
+                      <span className={`ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold ${allDone && passedCount === totalCount ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : allDone ? 'bg-red-500/20 text-red-500' : 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'}`}>
+                        {passedCount}/{totalCount}
+                      </span>
                     )}
-                  </div>
-                )}
+                  </button>
+                </div>
+
+                {/* Tab content */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                  {bottomTab === 'cases' ? (
+                    /* ─── Test Cases Tab ─── */
+                    <div className="flex flex-col h-full">
+                      {/* Case number tabs */}
+                      <div className="flex items-center gap-1 px-3 py-2 border-b border-border-default bg-surface-subtle/50 overflow-x-auto shrink-0">
+                        {testCases.map((tc, idx) => {
+                          const label = tc.isCustom
+                            ? `사용자 ${testCases.filter((t, i) => t.isCustom && i <= idx).length}`
+                            : `예제 ${idx + 1}`;
+                          return (
+                            <button
+                              key={tc.id}
+                              onClick={() => setSelectedCaseId(tc.id)}
+                              className={`flex items-center gap-1 px-3 py-1 rounded text-xs font-medium whitespace-nowrap transition-colors ${selectedCaseId === tc.id ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'text-text-secondary hover:bg-hover-bg'}`}
+                            >
+                              {label}
+                              {tc.isCustom && (
+                                <X
+                                  className="w-3 h-3 ml-0.5 opacity-60 hover:opacity-100"
+                                  onClick={(e) => { e.stopPropagation(); deleteTestCase(tc.id); }}
+                                />
+                              )}
+                            </button>
+                          );
+                        })}
+                        <button
+                          onClick={openAddModal}
+                          className="flex items-center gap-1 px-2 py-1 rounded text-xs text-text-faint hover:text-text-primary hover:bg-hover-bg transition-colors"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+
+                      {/* Selected case viewer / editor */}
+                      {selectedCase ? (
+                        <div className="flex-1 p-3 space-y-3 overflow-y-auto">
+                          <div>
+                            <label className="text-[10px] font-bold text-text-faint uppercase tracking-wider mb-1 block">입력</label>
+                            <textarea
+                              value={selectedCase.input}
+                              onChange={(e) => updateTestCase(selectedCase.id, 'input', e.target.value)}
+                              readOnly={!selectedCase.isCustom}
+                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none min-h-[60px] ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
+                              rows={3}
+                              placeholder="입력값을 입력하세요..."
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-text-faint uppercase tracking-wider mb-1 block">기대 출력</label>
+                            <textarea
+                              value={selectedCase.expected}
+                              onChange={(e) => updateTestCase(selectedCase.id, 'expected', e.target.value)}
+                              readOnly={!selectedCase.isCustom}
+                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none min-h-[60px] ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
+                              rows={3}
+                              placeholder="기대 출력값을 입력하세요..."
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex-1 flex items-center justify-center text-text-faint text-xs">
+                          테스트 케이스를 추가해주세요.
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* ─── Test Results Tab ─── */
+                    <div className="p-4 space-y-3">
+                      {/* Error banner */}
+                      {errorMsg && (
+                        <div className="flex items-center gap-2 p-2.5 rounded-md bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-300 text-xs">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          {errorMsg}
+                        </div>
+                      )}
+
+                      {isExecuting && testResults.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-8 text-text-faint">
+                          <Loader2 className="w-6 h-6 animate-spin mb-3 text-emerald-500" />
+                          <p className="text-xs">실행 중...</p>
+                        </div>
+                      ) : testResults.length > 0 ? (
+                        <>
+                          {/* Summary */}
+                          <div className="flex items-center gap-3">
+                            {allDone && passedCount === totalCount ? (
+                              <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                                <CheckCircle2 className="w-4 h-4" />
+                                <span className="font-bold text-sm">전체 통과</span>
+                              </div>
+                            ) : allDone ? (
+                              <div className="flex items-center gap-1.5 text-red-400">
+                                <AlertCircle className="w-4 h-4" />
+                                <span className="font-bold text-sm">{passedCount}/{totalCount} 통과</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1.5 text-yellow-600 dark:text-yellow-400">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span className="font-bold text-sm">채점 중... ({testResults.filter(r => r.statusId > 2).length}/{totalCount})</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Result rows */}
+                          <div className="space-y-1.5">
+                            {testResults.map((r, idx) => {
+                              const isPending = r.statusId <= 2;
+                              const isPass = r.isCorrect;
+                              return (
+                                <div
+                                  key={r.token || idx}
+                                  className={`flex items-center justify-between px-3 py-2 rounded-md border ${isPending ? 'border-yellow-300/50 dark:border-yellow-600/20 bg-yellow-50/30 dark:bg-yellow-900/5' : isPass ? 'border-emerald-300/50 dark:border-emerald-600/20 bg-emerald-50/30 dark:bg-emerald-900/5' : 'border-red-300/50 dark:border-red-600/20 bg-red-50/30 dark:bg-red-900/5'}`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    {isPending ? (
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin text-yellow-500" />
+                                    ) : isPass ? (
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                                    ) : (
+                                      <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+                                    )}
+                                    <span className={`text-xs font-bold ${isPending ? 'text-yellow-600 dark:text-yellow-400' : isPass ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                                      케이스 {idx + 1}
+                                    </span>
+                                    {!isPending && (
+                                      <span className="text-xs text-text-secondary">{r.statusDescription}</span>
+                                    )}
+                                  </div>
+                                  {!isPending && (r.time != null || r.memory != null) && (
+                                    <span className="text-[10px] text-text-faint">
+                                      {r.time != null ? `${r.time}s` : ''}{r.time != null && r.memory != null ? ' / ' : ''}{r.memory != null ? `${r.memory}KB` : ''}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-8 text-text-faint">
+                          <Play className="w-8 h-8 mb-2 opacity-15" />
+                          <p className="text-xs">코드를 실행하여 결과를 확인하세요.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>
@@ -382,13 +695,20 @@ export const IDE = () => {
 
       {/* ─── Bottom Action Bar (고정) ─── */}
       <div className="h-14 border-t border-border-default bg-surface px-5 flex items-center justify-between shrink-0">
-        <Button variant="ghost" className="text-text-secondary hover:text-text-primary hover:bg-hover-bg text-sm border border-border-subtle px-3 py-1.5">
+        <Button
+          variant="ghost"
+          onClick={openAddModal}
+          className="text-text-secondary hover:text-text-primary hover:bg-hover-bg text-sm border border-border-subtle px-3 py-1.5"
+        >
           <Plus className="w-4 h-4 mr-1.5" /> 테스트 추가
         </Button>
         <div className="flex items-center gap-3">
           <Button
             variant="secondary"
-            onClick={() => navigate(`/problems/${problemId || '1000'}/solutions`)}
+            onClick={() => {
+              if (ctx) toWs(`problems/${ctx.workspaceProblemId}/solutions?boxId=${ctx.problemBoxId}`);
+            }}
+            disabled={!ctx}
             className="bg-surface-subtle hover:bg-border-subtle text-text-secondary border border-border-subtle text-sm px-4 py-2"
           >
             <Code2 className="w-4 h-4 mr-1.5" /> 풀이 보기
@@ -402,14 +722,124 @@ export const IDE = () => {
             {isExecuting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Play className="w-4 h-4 mr-1.5" />실행</>}
           </Button>
           <Button
-            className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-5 py-2 font-semibold"
+            className="text-white text-sm px-5 py-2 font-semibold bg-emerald-600 hover:bg-emerald-700"
             onClick={handleSubmit}
-            disabled={isSubmitting || isExecuting}
+            disabled={!problem || submitStatus === 'submitted'}
           >
-            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : '제출'}
+            제출
           </Button>
         </div>
       </div>
+
+      {/* ─── Submit Status Modal ─── */}
+      {showSubmitModal && submitStatus !== 'idle' && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={closeSubmitModal}
+        >
+          <div
+            className="relative bg-surface border border-border-default rounded-xl shadow-xl w-full max-w-sm mx-4 py-10 flex flex-col items-center gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={closeSubmitModal}
+              className="absolute top-3 right-3 text-text-faint hover:text-text-primary transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            {submitStatus === 'submitted' && (
+              <>
+                <Loader2 className="w-12 h-12 text-amber-500 animate-spin" />
+                <p className="text-sm font-semibold text-text-secondary">
+                  {problem ? `${problem.problemNumber}번 문제` : ''}
+                </p>
+                <p className="text-lg font-bold text-amber-500">채점 중입니다...</p>
+              </>
+            )}
+            {submitStatus === 'accepted' && (
+              <>
+                <CheckCircle2 className="w-12 h-12 text-emerald-500" />
+                <p className="text-sm font-semibold text-text-secondary">
+                  {problem ? `${problem.problemNumber}번 문제` : ''}
+                </p>
+                <p className="text-lg font-bold text-emerald-500">맞았습니다!!</p>
+                <Button variant="primary" onClick={closeSubmitModal} className="mt-2 text-sm px-6 py-2">
+                  확인
+                </Button>
+              </>
+            )}
+            {submitStatus === 'wrong' && (
+              <>
+                <AlertCircle className="w-12 h-12 text-red-500" />
+                <p className="text-sm font-semibold text-text-secondary">
+                  {problem ? `${problem.problemNumber}번 문제` : ''}
+                </p>
+                <p className="text-lg font-bold text-red-500">{submitResult || '틀렸습니다'}</p>
+                <Button variant="primary" onClick={closeSubmitModal} className="mt-2 text-sm px-6 py-2">
+                  확인
+                </Button>
+              </>
+            )}
+            {submitStatus === 'timeout' && (
+              <>
+                <Clock className="w-12 h-12 text-text-faint" />
+                <p className="text-sm font-semibold text-text-secondary">
+                  {problem ? `${problem.problemNumber}번 문제` : ''}
+                </p>
+                <p className="text-lg font-bold text-text-secondary">결과를 확인할 수 없습니다</p>
+                <Button variant="secondary" onClick={closeSubmitModal} className="mt-2 text-sm px-6 py-2">
+                  닫기
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Add Test Case Modal ─── */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowAddModal(false)}>
+          <div className="bg-surface border border-border-default rounded-xl shadow-xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border-default">
+              <h3 className="font-bold text-text-primary text-sm">테스트 케이스 추가</h3>
+              <button onClick={() => setShowAddModal(false)} className="text-text-faint hover:text-text-primary">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-text-secondary mb-1.5 block">입력</label>
+                <textarea
+                  value={modalInput}
+                  onChange={(e) => setModalInput(e.target.value)}
+                  className="w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none focus:border-emerald-500"
+                  rows={4}
+                  placeholder="입력값을 입력하세요..."
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-text-secondary mb-1.5 block">기대 출력</label>
+                <textarea
+                  value={modalExpected}
+                  onChange={(e) => setModalExpected(e.target.value)}
+                  className="w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none focus:border-emerald-500"
+                  rows={4}
+                  placeholder="기대 출력값을 입력하세요..."
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 px-5 py-4 border-t border-border-default">
+              <Button variant="secondary" onClick={() => setShowAddModal(false)} className="text-sm px-4 py-2">
+                취소
+              </Button>
+              <Button variant="primary" onClick={confirmAddTestCase} className="text-sm px-4 py-2">
+                추가
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -81,6 +81,37 @@ export const ideIsExecutingState = atom({
   default: false,
 });
 
+// 테스트 케이스
+export interface IdeTestCase {
+  id: string;
+  input: string;
+  expected: string;
+  isCustom: boolean; // false=문제 예제, true=사용자 추가
+}
+
+export const ideTestCasesState = atom<IdeTestCase[]>({
+  key: 'ideTestCasesState',
+  default: [],
+});
+
+// 테스트 결과
+export interface IdeTestResult {
+  input: string;
+  expected: string;
+  stdout: string | null;
+  statusDescription: string;
+  statusId: number;
+  isCorrect: boolean;
+  time: number | null;
+  memory: number | null;
+  token: string;
+}
+
+export const ideTestResultsState = atom<IdeTestResult[]>({
+  key: 'ideTestResultsState',
+  default: [],
+});
+
 export interface UserState {
   isLoggedIn: boolean;
   id: number;
@@ -173,4 +204,16 @@ export const settingsTabState = atom({
 export const isCreateWorkspaceModalOpenState = atom({
   key: 'isCreateWorkspaceModalOpenState',
   default: false,
+});
+
+// 문제 컨텍스트 (problemNumber → workspaceProblemId, problemBoxId 매핑)
+export interface ProblemContext {
+  workspaceProblemId: number;
+  problemBoxId: number;
+}
+
+export const problemContextState = atom<Record<string, ProblemContext>>({
+  key: 'problemContextState',
+  default: {},
+  effects: [localStorageEffect('problemContext')],
 });
