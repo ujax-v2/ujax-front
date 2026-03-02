@@ -22,6 +22,15 @@ export type UpdateWorkspaceRequest = components['schemas']['UpdateWorkspaceReque
 type ApiWorkspaceExplore = components['schemas']['ApiResponse-WorkspaceExplore'];
 export type PageResponseWorkspaceResponse = ApiWorkspaceExplore['data'];
 
+type ApiJoinRequestPage = components['schemas']['ApiResponse-WorkspaceJoinRequestPage'];
+export type JoinRequestPageResponse = ApiJoinRequestPage['data'];
+
+type ApiJoinRequestResponse = components['schemas']['ApiResponse-WorkspaceJoinRequestResponse'];
+export type JoinRequestResponse = ApiJoinRequestResponse['data'];
+
+type ApiMyJoinRequestStatus = components['schemas']['ApiResponse-WorkspaceMyJoinRequestStatusResponse'];
+export type MyJoinRequestStatusResponse = ApiMyJoinRequestStatus['data'];
+
 // ──── 워크스페이스 CRUD ────
 
 export async function getWorkspaces(): Promise<WorkspaceMyListResponse> {
@@ -134,5 +143,36 @@ export async function removeMember(workspaceId: number, memberId: number): Promi
 export async function leaveWorkspace(workspaceId: number): Promise<void> {
   await authFetch(`/api/v1/workspaces/${workspaceId}/members/me`, {
     method: 'DELETE',
+  });
+}
+
+// ──── 가입 신청 ────
+
+export async function getJoinRequests(workspaceId: number, page = 0, size = 20): Promise<JoinRequestPageResponse> {
+  const res = await authFetch(`/api/v1/workspaces/${workspaceId}/join-requests?page=${page}&size=${size}`);
+  return res.data;
+}
+
+export async function createJoinRequest(workspaceId: number): Promise<JoinRequestResponse> {
+  const res = await authFetch(`/api/v1/workspaces/${workspaceId}/join-requests`, {
+    method: 'POST',
+  });
+  return res.data;
+}
+
+export async function getMyJoinRequestStatus(workspaceId: number): Promise<MyJoinRequestStatusResponse> {
+  const res = await authFetch(`/api/v1/workspaces/${workspaceId}/join-requests/me`);
+  return res.data;
+}
+
+export async function approveJoinRequest(workspaceId: number, requestId: number): Promise<void> {
+  await authFetch(`/api/v1/workspaces/${workspaceId}/join-requests/${requestId}/approve`, {
+    method: 'POST',
+  });
+}
+
+export async function rejectJoinRequest(workspaceId: number, requestId: number): Promise<void> {
+  await authFetch(`/api/v1/workspaces/${workspaceId}/join-requests/${requestId}/reject`, {
+    method: 'POST',
   });
 }

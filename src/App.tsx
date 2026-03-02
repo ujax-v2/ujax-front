@@ -30,6 +30,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import 'dayjs/locale/ko';
 import 'dayjs/locale/en';
 import { LangSync, useT } from './i18n';
+import { Toaster } from 'sonner';
 
 const darkTheme = createTheme({
   palette: {
@@ -341,8 +342,9 @@ function AppContent() {
             <ProtectedRoute><WorkspaceScope><IDE /></WorkspaceScope></ProtectedRoute>
           } />
 
-          {/* ═══ 글로벌 라우트 (WS 무관) ═══ */}
-          <Route path="/problems/:id/solutions" element={<ProtectedRoute><ProblemSolutions /></ProtectedRoute>} />
+          <Route path="/ws/:wsId/problems/:workspaceProblemId/solutions" element={
+            <ProtectedRoute><WorkspaceScope><ProblemSolutions /></WorkspaceScope></ProtectedRoute>
+          } />
 
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
@@ -386,6 +388,7 @@ export default function App() {
             <LangSync />
             <AppContent />
             <CreateWorkspaceModal />
+            <Toaster richColors position="top-right" theme="dark" />
           </BrowserRouter>
         </LocaleProvider>
       </MuiThemeWrapper>
