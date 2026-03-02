@@ -45,6 +45,10 @@ async function refreshAccessToken(): Promise<string | null> {
       accessToken: data.accessToken,
       refreshToken: data.refreshToken,
     }));
+
+    // Extension에 갱신된 토큰 전달 (ujaxBridge.js가 수신)
+    window.postMessage({ type: 'ujaxTokenRefreshed', token: data.accessToken }, '*');
+
     return data.accessToken;
   } catch {
     return null;
