@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Base';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { currentWorkspaceState, workspacesState, settingsTabState } from '@/store/atoms';
 import { getWorkspaceSettings, updateWorkspace, deleteWorkspace, leaveWorkspace, getMyMembership, updateMyNickname, getWorkspaceImagePresignedUrl } from '@/api/workspace';
-import { extractErrorDetail } from './utils';
+import { parseApiError } from '@/utils/error';
 import { AlertTriangle, LogOut } from 'lucide-react';
 import { useT } from '@/i18n';
 
@@ -156,7 +156,7 @@ export const WsGeneralTab = () => {
       setWsSaveResult('success');
     } catch (err: any) {
       setWsSaveResult('error');
-      setWsSaveError(extractErrorDetail(err, '저장에 실패했습니다.'));
+      setWsSaveError(parseApiError(err, '저장에 실패했습니다.'));
     } finally {
       setWsSaving(false);
       setTimeout(() => setWsSaveResult(null), 3000);
@@ -180,7 +180,7 @@ export const WsGeneralTab = () => {
       setWsNickSaveResult('success');
     } catch (err: any) {
       setWsNickSaveResult('error');
-      setWsNickSaveError(extractErrorDetail(err, '닉네임 저장에 실패했습니다.'));
+      setWsNickSaveError(parseApiError(err, '닉네임 저장에 실패했습니다.'));
     } finally {
       setWsNickSaving(false);
       setTimeout(() => setWsNickSaveResult(null), 3000);
@@ -199,7 +199,7 @@ export const WsGeneralTab = () => {
       setShowWsDeleteModal(false);
       setActiveTab('profile');
     } catch (err: any) {
-      setWsDeleteError(extractErrorDetail(err, '워크스페이스 삭제에 실패했습니다.'));
+      setWsDeleteError(parseApiError(err, '워크스페이스 삭제에 실패했습니다.'));
     } finally {
       setWsDeleting(false);
     }
@@ -217,7 +217,7 @@ export const WsGeneralTab = () => {
       setShowWsLeaveModal(false);
       setActiveTab('profile');
     } catch (err: any) {
-      setWsLeaveError(extractErrorDetail(err, '워크스페이스 나가기에 실패했습니다.'));
+      setWsLeaveError(parseApiError(err, '워크스페이스 나가기에 실패했습니다.'));
     } finally {
       setWsLeaving(false);
     }

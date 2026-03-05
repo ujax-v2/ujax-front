@@ -4,6 +4,7 @@ import { useRecoilValue } from 'recoil';
 import { currentWorkspaceState } from '@/store/atoms';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { Card, Button, Badge } from '@/components/ui/Base';
+import { parseApiError } from '@/utils/error';
 import {
   getBoardDetail,
   likeBoard,
@@ -111,12 +112,7 @@ export const PostDetail = () => {
       await loadComments(0);
       setPost(prev => prev ? { ...prev, commentCount: (prev.commentCount ?? 0) + 1 } : prev);
     } catch (err: any) {
-      const msg = err?.message || '';
-      const jsonMatch = msg.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try { alert(JSON.parse(jsonMatch[0]).detail || t('common.error')); }
-        catch { alert(t('common.error')); }
-      } else { alert(t('common.error')); }
+      alert(parseApiError(err, t('common.error')));
     } finally {
       setCommentSubmitting(false);
     }
@@ -137,12 +133,7 @@ export const PostDetail = () => {
       await deleteBoard(wsId, numericBoardId);
       toWs('community');
     } catch (err: any) {
-      const msg = err?.message || '';
-      const jsonMatch = msg.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try { alert(JSON.parse(jsonMatch[0]).detail || t('common.error')); }
-        catch { alert(t('common.error')); }
-      } else { alert(t('common.error')); }
+      alert(parseApiError(err, t('common.error')));
     }
   };
 
@@ -152,12 +143,7 @@ export const PostDetail = () => {
       await pinBoard(wsId, numericBoardId, !post.pinned);
       setPost(prev => prev ? { ...prev, pinned: !prev.pinned } : prev);
     } catch (err: any) {
-      const msg = err?.message || '';
-      const jsonMatch = msg.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try { alert(JSON.parse(jsonMatch[0]).detail || t('common.error')); }
-        catch { alert(t('common.error')); }
-      } else { alert(t('common.error')); }
+      alert(parseApiError(err, t('common.error')));
     }
   };
 

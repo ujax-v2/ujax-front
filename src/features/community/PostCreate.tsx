@@ -8,6 +8,7 @@ import type { MemberRole } from '@/api/board';
 import { getMyMembership } from '@/api/workspace';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { parseApiError } from '@/utils/error';
 import { useT } from '@/i18n';
 import {
   PenSquare,
@@ -184,18 +185,7 @@ export const PostCreate = () => {
       });
       toWs('community');
     } catch (err: any) {
-      const msg = err?.message || '';
-      const jsonMatch = msg.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try {
-          const parsed = JSON.parse(jsonMatch[0]);
-          setError(parsed.detail || t('common.error'));
-        } catch {
-          setError(t('common.error'));
-        }
-      } else {
-        setError(t('common.error'));
-      }
+      setError(parseApiError(err, t('common.error')));
     } finally {
       setSubmitting(false);
     }

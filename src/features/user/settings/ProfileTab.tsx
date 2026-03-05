@@ -1,18 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Base';
-import { useRecoilState, useSetRecoilState } from 'recoil';
-import { useNavigate } from 'react-router-dom';
-import { userState, workspacesState, currentWorkspaceState } from '@/store/atoms';
+import { useRecoilState } from 'recoil';
+import { userState } from '@/store/atoms';
 import { getMe, updateMe, deleteMe, getProfileImagePresignedUrl } from '@/api/user';
-import { extractErrorDetail } from './utils';
+import { parseApiError } from '@/utils/error';
 import { AlertTriangle } from 'lucide-react';
 import { useT } from '@/i18n';
+import { useAuth } from '@/hooks/useAuth';
 
 export const ProfileTab = () => {
-  const navigate = useNavigate();
   const [user, setUser] = useRecoilState(userState);
-  const setWorkspaces = useSetRecoilState(workspacesState);
-  const setCurrentWorkspaceId = useSetRecoilState(currentWorkspaceState);
+  const { logout } = useAuth();
 
   // Profile form state
   const [name, setName] = useState('');
@@ -48,32 +46,16 @@ export const ProfileTab = () => {
       setOriginalName(data.name);
       setOriginalBaekjoonId(data.baekjoonId ?? '');
       setOriginalImageUrl(data.profileImageUrl ?? '');
-      // Recoil + localStorage도 동기화
-      setUser(prev => {
-        const next = {
-          ...prev,
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          profileImageUrl: data.profileImageUrl ?? '',
-          baekjoonId: data.baekjoonId ?? '',
-          provider: data.provider,
-        };
-        try {
-          const stored = localStorage.getItem('auth');
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            localStorage.setItem('auth', JSON.stringify({
-              ...parsed,
-              id: next.id,
-              name: next.name,
-              profileImageUrl: next.profileImageUrl,
-              baekjoonId: next.baekjoonId,
-            }));
-          }
-        } catch { /* ignore */ }
-        return next;
-      });
+      // Recoil 업데이트 → authStorageEffect가 localStorage 자동 동기화
+      setUser(prev => ({
+        ...prev,
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        profileImageUrl: data.profileImageUrl ?? '',
+        baekjoonId: data.baekjoonId ?? '',
+        provider: data.provider,
+      }));
     }).catch(err => {
       console.error('Failed to load profile:', err);
     });
@@ -146,28 +128,13 @@ export const ProfileTab = () => {
       }
 
       const updated = await updateMe(requestBody);
-      // API 성공 → Recoil + localStorage 동기화
-      setUser(prev => {
-        const next = {
-          ...prev,
-          name: updated.name,
-          profileImageUrl: updated.profileImageUrl ?? '',
-          baekjoonId: updated.baekjoonId ?? '',
-        };
-        try {
-          const stored = localStorage.getItem('auth');
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            localStorage.setItem('auth', JSON.stringify({
-              ...parsed,
-              name: next.name,
-              profileImageUrl: next.profileImageUrl,
-              baekjoonId: next.baekjoonId,
-            }));
-          }
-        } catch { /* ignore */ }
-        return next;
-      });
+      // Recoil 업데이트 → authStorageEffect가 localStorage 자동 동기화
+      setUser(prev => ({
+        ...prev,
+        name: updated.name,
+        profileImageUrl: updated.profileImageUrl ?? '',
+        baekjoonId: updated.baekjoonId ?? '',
+      }));
       setProfileImageUrl(updated.profileImageUrl ?? '');
       setPreviewUrl('');
       setPendingFile(null);
@@ -181,7 +148,7 @@ export const ProfileTab = () => {
     } catch (err: any) {
       console.error('Failed to save profile:', err);
       setSaveResult('error');
-      setSaveError(extractErrorDetail(err, '요청에 실패했습니다.'));
+      setSaveError(parseApiError(err, '요청에 실패했습니다.'));
     } finally {
       setSaving(false);
       setTimeout(() => setSaveResult(null), 3000);
@@ -193,13 +160,9 @@ export const ProfileTab = () => {
     setDeleteError('');
     try {
       await deleteMe();
-      localStorage.removeItem('auth');
-      setUser({ isLoggedIn: false, id: 0, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '' });
-      setWorkspaces([]);
-      setCurrentWorkspaceId(0);
-      navigate('/login');
+      await logout();
     } catch (err: any) {
-      setDeleteError(extractErrorDetail(err, '계정 삭제에 실패했습니다.'));
+      setDeleteError(parseApiError(err, '계정 삭제에 실패했습니다.'));
     } finally {
       setDeleting(false);
     }

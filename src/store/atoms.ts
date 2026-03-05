@@ -125,13 +125,22 @@ export interface UserState {
   provider: string;
 }
 
-function loadUser(): UserState {
+export const GUEST_USER: UserState = {
+  isLoggedIn: false, id: 0, name: 'Guest', email: '', avatar: '',
+  profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '',
+};
+
+/**
+ * userState용 localStorage effect.
+ * 일반 localStorageEffect와 달리 auth 전용 직렬화/역직렬화 로직 포함.
+ */
+const authStorageEffect: AtomEffect<UserState> = ({ setSelf, onSet }) => {
   try {
     const stored = localStorage.getItem('auth');
     if (stored) {
       const parsed = JSON.parse(stored);
       if (parsed && typeof parsed === 'object' && parsed.accessToken) {
-        return {
+        setSelf({
           isLoggedIn: true,
           id: parsed.id || 0,
           name: parsed.name || 'User',
@@ -142,19 +151,29 @@ function loadUser(): UserState {
           provider: parsed.provider || '',
           accessToken: parsed.accessToken as string,
           refreshToken: parsed.refreshToken as string,
-        };
+        });
       }
     }
   } catch (e) {
     console.warn('Failed to load user session, clearing storage:', e);
     localStorage.removeItem('auth');
   }
-  return { isLoggedIn: false, id: 0, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '' };
-}
+
+  onSet((newValue, _, isReset) => {
+    try {
+      if (isReset || !newValue.isLoggedIn) {
+        localStorage.removeItem('auth');
+      } else {
+        localStorage.setItem('auth', JSON.stringify(newValue));
+      }
+    } catch { /* ignore */ }
+  });
+};
 
 export const userState = atom<UserState>({
   key: 'userState',
-  default: loadUser(),
+  default: GUEST_USER,
+  effects: [authStorageEffect],
 });
 
 

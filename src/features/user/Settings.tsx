@@ -29,30 +29,15 @@ export const Settings = () => {
   const [user, setUser] = useRecoilState(userState);
   const t = useT();
 
-  // 설정 진입 시 최신 프로필 데이터로 Recoil/localStorage 동기화
+  // 설정 진입 시 최신 프로필 데이터로 Recoil 동기화 (localStorage는 atom effect가 자동 처리)
   useEffect(() => {
     getMe().then(data => {
-      setUser(prev => {
-        const next = {
-          ...prev,
-          name: data.name,
-          profileImageUrl: data.profileImageUrl ?? '',
-          baekjoonId: data.baekjoonId ?? '',
-        };
-        try {
-          const stored = localStorage.getItem('auth');
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            localStorage.setItem('auth', JSON.stringify({
-              ...parsed,
-              name: next.name,
-              profileImageUrl: next.profileImageUrl,
-              baekjoonId: next.baekjoonId,
-            }));
-          }
-        } catch { /* ignore */ }
-        return next;
-      });
+      setUser(prev => ({
+        ...prev,
+        name: data.name,
+        profileImageUrl: data.profileImageUrl ?? '',
+        baekjoonId: data.baekjoonId ?? '',
+      }));
     }).catch(() => { /* ignore - ProfileTab will also fetch */ });
   }, [setUser]);
 
