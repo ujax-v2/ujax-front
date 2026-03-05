@@ -13,6 +13,7 @@ import { createSubmission, getSubmissionResults } from '@/api/submission';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useIsDark } from '@/App';
 import { useExtensionProblemContext } from '@/hooks/useExtensionProblemContext';
+import { parseApiError } from '@/utils/error';
 
 // Language ID mapping for Judge0
 const LANGUAGE_OPTIONS = [
@@ -103,20 +104,6 @@ const Stopwatch = () => {
   );
 };
 
-// ─── Helper: parse error detail per CLAUDE.md ───
-function parseErrorDetail(err: any): string {
-  const msg = err?.message || '';
-  const jsonMatch = msg.match(/\{[\s\S]*\}/);
-  if (jsonMatch) {
-    try {
-      const parsed = JSON.parse(jsonMatch[0]);
-      return parsed.detail || '요청에 실패했습니다.';
-    } catch {
-      return '요청에 실패했습니다.';
-    }
-  }
-  return '요청에 실패했습니다.';
-}
 
 export const IDE = () => {
   const isDark = useIsDark();
@@ -179,7 +166,7 @@ export const IDE = () => {
         if (sampleCases.length > 0) setSelectedCaseId(sampleCases[0].id);
       })
       .catch((err) => {
-        setProblemError(parseErrorDetail(err));
+        setProblemError(parseApiError(err));
       })
       .finally(() => setProblemLoading(false));
   }, [problemId]);

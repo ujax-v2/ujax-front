@@ -6,7 +6,7 @@ import { getWorkspaceMembers, getMyMembership, inviteMember, updateMemberRole, r
 import type { WorkspaceMemberResponse, WorkspaceMemberPageResponse } from '@/api/workspace';
 
 type MemberItem = WorkspaceMemberPageResponse['content'][number];
-import { extractErrorDetail } from './utils';
+import { parseApiError } from '@/utils/error';
 import { UserPlus, AlertTriangle, MoreHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useT } from '@/i18n';
 
@@ -79,7 +79,7 @@ export const WsMembersTab = () => {
       await loadMembers(currentPage);
       setTimeout(() => { setShowInviteModal(false); setInviteSuccess(false); }, 1200);
     } catch (err: any) {
-      setInviteError(extractErrorDetail(err, '초대에 실패했습니다.'));
+      setInviteError(parseApiError(err, '초대에 실패했습니다.'));
     } finally {
       setInviting(false);
     }
@@ -101,7 +101,7 @@ export const WsMembersTab = () => {
       setShowRoleChangeModal(false);
       await loadMembers(currentPage);
     } catch (err: any) {
-      setRoleChangeError(extractErrorDetail(err, '역할 변경에 실패했습니다.'));
+      setRoleChangeError(parseApiError(err, '역할 변경에 실패했습니다.'));
     } finally {
       setRoleChangeLoading(false);
     }
@@ -122,7 +122,7 @@ export const WsMembersTab = () => {
       setShowRemoveMemberModal(false);
       await loadMembers(currentPage);
     } catch (err: any) {
-      setRemoveMemberError(extractErrorDetail(err, '멤버 제거에 실패했습니다.'));
+      setRemoveMemberError(parseApiError(err, '멤버 제거에 실패했습니다.'));
     } finally {
       setRemovingLoading(false);
     }

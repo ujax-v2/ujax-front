@@ -17,6 +17,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@
 import { useT, useLang } from '@/i18n';
 import { useExtensionBatchContext } from '@/hooks/useExtensionProblemContext';
 import { useSolutionPolling } from '@/hooks/useSolutionPolling';
+import { parseApiError } from '@/utils/error';
 
 type MemberRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'MEMBER';
 
@@ -36,18 +37,6 @@ function relativeTime(dateStr: string, t: (key: string, vars?: Record<string, st
   const months = Math.floor(days / 30);
   if (months < 12) return t('time.monthsAgo', { n: months });
   return t('time.yearsAgo', { n: Math.floor(months / 12) });
-}
-
-function parseApiError(err: any, fallback: string): string {
-  const msg = err?.message || '';
-  const jsonMatch = msg.match(/\{[\s\S]*\}/);
-  if (jsonMatch) {
-    try {
-      const parsed = JSON.parse(jsonMatch[0]);
-      return parsed.detail || fallback;
-    } catch { /* ignore */ }
-  }
-  return fallback;
 }
 
 export const ProblemList = () => {

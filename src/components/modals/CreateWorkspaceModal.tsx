@@ -7,6 +7,7 @@ import { Button } from '../ui/Base';
 import { X, Check } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { parseApiError } from '@/utils/error';
 
 export const CreateWorkspaceModal = () => {
   const [isOpen, setIsOpen] = useRecoilState(isCreateWorkspaceModalOpenState);
@@ -46,7 +47,7 @@ export const CreateWorkspaceModal = () => {
       setDescription('');
       navigate(`/ws/${newWorkspace.id}/dashboard`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '워크스페이스 생성에 실패했습니다.');
+      setError(parseApiError(err, '워크스페이스 생성에 실패했습니다.'));
     } finally {
       setIsSubmitting(false);
     }

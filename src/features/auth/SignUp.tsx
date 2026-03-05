@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSetRecoilState } from 'recoil';
 import { useT } from '@/i18n';
-import { userState, workspacesState, currentWorkspaceState } from '@/store/atoms';
 import { signupApi } from '@/api/auth';
-import { getMe } from '@/api/user';
 import { Button, Card } from '@/components/ui/Base';
 import { Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { parseApiError } from '@/utils/error';
+import { useAuth } from '@/hooks/useAuth';
 
 export const SignUp = () => {
   const navigate = useNavigate();
   const t = useT();
-  const setUser = useSetRecoilState(userState);
-  const setWorkspaces = useSetRecoilState(workspacesState);
-  const setCurrentWsId = useSetRecoilState(currentWorkspaceState);
+  const { setAuthUser } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -53,36 +50,11 @@ export const SignUp = () => {
     try {
       const result = await signupApi(formData.email, formData.password, formData.nickname);
       const { accessToken, refreshToken } = result.data;
-
-      // 토큰을 먼저 저장 (getMe가 authFetch를 사용하므로)
-      localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken }));
-
-      // getMe()로 완전한 유저 정보 조회
-      const me = await getMe();
-
-      const userData = {
-        isLoggedIn: true,
-        id: me.id,
-        name: me.name,
-        email: me.email,
-        avatar: me.name,
-        profileImageUrl: me.profileImageUrl ?? '',
-        baekjoonId: me.baekjoonId ?? '',
-        provider: me.provider,
-        accessToken: accessToken!,
-        refreshToken: refreshToken!,
-      };
-
-      localStorage.setItem('auth', JSON.stringify(userData));
-
-      setWorkspaces([]);
-      setCurrentWsId(0);
-      setUser(userData);
-
+      await setAuthUser(accessToken, refreshToken);
       navigate('/');
     } catch (err: any) {
       console.error('Signup error', err);
-      setApiError(err.message || '회원가입에 실패했습니다.');
+      setApiError(parseApiError(err, '회원가입에 실패했습니다.'));
     } finally {
       setLoading(false);
     }

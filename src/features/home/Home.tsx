@@ -3,16 +3,17 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { useRecoilValue, useRecoilState, useSetRecoilState } from 'recoil';
 import { userState, workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState, Workspace } from '@/store/atoms';
 import { getWorkspaces } from '@/api/workspace';
-import { logoutApi } from '@/api/auth';
 import { Button, Card } from '@/components/ui/Base';
+import { useAuth } from '@/hooks/useAuth';
 import { Code2, Users, Zap, Layout, Monitor, Search, LogOut, Settings, ChevronDown } from 'lucide-react';
 import { useT } from '@/i18n';
 
 export const Home = () => {
     const navigate = useNavigate();
     const t = useT();
-    const [user, setUser] = useRecoilState(userState);
+    const [user] = useRecoilState(userState);
     const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
+    const { logout } = useAuth();
     const currentWsId = useRecoilValue(currentWorkspaceState);
     const setCreateWorkspaceOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
     const [exploreQuery, setExploreQuery] = useState('');
@@ -32,18 +33,8 @@ export const Home = () => {
     }, []);
 
     const handleLogout = async () => {
-        try {
-            if (user.refreshToken) {
-                await logoutApi(user.refreshToken);
-            }
-        } catch {
-            // logout API 실패해도 로컬 상태는 초기화
-        }
-        localStorage.removeItem('auth');
-        setUser({ isLoggedIn: false, id: 0, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '' });
-        setWorkspaces([]);
         setProfileMenuOpen(false);
-        navigate('/login');
+        await logout(user.refreshToken);
     };
 
     // 로그인 상태에서 워크스페이스 목록 fetch

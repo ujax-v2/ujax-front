@@ -13,20 +13,9 @@ import dayjs, { Dayjs } from 'dayjs';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { useT } from '@/i18n';
+import { parseApiError } from '@/utils/error';
 
 type FlowStatus = 'idle' | 'loading' | 'found' | 'crawling' | 'registering' | 'done' | 'error' | 'timeout';
-
-function parseApiError(err: any): { detail: string; status?: number } {
-  const msg = err?.message || '';
-  const jsonMatch = msg.match(/\{[\s\S]*\}/);
-  if (jsonMatch) {
-    try {
-      const parsed = JSON.parse(jsonMatch[0]);
-      return { detail: parsed.detail || '요청에 실패했습니다.', status: parsed.status };
-    } catch { /* ignore */ }
-  }
-  return { detail: '요청에 실패했습니다.' };
-}
 
 export const ProblemRegistration = () => {
   const { toWs, currentWsId } = useWorkspaceNavigate();
@@ -105,7 +94,7 @@ export const ProblemRegistration = () => {
         requestCrawl(num);
       }
     } catch (err: any) {
-      const { detail } = parseApiError(err);
+      const detail = parseApiError(err);
       setFlowStatus('error');
       setErrorMsg(detail);
     }
@@ -134,7 +123,7 @@ export const ProblemRegistration = () => {
       });
       setFlowStatus('done');
     } catch (err: any) {
-      const { detail } = parseApiError(err);
+      const detail = parseApiError(err);
       setFlowStatus('error');
       setErrorMsg(detail);
     }

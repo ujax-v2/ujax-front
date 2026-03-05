@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n';
-import { userState, workspacesState } from '@/store/atoms';
 import { loginApi } from '@/api/auth';
-import { getMe } from '@/api/user';
 import { Button, Card } from '@/components/ui/Base';
 import { Mail, Lock, MessageCircle } from 'lucide-react';
+import { parseApiError } from '@/utils/error';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LoginProps {
   oauthError?: string;
@@ -16,8 +15,7 @@ interface LoginProps {
 export const Login = ({ oauthError, onClearError }: LoginProps) => {
   const navigate = useNavigate();
   const t = useT();
-  const setUser = useSetRecoilState(userState);
-  const setWorkspaces = useSetRecoilState(workspacesState);
+  const { setAuthUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -35,36 +33,12 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
     try {
       const result = await loginApi(email, password);
       const { accessToken, refreshToken } = result.data;
-
-      // 토큰을 먼저 저장 (getMe가 authFetch를 사용하므로)
-      localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken }));
-
-      // getMe()로 완전한 유저 정보 조회
-      const me = await getMe();
-
-      const userData = {
-        isLoggedIn: true,
-        id: me.id,
-        name: me.name,
-        email: me.email,
-        avatar: me.name,
-        profileImageUrl: me.profileImageUrl ?? '',
-        baekjoonId: me.baekjoonId ?? '',
-        provider: me.provider,
-        accessToken: accessToken!,
-        refreshToken: refreshToken!,
-      };
-
-      localStorage.setItem('auth', JSON.stringify(userData));
-
-      setWorkspaces([]);
-      setUser(userData);
-
+      await setAuthUser(accessToken, refreshToken);
       setLoading(false);
       navigate('/');
     } catch (err: any) {
       console.error('Login error', err);
-      setError(err.message || '로그인에 실패했습니다.');
+      setError(parseApiError(err, '로그인에 실패했습니다.'));
     } finally {
       setLoading(false);
     }

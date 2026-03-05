@@ -9,7 +9,7 @@ import {
   settingsTabState,
   isCreateWorkspaceModalOpenState
 } from '@/store/atoms';
-import { logoutApi } from '@/api/auth';
+import { useAuth } from '@/hooks/useAuth';
 import {
   LayoutDashboard,
   BookOpen,
@@ -38,7 +38,8 @@ export const Sidebar = () => {
   const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
   const [currentWorkspaceId, setCurrentWorkspaceId] = useRecoilState(currentWorkspaceState);
   const setIsCreateWorkspaceModalOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
-  const [user, setUser] = useRecoilState(userState);
+  const [user] = useRecoilState(userState);
+  const { logout } = useAuth();
 
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -55,19 +56,7 @@ export const Sidebar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      if (user.refreshToken) {
-        await logoutApi(user.refreshToken);
-      }
-    } catch {
-      // logout API 실패해도 로컬 상태는 초기화
-    }
-    localStorage.removeItem('auth');
-    setUser({ isLoggedIn: false, id: 0, name: 'Guest', email: '', avatar: '', profileImageUrl: '', baekjoonId: '', provider: '', accessToken: '', refreshToken: '' });
-    setWorkspaces([]);
-    navigate('/login');
-  };
+  const handleLogout = () => logout(user.refreshToken);
 
   // 메뉴 항목의 path는 wsId 없이 상대 경로만 정의
   // 실제 navigate 시 /ws/:wsId/ 접두사를 붙여줌
