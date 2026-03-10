@@ -130,7 +130,7 @@ export const ProblemSolutions = () => {
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="flex items-center gap-0.5">
-                      <ThumbsUp className="w-3 h-3" /> {sol.latestLikes}
+                      <ThumbsUp className="w-3 h-3" /> {sol.likes}
                     </span>
                     {sol.submissionCount > 1 && (
                       <span className="flex items-center gap-0.5" title={`${sol.submissionCount}번 제출`}>

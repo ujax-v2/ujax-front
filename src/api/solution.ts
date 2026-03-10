@@ -71,8 +71,8 @@ export interface SolutionSummary {
   latestStatus: string;
   /** 총 제출 횟수 */
   submissionCount: number;
-  /** 최신 제출의 좋아요 수 (사이드바 표시용) */
-  latestLikes: number;
+  /** 좋아요 수 */
+  likes: number;
   /** 풀이 조회수 */
   views: number;
   /** 최신 제출 시각 */
@@ -131,7 +131,7 @@ const MOCK_SUMMARIES: SolutionSummary[] = [
     programmingLanguage: 'JAVA',
     latestStatus: 'ACCEPTED',
     submissionCount: 2,
-    latestLikes: 42,
+    likes: 42,
     views: 128,
     updatedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
   },
@@ -143,7 +143,7 @@ const MOCK_SUMMARIES: SolutionSummary[] = [
     programmingLanguage: 'PYTHON',
     latestStatus: 'ACCEPTED',
     submissionCount: 1,
-    latestLikes: 38,
+    likes: 38,
     views: 95,
     updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
   },
@@ -155,7 +155,7 @@ const MOCK_SUMMARIES: SolutionSummary[] = [
     programmingLanguage: 'CPP',
     latestStatus: 'ACCEPTED',
     submissionCount: 3,
-    latestLikes: 29,
+    likes: 29,
     views: 150,
     updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
   },
