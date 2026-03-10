@@ -5,6 +5,7 @@ import { currentWorkspaceState } from '@/store/atoms';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { Card, Button, Badge } from '@/components/ui/Base';
 import { parseApiError } from '@/utils/error';
+import { PageNav } from '@/components/ui/PageNav';
 import {
   getBoardDetail,
   likeBoard,
@@ -379,23 +380,9 @@ export const PostDetail = () => {
             </div>
 
             {/* 댓글 페이지네이션 */}
-            {commentTotalPages > 1 && (
-              <div className="flex justify-center gap-1.5 pt-4 mt-2 border-t border-border-default/40">
-                {Array.from({ length: commentTotalPages }, (_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => loadComments(i)}
-                    className={`w-7 h-7 rounded-md text-xs font-bold transition-colors ${
-                      commentPage === i
-                        ? 'bg-emerald-500/20 text-emerald-400'
-                        : 'text-text-faint hover:bg-surface-subtle hover:text-text-muted'
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="flex justify-center pt-4 mt-2 border-t border-border-default/40">
+              <PageNav page={commentPage} totalPages={commentTotalPages} onPageChange={loadComments} />
+            </div>
           </div>
         </Card>
       </div>

@@ -76,11 +76,6 @@ export const ideOutputState = atom<IdeOutput | null>({
   default: null,
 });
 
-export const ideIsExecutingState = atom({
-  key: 'ideIsExecutingState',
-  default: false,
-});
-
 // 테스트 케이스
 export interface IdeTestCase {
   id: string;
@@ -88,11 +83,6 @@ export interface IdeTestCase {
   expected: string;
   isCustom: boolean; // false=문제 예제, true=사용자 추가
 }
-
-export const ideTestCasesState = atom<IdeTestCase[]>({
-  key: 'ideTestCasesState',
-  default: [],
-});
 
 // 테스트 결과
 export interface IdeTestResult {
@@ -106,11 +96,6 @@ export interface IdeTestResult {
   memory: number | null;
   token: string;
 }
-
-export const ideTestResultsState = atom<IdeTestResult[]>({
-  key: 'ideTestResultsState',
-  default: [],
-});
 
 export interface UserState {
   isLoggedIn: boolean;

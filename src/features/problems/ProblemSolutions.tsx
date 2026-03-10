@@ -19,6 +19,7 @@ import {
 import Editor from '@monaco-editor/react';
 import { useIsDark } from '@/App';
 import { useT } from '@/i18n';
+import { parseApiError } from '@/utils/error';
 import {
   getSolutionSummaries,
   getSolutionVersions,
@@ -64,20 +65,6 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function parseApiError(err: unknown): string {
-  const msg = (err as any)?.message || '';
-  const jsonMatch = msg.match(/\{[\s\S]*\}/);
-  if (jsonMatch) {
-    try {
-      const parsed = JSON.parse(jsonMatch[0]);
-      return parsed.detail || '요청에 실패했습니다.';
-    } catch {
-      return '요청에 실패했습니다.';
-    }
-  }
-  return '요청에 실패했습니다.';
-}
-
 export const ProblemSolutions = () => {
   const { toWs } = useWorkspaceNavigate();
   const isDark = useIsDark();
@@ -85,11 +72,13 @@ export const ProblemSolutions = () => {
   const [searchParams] = useSearchParams();
   const wsId = useRecoilValue(currentWorkspaceState);
   const boxId = Number(searchParams.get('boxId') ?? 0);
+  const ideId = searchParams.get('ideId') ?? workspaceProblemId ?? '';
   const problemId = Number(workspaceProblemId ?? 0);
   const t = useT();
 
   const [summaries, setSummaries] = useState<SolutionSummary[]>([]);
   const [summariesLoading, setSummariesLoading] = useState(true);
+  const [summariesError, setSummariesError] = useState('');
   const [activeWorkspaceMemberId, setActiveWorkspaceMemberId] = useState<number | null>(null);
   const [versionPage, setVersionPage] = useState(0);
   const [versionResult, setVersionResult] = useState<SolutionVersionPageData | null>(null);
@@ -118,9 +107,10 @@ export const ProblemSolutions = () => {
     getSolutionSummaries(wsId, boxId, problemId)
       .then((data) => {
         setSummaries(data);
+        setSummariesError('');
         if (data.length > 0) setActiveWorkspaceMemberId(data[0].workspaceMemberId);
       })
-      .catch(() => {})
+      .catch((err) => setSummariesError(parseApiError(err, '풀이 목록을 불러오는 데 실패했습니다.')))
       .finally(() => setSummariesLoading(false));
   }, [wsId, boxId, problemId]);
 
@@ -187,6 +177,17 @@ export const ProblemSolutions = () => {
         wsId, boxId, problemId, activeWorkspaceMemberId, activeVersion.submissionId, trimmed,
       );
       setComments((prev) => [...prev, newComment]);
+      setVersionResult((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          content: prev.content.map((v) =>
+            v.submissionId === activeVersion.submissionId
+              ? { ...v, commentCount: v.commentCount + 1 }
+              : v,
+          ),
+        };
+      });
       setCommentInput('');
     } catch (err) {
       alert(parseApiError(err));
@@ -203,7 +204,7 @@ export const ProblemSolutions = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => toWs(`ide/${workspaceProblemId || ''}`)}
+            onClick={() => toWs(`ide/${ideId}`)}
             className="-ml-2 text-text-muted hover:text-text-primary"
           >
             <ArrowLeft className="w-4 h-4 mr-2" /> {t('problems.solutions.backToProblem')}
@@ -232,6 +233,8 @@ export const ProblemSolutions = () => {
             <div className="flex items-center justify-center h-24 text-text-faint text-sm">
               <Loader2 className="w-4 h-4 animate-spin mr-2" /> 불러오는 중...
             </div>
+          ) : summariesError ? (
+            <div className="p-4 text-xs text-red-400">{summariesError}</div>
           ) : filteredSummaries.length === 0 ? (
             <div className="flex items-center justify-center h-24 text-text-faint text-sm">
               풀이가 없습니다.

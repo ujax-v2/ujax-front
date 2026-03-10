@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, Button, Modal } from '@/components/ui/Base';
-import { Search, FolderPlus, ArrowLeft, Plus, MoreVertical, Pencil, Trash2, Loader2, ChevronLeft, ChevronRight, ExternalLink, Code2, Eye, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, FolderPlus, ArrowLeft, Plus, MoreVertical, Pencil, Trash2, Loader2, ExternalLink, Code2, Eye, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+import { PageNav } from '@/components/ui/PageNav';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useRecoilState } from 'recoil';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
@@ -413,39 +414,9 @@ export const ProblemList = () => {
             </div>
 
             {/* 문제집 페이지네이션 */}
-            {boxTotalPages > 1 && (
-              <div className="flex items-center justify-center">
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setBoxPage(p => Math.max(0, p - 1))}
-                    disabled={boxPage === 0}
-                    className="p-2 text-text-muted hover:text-text-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  {Array.from({ length: boxTotalPages }, (_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setBoxPage(i)}
-                      className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
-                        boxPage === i
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                          : 'text-text-faint hover:bg-surface-subtle hover:text-text-secondary'
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => setBoxPage(p => Math.min(boxTotalPages - 1, p + 1))}
-                    disabled={boxPage >= boxTotalPages - 1}
-                    className="p-2 text-text-muted hover:text-text-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
+            <div className="flex items-center justify-center">
+              <PageNav page={boxPage} totalPages={boxTotalPages} onPageChange={setBoxPage} />
+            </div>
             </>
           )}
         </div>
@@ -702,39 +673,9 @@ export const ProblemList = () => {
           </Card>
 
           {/* 문제 페이지네이션 */}
-          {problemTotalPages > 1 && (
-            <div className="flex items-center justify-center mt-6">
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setProblemPage(p => Math.max(0, p - 1))}
-                  disabled={problemPage === 0}
-                  className="p-2 text-text-muted hover:text-text-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                {Array.from({ length: problemTotalPages }, (_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setProblemPage(i)}
-                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
-                      problemPage === i
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                        : 'text-text-faint hover:bg-surface-subtle hover:text-text-secondary'
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setProblemPage(p => Math.min(problemTotalPages - 1, p + 1))}
-                  disabled={problemPage >= problemTotalPages - 1}
-                  className="p-2 text-text-muted hover:text-text-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
+          <div className="flex items-center justify-center mt-6">
+            <PageNav page={problemPage} totalPages={problemTotalPages} onPageChange={setProblemPage} />
+          </div>
           </>
         )}
       </div>

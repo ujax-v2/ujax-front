@@ -5,8 +5,8 @@ import Editor from '@monaco-editor/react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { useParams } from 'react-router-dom';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
-import { ideCodeState, ideLanguageState, ideIsExecutingState, ideTestCasesState, ideTestResultsState, currentWorkspaceState, problemContextState } from '@/store/atoms';
-import type { IdeTestCase, IdeTestResult } from '@/store/atoms';
+import { ideCodeState, ideLanguageState, currentWorkspaceState, problemContextState } from '@/store/atoms';
+import type { IdeTestResult } from '@/store/atoms';
 import { getProblemByNumber } from '@/api/problem';
 import type { ProblemResponse } from '@/api/problem';
 import { createSubmission, getSubmissionResults } from '@/api/submission';
@@ -14,6 +14,11 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/componen
 import { useIsDark } from '@/App';
 import { useExtensionProblemContext } from '@/hooks/useExtensionProblemContext';
 import { parseApiError } from '@/utils/error';
+import { IDESubmitModal } from './IDESubmitModal';
+import { IDEExecuteModal } from './IDEExecuteModal';
+import { IDEAddTestCaseModal } from './IDEAddTestCaseModal';
+import { useSubmitLogic } from './hooks/useSubmitLogic';
+import { useTestCaseManagement } from './hooks/useTestCaseManagement';
 
 // Language ID mapping for Judge0
 const LANGUAGE_OPTIONS = [
@@ -109,12 +114,9 @@ export const IDE = () => {
   const isDark = useIsDark();
   const [code, setCode] = useRecoilState(ideCodeState);
   const [language, setLanguage] = useRecoilState(ideLanguageState);
-  const [isExecuting, setIsExecuting] = useRecoilState(ideIsExecutingState);
-  const [testCases, setTestCases] = useRecoilState(ideTestCasesState);
-  const [testResults, setTestResults] = useRecoilState(ideTestResultsState);
   const currentWsId = useRecoilValue(currentWorkspaceState);
   const problemCtxMap = useRecoilValue(problemContextState);
-  const { navigate, toWs } = useWorkspaceNavigate();
+  const { toWs } = useWorkspaceNavigate();
   const { problemId } = useParams();
   const ctx = problemId ? problemCtxMap[problemId] : undefined;
 
@@ -123,14 +125,35 @@ export const IDE = () => {
   const [problemError, setProblemError] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [testResults, setTestResults] = useState<IdeTestResult[]>([]);
+
   // Bottom panel tab: 'cases' | 'results'
   const [bottomTab, setBottomTab] = useState<'cases' | 'results'>('cases');
-  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
 
-  // Add test case modal
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [modalInput, setModalInput] = useState('');
-  const [modalExpected, setModalExpected] = useState('');
+  // Execute modal
+  const [showExecuteModal, setShowExecuteModal] = useState(false);
+  const [executeModalStatus, setExecuteModalStatus] = useState<'idle' | 'executing' | 'done'>('idle');
+
+  // Hooks
+  const {
+    testCases,
+    selectedCaseId,
+    setSelectedCaseId,
+    showAddModal,
+    setShowAddModal,
+    modalInput,
+    setModalInput,
+    modalExpected,
+    setModalExpected,
+    initTestCases,
+    openAddModal,
+    confirmAddTestCase,
+    updateTestCase,
+    deleteTestCase,
+  } = useTestCaseManagement();
+
+  const { submitStatus, submitResult, showSubmitModal, handleSubmit, closeSubmitModal } = useSubmitLogic(problem);
 
   // Extension에 problemContext 전달
   useExtensionProblemContext(
@@ -155,15 +178,12 @@ export const IDE = () => {
     getProblemByNumber(num)
       .then((data) => {
         setProblem(data);
-        // Initialize test cases from problem samples
-        const sampleCases: IdeTestCase[] = data.samples.map((s) => ({
+        initTestCases(data.samples.map((s) => ({
           id: `sample-${s.id}`,
           input: s.input || '',
           expected: s.output || '',
           isCustom: false,
-        }));
-        setTestCases(sampleCases);
-        if (sampleCases.length > 0) setSelectedCaseId(sampleCases[0].id);
+        })));
       })
       .catch((err) => {
         setProblemError(parseApiError(err));
@@ -181,40 +201,6 @@ export const IDE = () => {
     const lang = LANGUAGE_OPTIONS.find(l => l.value === e.target.value);
     if (lang) { setLanguage(lang.value); setCode(CODE_TEMPLATES[lang.value] || ''); }
   };
-
-  // ─── Test case management ───
-  const openAddModal = useCallback(() => {
-    setModalInput('');
-    setModalExpected('');
-    setShowAddModal(true);
-  }, []);
-
-  const confirmAddTestCase = useCallback(() => {
-    const newCase: IdeTestCase = {
-      id: `custom-${Date.now()}`,
-      input: modalInput,
-      expected: modalExpected,
-      isCustom: true,
-    };
-    setTestCases((prev) => [...prev, newCase]);
-    setSelectedCaseId(newCase.id);
-    setBottomTab('cases');
-    setShowAddModal(false);
-  }, [setTestCases, modalInput, modalExpected]);
-
-  const updateTestCase = useCallback((id: string, field: 'input' | 'expected', value: string) => {
-    setTestCases((prev) => prev.map((tc) => tc.id === id ? { ...tc, [field]: value } : tc));
-  }, [setTestCases]);
-
-  const deleteTestCase = useCallback((id: string) => {
-    setTestCases((prev) => {
-      const next = prev.filter((tc) => tc.id !== id);
-      if (selectedCaseId === id) {
-        setSelectedCaseId(next.length > 0 ? next[0].id : null);
-      }
-      return next;
-    });
-  }, [setTestCases, selectedCaseId]);
 
   // ─── Polling logic ───
   const pollResults = useCallback(async (token: string) => {
@@ -248,7 +234,7 @@ export const IDE = () => {
     // Timeout
     setErrorMsg('채점 시간이 초과되었습니다. 부분 결과를 표시합니다.');
     return null;
-  }, [setTestResults]);
+  }, []);
 
   // ─── Execute (실행) ───
   const executeCode = async () => {
@@ -283,81 +269,9 @@ export const IDE = () => {
     }
   };
 
-  // ─── Execute Modal ───
-  const [showExecuteModal, setShowExecuteModal] = useState(false);
-  const [executeModalStatus, setExecuteModalStatus] = useState<'idle' | 'executing' | 'done'>('idle');
-
   const closeExecuteModal = () => {
     setShowExecuteModal(false);
     setExecuteModalStatus('idle');
-  };
-
-  // ─── Submit (제출) → Extension을 통해 백준 자동 제출 ───
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitted' | 'accepted' | 'wrong' | 'timeout'>('idle');
-  const [submitResult, setSubmitResult] = useState<string | null>(null);
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const submitTimeoutRef = useRef<number | null>(null);
-
-  // Extension에서 채점 결과 수신
-  useEffect(() => {
-    const handleExtResult = (event: MessageEvent) => {
-      if (event.source !== window) return;
-      if (event.data?.type !== 'ujaxSubmissionResult') return;
-      if (!problem || String(event.data.problemNum) !== String(problem.problemNumber)) return;
-
-      const verdict = event.data.verdict || '';
-      const ACCEPTED_KEYWORDS = ['맞았습니다', 'Accepted'];
-      const isAccepted = ACCEPTED_KEYWORDS.some((kw) => verdict.includes(kw));
-
-      if (isAccepted) {
-        setSubmitStatus('accepted');
-        setSubmitResult('맞았습니다!!');
-      } else {
-        setSubmitStatus('wrong');
-        setSubmitResult(verdict);
-      }
-
-      if (submitTimeoutRef.current) {
-        clearTimeout(submitTimeoutRef.current);
-        submitTimeoutRef.current = null;
-      }
-    };
-
-    window.addEventListener('message', handleExtResult);
-    return () => window.removeEventListener('message', handleExtResult);
-  }, [problem]);
-
-  useEffect(() => {
-    return () => {
-      if (submitTimeoutRef.current) clearTimeout(submitTimeoutRef.current);
-    };
-  }, []);
-
-  const handleSubmit = () => {
-    if (!problem) return;
-
-    window.postMessage({
-      type: 'ujaxSubmitRequest',
-      problemNum: problem.problemNumber,
-      code,
-      language,
-    }, '*');
-
-    setSubmitStatus('submitted');
-    setSubmitResult(null);
-    setShowSubmitModal(true);
-
-    // 60초 타임아웃
-    if (submitTimeoutRef.current) clearTimeout(submitTimeoutRef.current);
-    submitTimeoutRef.current = window.setTimeout(() => {
-      setSubmitStatus(prev => prev === 'submitted' ? 'timeout' : prev);
-    }, 60000);
-  };
-
-  const closeSubmitModal = () => {
-    setShowSubmitModal(false);
-    setSubmitStatus('idle');
-    setSubmitResult(null);
   };
 
   // ─── Derived state for results summary ───
@@ -707,7 +621,7 @@ export const IDE = () => {
           <Button
             variant="secondary"
             onClick={() => {
-              if (ctx) toWs(`problems/${ctx.workspaceProblemId}/solutions?boxId=${ctx.problemBoxId}`);
+              if (ctx) toWs(`problems/${ctx.workspaceProblemId}/solutions?boxId=${ctx.problemBoxId}&ideId=${problemId}`);
             }}
             disabled={!ctx}
             className="bg-surface-subtle hover:bg-border-subtle text-text-secondary border border-border-subtle text-sm px-4 py-2"
@@ -724,7 +638,7 @@ export const IDE = () => {
           </Button>
           <Button
             className="text-white text-sm px-5 py-2 font-semibold bg-emerald-600 hover:bg-emerald-700"
-            onClick={handleSubmit}
+            onClick={() => handleSubmit(code, language)}
             disabled={!problem || submitStatus === 'submitted'}
           >
             제출
@@ -732,176 +646,30 @@ export const IDE = () => {
         </div>
       </div>
 
-      {/* ─── Submit Status Modal ─── */}
-      {showSubmitModal && submitStatus !== 'idle' && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={closeSubmitModal}
-        >
-          <div
-            className="relative bg-surface border border-border-default rounded-xl shadow-xl w-full max-w-sm mx-4 py-10 flex flex-col items-center gap-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={closeSubmitModal}
-              className="absolute top-3 right-3 text-text-faint hover:text-text-primary transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            {submitStatus === 'submitted' && (
-              <>
-                <Loader2 className="w-12 h-12 text-amber-500 animate-spin" />
-                <p className="text-sm font-semibold text-text-secondary">
-                  {problem ? `${problem.problemNumber}번 문제` : ''}
-                </p>
-                <p className="text-lg font-bold text-amber-500">채점 중입니다...</p>
-              </>
-            )}
-            {submitStatus === 'accepted' && (
-              <>
-                <CheckCircle2 className="w-12 h-12 text-emerald-500" />
-                <p className="text-sm font-semibold text-text-secondary">
-                  {problem ? `${problem.problemNumber}번 문제` : ''}
-                </p>
-                <p className="text-lg font-bold text-emerald-500">맞았습니다!!</p>
-                <Button variant="primary" onClick={closeSubmitModal} className="mt-2 text-sm px-6 py-2">
-                  확인
-                </Button>
-              </>
-            )}
-            {submitStatus === 'wrong' && (
-              <>
-                <AlertCircle className="w-12 h-12 text-red-500" />
-                <p className="text-sm font-semibold text-text-secondary">
-                  {problem ? `${problem.problemNumber}번 문제` : ''}
-                </p>
-                <p className="text-lg font-bold text-red-500">{submitResult || '틀렸습니다'}</p>
-                <Button variant="primary" onClick={closeSubmitModal} className="mt-2 text-sm px-6 py-2">
-                  확인
-                </Button>
-              </>
-            )}
-            {submitStatus === 'timeout' && (
-              <>
-                <Clock className="w-12 h-12 text-text-faint" />
-                <p className="text-sm font-semibold text-text-secondary">
-                  {problem ? `${problem.problemNumber}번 문제` : ''}
-                </p>
-                <p className="text-lg font-bold text-text-secondary">결과를 확인할 수 없습니다</p>
-                <Button variant="secondary" onClick={closeSubmitModal} className="mt-2 text-sm px-6 py-2">
-                  닫기
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ─── Execute Result Modal ─── */}
-      {showExecuteModal && executeModalStatus !== 'idle' && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={executeModalStatus === 'done' ? closeExecuteModal : undefined}
-        >
-          <div
-            className="relative bg-surface border border-border-default rounded-xl shadow-xl w-full max-w-sm mx-4 py-10 flex flex-col items-center gap-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {executeModalStatus === 'done' && (
-              <button
-                onClick={closeExecuteModal}
-                className="absolute top-3 right-3 text-text-faint hover:text-text-primary transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-
-            {executeModalStatus === 'executing' && (
-              <>
-                <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
-                <p className="text-sm font-semibold text-text-secondary">
-                  {problem ? `${problem.problemNumber}번 문제` : ''}
-                </p>
-                <p className="text-lg font-bold text-indigo-400">실행 중입니다...</p>
-              </>
-            )}
-
-            {executeModalStatus === 'done' && (() => {
-              const passed = testResults.filter((r) => r.isCorrect).length;
-              const total = testResults.length;
-              const allPass = passed === total && total > 0;
-              return allPass ? (
-                <>
-                  <CheckCircle2 className="w-12 h-12 text-emerald-500" />
-                  <p className="text-sm font-semibold text-text-secondary">
-                    {problem ? `${problem.problemNumber}번 문제` : ''}
-                  </p>
-                  <p className="text-lg font-bold text-emerald-500">전체 통과 ({passed}/{total})</p>
-                  <Button variant="primary" onClick={closeExecuteModal} className="mt-2 text-sm px-6 py-2">
-                    확인
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <AlertCircle className="w-12 h-12 text-red-500" />
-                  <p className="text-sm font-semibold text-text-secondary">
-                    {problem ? `${problem.problemNumber}번 문제` : ''}
-                  </p>
-                  <p className="text-lg font-bold text-red-500">{passed}/{total} 통과</p>
-                  <Button variant="secondary" onClick={closeExecuteModal} className="mt-2 text-sm px-6 py-2">
-                    닫기
-                  </Button>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
-
-      {/* ─── Add Test Case Modal ─── */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowAddModal(false)}>
-          <div className="bg-surface border border-border-default rounded-xl shadow-xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border-default">
-              <h3 className="font-bold text-text-primary text-sm">테스트 케이스 추가</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-text-faint hover:text-text-primary">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="p-5 space-y-4">
-              <div>
-                <label className="text-xs font-bold text-text-secondary mb-1.5 block">입력</label>
-                <textarea
-                  value={modalInput}
-                  onChange={(e) => setModalInput(e.target.value)}
-                  className="w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none focus:border-emerald-500"
-                  rows={4}
-                  placeholder="입력값을 입력하세요..."
-                  autoFocus
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-text-secondary mb-1.5 block">기대 출력</label>
-                <textarea
-                  value={modalExpected}
-                  onChange={(e) => setModalExpected(e.target.value)}
-                  className="w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none focus:border-emerald-500"
-                  rows={4}
-                  placeholder="기대 출력값을 입력하세요..."
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2 px-5 py-4 border-t border-border-default">
-              <Button variant="secondary" onClick={() => setShowAddModal(false)} className="text-sm px-4 py-2">
-                취소
-              </Button>
-              <Button variant="primary" onClick={confirmAddTestCase} className="text-sm px-4 py-2">
-                추가
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ─── Modals ─── */}
+      <IDESubmitModal
+        show={showSubmitModal}
+        status={submitStatus}
+        result={submitResult}
+        problemNumber={problem?.problemNumber}
+        onClose={closeSubmitModal}
+      />
+      <IDEExecuteModal
+        show={showExecuteModal}
+        status={executeModalStatus}
+        testResults={testResults}
+        problemNumber={problem?.problemNumber}
+        onClose={closeExecuteModal}
+      />
+      <IDEAddTestCaseModal
+        show={showAddModal}
+        input={modalInput}
+        expected={modalExpected}
+        onInputChange={setModalInput}
+        onExpectedChange={setModalExpected}
+        onClose={() => setShowAddModal(false)}
+        onConfirm={confirmAddTestCase}
+      />
     </div>
   );
 };
