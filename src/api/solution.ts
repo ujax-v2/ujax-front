@@ -27,7 +27,25 @@ export async function getSolutions(
 
 // ──── 타입 정의 ────
 
-/** 풀이 상세 (코드 + 메타) */
+/** 풀이 단일 제출 버전 (< > 네비게이션 단위) */
+export interface SolutionVersion {
+  /** 백준 제출 번호 */
+  submissionId: number;
+  /** 소스 코드 */
+  code: string;
+  /** 채점 상태 */
+  status: string;
+  /** 실행 시간 */
+  time: string | null;
+  /** 메모리 */
+  memory: string | null;
+  /** 코드 길이 */
+  codeLength: string | null;
+  /** 제출 시각 */
+  createdAt: string;
+}
+
+/** 풀이 상세 (버전 히스토리 포함) */
 export interface SolutionDetail extends SolutionItem {
   /** 풀이 제목 (작성자가 붙인 설명) */
   title: string;
@@ -39,8 +57,8 @@ export interface SolutionDetail extends SolutionItem {
   views: number;
   /** 내가 좋아요를 눌렀는지 */
   isLiked: boolean;
-  /** 실제 소스 코드 */
-  code: string;
+  /** 제출 버전 목록 (최신순, index 0이 최신) */
+  versions: SolutionVersion[];
 }
 
 /** 풀이 댓글 */
@@ -62,7 +80,7 @@ export interface SolutionLikeStatus {
 const MOCK_SOLUTIONS: SolutionDetail[] = [
   {
     id: 1,
-    submissionId: 12001,
+    submissionId: 12003,
     problemNumber: 1000,
     memberName: '알고리즘마스터',
     status: 'ACCEPTED',
@@ -76,7 +94,16 @@ const MOCK_SOLUTIONS: SolutionDetail[] = [
     likes: 42,
     views: 128,
     isLiked: false,
-    code: `import java.io.*;
+    // 최신순 (index 0 = 최신)
+    versions: [
+      {
+        submissionId: 12003,
+        status: 'ACCEPTED',
+        time: '80 ms',
+        memory: '11456 KB',
+        codeLength: '298 B',
+        createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        code: `import java.io.*;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -87,10 +114,31 @@ public class Main {
         System.out.println(a + b);
     }
 }`,
+      },
+      {
+        submissionId: 12001,
+        status: 'WRONG_ANSWER',
+        time: null,
+        memory: null,
+        codeLength: '210 B',
+        createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+        code: `import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int a = sc.nextInt();
+        int b = sc.nextInt();
+        // 초기 시도: println 대신 print 사용해서 오답
+        System.out.print(a + b);
+    }
+}`,
+      },
+    ],
   },
   {
     id: 2,
-    submissionId: 12002,
+    submissionId: 12005,
     problemNumber: 1000,
     memberName: 'pythonista',
     status: 'ACCEPTED',
@@ -104,11 +152,21 @@ public class Main {
     likes: 38,
     views: 95,
     isLiked: true,
-    code: `print(sum(map(int, input().split())))`,
+    versions: [
+      {
+        submissionId: 12005,
+        status: 'ACCEPTED',
+        time: '68 ms',
+        memory: '31256 KB',
+        codeLength: '38 B',
+        createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+        code: `print(sum(map(int, input().split())))`,
+      },
+    ],
   },
   {
     id: 3,
-    submissionId: 12003,
+    submissionId: 12010,
     problemNumber: 1000,
     memberName: 'cppNinja',
     status: 'ACCEPTED',
@@ -122,7 +180,15 @@ public class Main {
     likes: 29,
     views: 150,
     isLiked: false,
-    code: `#include <iostream>
+    versions: [
+      {
+        submissionId: 12010,
+        status: 'ACCEPTED',
+        time: '0 ms',
+        memory: '2020 KB',
+        codeLength: '152 B',
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        code: `#include <iostream>
 using namespace std;
 
 int main() {
@@ -134,6 +200,40 @@ int main() {
     cout << a + b;
     return 0;
 }`,
+      },
+      {
+        submissionId: 12008,
+        status: 'TIME_LIMIT_EXCEEDED',
+        time: null,
+        memory: null,
+        codeLength: '130 B',
+        createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
+        code: `#include <iostream>
+using namespace std;
+
+int main() {
+    int a, b;
+    cin >> a >> b;
+    cout << a + b;
+    return 0;
+}`,
+      },
+      {
+        submissionId: 12006,
+        status: 'COMPILE_ERROR',
+        time: null,
+        memory: null,
+        codeLength: '95 B',
+        createdAt: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
+        code: `#include <iostream>
+
+int main() {
+    int a, b;
+    cin >> a >> b;
+    cout << a + b;
+}`,
+      },
+    ],
   },
 ];
 
