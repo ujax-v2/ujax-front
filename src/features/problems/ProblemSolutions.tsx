@@ -39,15 +39,16 @@ export const ProblemSolutions = () => {
 
   const [summaries, setSummaries] = useState<SolutionSummary[]>([]);
   const [activeSolutionId, setActiveSolutionId] = useState<number | null>(null);
-  const [versionIndex, setVersionIndex] = useState(0); // 0 = 최신
+  const [versionPage, setVersionPage] = useState(0); // 현재 페이지 (0-based)
   const [versions, setVersions] = useState<SolutionVersion[]>([]);
+  const [versionMeta, setVersionMeta] = useState({ totalElements: 0, totalPages: 1, first: true, last: true });
   const [versionsLoading, setVersionsLoading] = useState(false);
 
   const activeSolution = summaries.find((s) => s.solutionId === activeSolutionId) ?? summaries[0] ?? null;
-  const totalVersions = versions.length;
-  // versionIndex 0이 최신이므로 표시 번호는 역순
-  const displayVersionNum = totalVersions - versionIndex;
-  const activeVersion = versions[versionIndex] ?? null;
+  const activeVersion = versions[0] ?? null;
+  const totalVersions = versionMeta.totalElements;
+  // 표시 번호: 최신이 가장 큰 번호 (totalElements - page)
+  const displayVersionNum = versionMeta.totalElements - versionPage;
 
   // 사람 목록 로드
   useEffect(() => {
@@ -57,18 +58,21 @@ export const ProblemSolutions = () => {
     });
   }, []);
 
-  // 사람 선택 시 그 사람의 제출 목록 로드
+  // 사람 선택 or 페이지 변경 시 제출 목록 로드 (size=1: 1페이지 = 제출 1건)
   useEffect(() => {
     if (activeSolutionId === null) return;
     setVersionsLoading(true);
-    setVersionIndex(0);
-    getSolutionVersions(0, 0, 0, activeSolutionId)
-      .then(setVersions)
+    getSolutionVersions(0, 0, 0, activeSolutionId, versionPage, 1)
+      .then((res) => {
+        setVersions(res.content);
+        setVersionMeta({ totalElements: res.totalElements, totalPages: res.totalPages, first: res.first, last: res.last });
+      })
       .finally(() => setVersionsLoading(false));
-  }, [activeSolutionId]);
+  }, [activeSolutionId, versionPage]);
 
   const handleSolutionChange = (solutionId: number) => {
     setActiveSolutionId(solutionId);
+    setVersionPage(0);
   };
 
   return (
@@ -208,16 +212,16 @@ export const ProblemSolutions = () => {
 
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setVersionIndex((i) => i + 1)}
-              disabled={versionIndex >= totalVersions - 1}
+              onClick={() => setVersionPage((p) => p + 1)}
+              disabled={versionMeta.last}
               className="p-1 rounded hover:bg-border-subtle text-text-muted disabled:opacity-30 disabled:hover:bg-transparent"
               title="이전 제출"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setVersionIndex((i) => i - 1)}
-              disabled={versionIndex <= 0}
+              onClick={() => setVersionPage((p) => p - 1)}
+              disabled={versionMeta.first}
               className="p-1 rounded hover:bg-border-subtle text-text-muted disabled:opacity-30 disabled:hover:bg-transparent"
               title="최신 제출"
             >

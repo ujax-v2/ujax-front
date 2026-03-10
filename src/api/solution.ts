@@ -277,19 +277,44 @@ export async function getSolutionSummaries(
   return MOCK_SUMMARIES.map((s) => ({ ...s }));
 }
 
+/** 페이징 래퍼 */
+export interface PagedResult<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+}
+
 /**
- * [MOCK] 그 사람의 제출 전체 조회 — 최신순 (index 0 = 최신)
- * 프론트가 currentVersionIndex 상태로 < > 네비게이션 관리
- * TODO: GET /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{workspaceProblemId}/solutions/{solutionId}/submissions
+ * [MOCK] 그 사람의 제출 목록 조회 — 최신순, 페이징
+ * 프론트가 page 상태로 < > 네비게이션 관리
+ * TODO: GET /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{workspaceProblemId}/solutions/{solutionId}/submissions?page=0&size=10
  */
 export async function getSolutionVersions(
   _wsId: number,
   _boxId: number,
   _problemId: number,
   solutionId: number,
-): Promise<SolutionVersion[]> {
+  page = 0,
+  size = 10,
+): Promise<PagedResult<SolutionVersion>> {
   await delay();
-  return [...(MOCK_VERSIONS[solutionId] ?? [])];
+  const all = MOCK_VERSIONS[solutionId] ?? [];
+  const totalElements = all.length;
+  const totalPages = Math.max(1, Math.ceil(totalElements / size));
+  const content = all.slice(page * size, page * size + size);
+  return {
+    content,
+    page,
+    size,
+    totalElements,
+    totalPages,
+    first: page === 0,
+    last: page >= totalPages - 1,
+  };
 }
 
 /**
