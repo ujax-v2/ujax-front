@@ -27,7 +27,10 @@ import {
   likeSolution,
   unlikeSolution,
 } from '@/api/solution';
-import type { SolutionSummary, SolutionVersion, PagedResult, SolutionComment } from '@/api/solution';
+import type { components } from '@ujax/api-spec/types';
+import type { SolutionSummary, SolutionVersion, SolutionComment } from '@/api/solution';
+
+type SolutionVersionPageData = components['schemas']['ApiResponse-SolutionVersionList']['data'];
 
 const LANG_MONACO: Record<string, string> = {
   JAVA: 'java',
@@ -89,7 +92,7 @@ export const ProblemSolutions = () => {
   const [summariesLoading, setSummariesLoading] = useState(true);
   const [activeWorkspaceMemberId, setActiveWorkspaceMemberId] = useState<number | null>(null);
   const [versionPage, setVersionPage] = useState(0);
-  const [versionResult, setVersionResult] = useState<PagedResult<SolutionVersion> | null>(null);
+  const [versionResult, setVersionResult] = useState<SolutionVersionPageData | null>(null);
   const [versionsLoading, setVersionsLoading] = useState(false);
   const [comments, setComments] = useState<SolutionComment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
