@@ -1,11 +1,13 @@
 import type { components } from '@ujax/api-spec/types';
 import { authFetch } from './client';
 
+// ──── 실제 API (서버 스펙 기반) ────
+// 현재 서버는 제출 1건 = SolutionItem 1개 모델
+
 type ApiSolutionList = components['schemas']['ApiResponse-SolutionList'];
 export type SolutionListData = ApiSolutionList['data'];
+/** 제출 1건 (서버 현재 스펙) */
 export type SolutionItem = SolutionListData['content'][number];
-
-// ──── 풀이 목록 조회 ────
 
 export async function getSolutions(
   wsId: number,
@@ -20,14 +22,51 @@ export async function getSolutions(
   return res.data;
 }
 
-// ══════════════════════════════════════════════
-// 아래는 백엔드 미구현 API에 대한 Mock 정의입니다.
-// 실제 API 연동 시 authFetch로 교체하세요.
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// Mock API (백엔드 미구현)
+//
+// 확정된 흐름:
+//   1. getSolutionSummaries()       → 사람 N명 (사이드바 목록)
+//   2. getSolutionVersions(solutionId) → 그 사람의 제출 N건 (< > 네비게이션)
+//
+// solutionId = 사람 묶음 ID  (한 사람 × 한 문제 = 1개)
+// submissionId = 개별 제출 ID (백준 제출 번호)
+// ══════════════════════════════════════════════════════════════
 
 // ──── 타입 정의 ────
 
-/** 풀이 단일 제출 버전 (< > 네비게이션 단위) */
+/**
+ * 풀이 요약 — 사이드바 목록 1행
+ * 사람 1명 × 문제 1개 = 1개
+ */
+export interface SolutionSummary {
+  /** 풀이(묶음) ID */
+  solutionId: number;
+  /** 작성자 이름 */
+  memberName: string;
+  /** 풀이 제목 */
+  title: string;
+  /** 태그 */
+  tags: string[];
+  /** 좋아요 수 */
+  likes: number;
+  /** 조회 수 */
+  views: number;
+  /** 사용 언어 (최신 제출 기준) */
+  programmingLanguage: string;
+  /** 최신 제출 상태 */
+  latestStatus: string;
+  /** 총 제출 횟수 */
+  submissionCount: number;
+  /** 최신 제출 시각 */
+  updatedAt: string;
+  /** 내가 좋아요를 눌렀는지 */
+  isLiked: boolean;
+}
+
+/**
+ * 제출 1건 — < > 네비게이션 단위
+ */
 export interface SolutionVersion {
   /** 백준 제출 번호 */
   submissionId: number;
@@ -45,21 +84,7 @@ export interface SolutionVersion {
   createdAt: string;
 }
 
-/** 풀이 상세 메타데이터 (버전/코드 미포함 — 별도 API로 조회) */
-export interface SolutionDetail extends SolutionItem {
-  /** 풀이 제목 (작성자가 붙인 설명) */
-  title: string;
-  /** 태그 목록 */
-  tags: string[];
-  /** 좋아요 수 */
-  likes: number;
-  /** 조회 수 */
-  views: number;
-  /** 내가 좋아요를 눌렀는지 */
-  isLiked: boolean;
-}
-
-/** 풀이 댓글 */
+/** 댓글 */
 export interface SolutionComment {
   id: number;
   authorName: string;
@@ -75,61 +100,48 @@ export interface SolutionLikeStatus {
 
 // ──── Mock 데이터 ────
 
-const MOCK_SOLUTIONS: SolutionDetail[] = [
+const MOCK_SUMMARIES: SolutionSummary[] = [
   {
-    id: 1,
-    submissionId: 12003,
-    problemNumber: 1000,
+    solutionId: 1,
     memberName: '알고리즘마스터',
-    status: 'ACCEPTED',
-    time: '80 ms',
-    memory: '11456 KB',
-    programmingLanguage: 'JAVA',
-    codeLength: '298 B',
-    createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
     title: 'BufferedReader를 활용한 빠른 입출력',
     tags: ['Math', 'IO'],
     likes: 42,
     views: 128,
+    programmingLanguage: 'JAVA',
+    latestStatus: 'ACCEPTED',
+    submissionCount: 2,
+    updatedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
     isLiked: false,
   },
   {
-    id: 2,
-    submissionId: 12005,
-    problemNumber: 1000,
+    solutionId: 2,
     memberName: 'pythonista',
-    status: 'ACCEPTED',
-    time: '68 ms',
-    memory: '31256 KB',
-    programmingLanguage: 'PYTHON',
-    codeLength: '38 B',
-    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
     title: 'Python 한 줄 코딩 (Short coding)',
     tags: ['Short', 'Math'],
     likes: 38,
     views: 95,
+    programmingLanguage: 'PYTHON',
+    latestStatus: 'ACCEPTED',
+    submissionCount: 1,
+    updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
     isLiked: true,
   },
   {
-    id: 3,
-    submissionId: 12010,
-    problemNumber: 1000,
+    solutionId: 3,
     memberName: 'cppNinja',
-    status: 'ACCEPTED',
-    time: '0 ms',
-    memory: '2020 KB',
-    programmingLanguage: 'CPP',
-    codeLength: '152 B',
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     title: 'C++ ios_base::sync_with_stdio 입출력 최적화',
     tags: ['Performance', 'IO'],
     likes: 29,
     views: 150,
+    programmingLanguage: 'CPP',
+    latestStatus: 'ACCEPTED',
+    submissionCount: 3,
+    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     isLiked: false,
   },
 ];
 
-// 풀이별 제출 버전 목록 (최신순, index 0 = 최신)
 const MOCK_VERSIONS: Record<number, SolutionVersion[]> = {
   1: [
     {
@@ -253,25 +265,22 @@ const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
 // ──── Mock API 함수 ────
 
 /**
- * [MOCK] 풀이 상세 조회 (메타데이터만, 코드/버전 제외)
- * TODO: GET /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{problemId}/solutions/{solutionId}
+ * [MOCK] 풀이 목록 조회 — 사람 N명 반환
+ * TODO: GET /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{workspaceProblemId}/solutions
  */
-export async function getSolutionDetail(
+export async function getSolutionSummaries(
   _wsId: number,
   _boxId: number,
   _problemId: number,
-  solutionId: number,
-): Promise<SolutionDetail> {
+): Promise<SolutionSummary[]> {
   await delay();
-  const found = MOCK_SOLUTIONS.find((s) => s.id === solutionId);
-  if (!found) throw new Error('풀이를 찾을 수 없습니다.');
-  return { ...found };
+  return MOCK_SUMMARIES.map((s) => ({ ...s }));
 }
 
 /**
- * [MOCK] 풀이 제출 버전 목록 조회 (최신순)
+ * [MOCK] 그 사람의 제출 전체 조회 — 최신순 (index 0 = 최신)
  * 프론트가 currentVersionIndex 상태로 < > 네비게이션 관리
- * TODO: GET /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{problemId}/solutions/{solutionId}/versions
+ * TODO: GET /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{workspaceProblemId}/solutions/{solutionId}/submissions
  */
 export async function getSolutionVersions(
   _wsId: number,
@@ -284,8 +293,8 @@ export async function getSolutionVersions(
 }
 
 /**
- * [MOCK] 풀이 댓글 목록 조회
- * TODO: GET /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{problemId}/solutions/{solutionId}/comments
+ * [MOCK] 댓글 목록
+ * TODO: GET /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{workspaceProblemId}/solutions/{solutionId}/comments
  */
 export async function getSolutionComments(
   _wsId: number,
@@ -298,8 +307,8 @@ export async function getSolutionComments(
 }
 
 /**
- * [MOCK] 풀이 댓글 작성
- * TODO: POST /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{problemId}/solutions/{solutionId}/comments
+ * [MOCK] 댓글 작성
+ * TODO: POST /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{workspaceProblemId}/solutions/{solutionId}/comments
  */
 export async function createSolutionComment(
   _wsId: number,
@@ -321,8 +330,8 @@ export async function createSolutionComment(
 }
 
 /**
- * [MOCK] 풀이 댓글 삭제
- * TODO: DELETE /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{problemId}/solutions/{solutionId}/comments/{commentId}
+ * [MOCK] 댓글 삭제
+ * TODO: DELETE /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{workspaceProblemId}/solutions/{solutionId}/comments/{commentId}
  */
 export async function deleteSolutionComment(
   _wsId: number,
@@ -338,24 +347,8 @@ export async function deleteSolutionComment(
 }
 
 /**
- * [MOCK] 풀이 좋아요 상태 조회
- * TODO: GET /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{problemId}/solutions/{solutionId}/likes
- */
-export async function getSolutionLikeStatus(
-  _wsId: number,
-  _boxId: number,
-  _problemId: number,
-  solutionId: number,
-): Promise<SolutionLikeStatus> {
-  await delay(150);
-  const found = MOCK_SOLUTIONS.find((s) => s.id === solutionId);
-  if (!found) throw new Error('풀이를 찾을 수 없습니다.');
-  return { likes: found.likes, isLiked: found.isLiked };
-}
-
-/**
- * [MOCK] 풀이 좋아요
- * TODO: PUT /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{problemId}/solutions/{solutionId}/likes
+ * [MOCK] 좋아요
+ * TODO: PUT /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{workspaceProblemId}/solutions/{solutionId}/likes
  */
 export async function likeSolution(
   _wsId: number,
@@ -364,15 +357,15 @@ export async function likeSolution(
   solutionId: number,
 ): Promise<SolutionLikeStatus> {
   await delay(200);
-  const sol = MOCK_SOLUTIONS.find((s) => s.id === solutionId);
+  const sol = MOCK_SUMMARIES.find((s) => s.solutionId === solutionId);
   if (!sol) throw new Error('풀이를 찾을 수 없습니다.');
   if (!sol.isLiked) { sol.isLiked = true; sol.likes += 1; }
   return { likes: sol.likes, isLiked: sol.isLiked };
 }
 
 /**
- * [MOCK] 풀이 좋아요 취소
- * TODO: DELETE /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{problemId}/solutions/{solutionId}/likes
+ * [MOCK] 좋아요 취소
+ * TODO: DELETE /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{workspaceProblemId}/solutions/{solutionId}/likes
  */
 export async function unlikeSolution(
   _wsId: number,
@@ -381,7 +374,7 @@ export async function unlikeSolution(
   solutionId: number,
 ): Promise<SolutionLikeStatus> {
   await delay(200);
-  const sol = MOCK_SOLUTIONS.find((s) => s.id === solutionId);
+  const sol = MOCK_SUMMARIES.find((s) => s.solutionId === solutionId);
   if (!sol) throw new Error('풀이를 찾을 수 없습니다.');
   if (sol.isLiked) { sol.isLiked = false; sol.likes -= 1; }
   return { likes: sol.likes, isLiked: sol.isLiked };
