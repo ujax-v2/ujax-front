@@ -153,6 +153,7 @@ export const ko: Record<string, string> = {
   'problems.registration.goBack': '돌아가기',
 
   // Problem Solutions
+  'problems.solutions.title': '풀이 목록',
   'problems.solutions.backToProblem': '문제로 돌아가기',
   'problems.solutions.comments': '댓글',
   'problems.solutions.writeComment': '댓글 작성...',

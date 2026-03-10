@@ -2,7 +2,7 @@ import type { components } from '@ujax/api-spec/types';
 import { authFetch } from './client';
 
 // ──────────────────────────────────────────────
-// 실제 API (서버 현재 스펙 — 제출 1건 = SolutionItem)
+// 기존 제출 목록 API (서버 스펙 — 제출 1건 = SolutionItem)
 // ──────────────────────────────────────────────
 
 type ApiSolutionList = components['schemas']['ApiResponse-SolutionList'];
@@ -24,25 +24,17 @@ export async function getSolutions(
 }
 
 // ══════════════════════════════════════════════════════════════
-// Solution Summary API (백엔드 미구현 — 연동 대기)
+// Solution Member API — 풀이 보기 기능
 //
-// 확정된 흐름:
-//   1. getSolutionSummaries()                 → 사람 N명 (사이드바)
-//   2. getSolutionVersions(solutionId)        → 그 사람의 제출 N건, 페이징 (< >)
-//   3. likeSolution(solutionId, submissionId) → 현재 코드에 좋아요
-//   4. getSolutionComments(solutionId, submissionId) → 현재 코드의 댓글
+// workspaceMemberId = 사람 기준 식별자 (1인 × 1문제 번들)
+// submissionId      = 개별 제출 ID (백준 제출 번호)
 //
-// solutionId   = 사람 묶음 ID (사람 1명 × 문제 1개)
-// submissionId = 개별 제출 ID (백준 제출 번호, 코드 1건)
-//
-// 좋아요/댓글 → submissionId 기준 (보고 있는 코드에 대한 반응)
+// 서버 스펙 스키마: @ujax/api-spec 의 ApiResponse-SolutionMemberSummaryList 등
+// (ujax-api-spec에 추가 완료 — npm install 후 아래 타입을 import로 교체 가능)
 // ══════════════════════════════════════════════════════════════
 
-// ──── 타입 정의 ────
-
-/** 페이징 래퍼 */
-export interface PagedResult<T> {
-  content: T[];
+/** 페이지 메타 정보 — 서버 응답 구조 그대로 */
+export interface PageInfo {
   page: number;
   size: number;
   totalElements: number;
@@ -51,25 +43,28 @@ export interface PagedResult<T> {
   last: boolean;
 }
 
-/** 풀이 요약 — 사이드바 목록 1행 (사람 1명 × 문제 1개) */
+/** 페이징 응답 래퍼 — data.content + data.page 중첩 구조 */
+export interface PagedResult<T> {
+  content: T[];
+  page: PageInfo;
+}
+
+/** 풀이 요약 — 사람 1명 × 문제 1개 (ApiResponse-SolutionMemberSummaryList 아이템) */
 export interface SolutionSummary {
-  solutionId: number;
+  workspaceMemberId: number;
   memberName: string;
-  title: string;
-  tags: string[];
-  /** 최신 제출 기준 */
   programmingLanguage: string;
   latestStatus: string;
   submissionCount: number;
+  /** 최신 제출 기준 좋아요 수 */
   likes: number;
-  views: number;
   updatedAt: string;
 }
 
-/** 제출 1건 — < > 네비게이션 단위 (좋아요·댓글은 submissionId 기준) */
+/** 제출 1건 — < > 네비게이션 단위 (ApiResponse-SolutionVersionList content 아이템) */
 export interface SolutionVersion {
   submissionId: number;
-  code: string;
+  code: string | null;
   status: string;
   time: string | null;
   memory: string | null;
@@ -80,7 +75,7 @@ export interface SolutionVersion {
   commentCount: number;
 }
 
-/** 댓글 */
+/** 댓글 (ApiResponse-SolutionCommentList 아이템) */
 export interface SolutionComment {
   id: number;
   authorName: string;
@@ -88,125 +83,80 @@ export interface SolutionComment {
   createdAt: string;
 }
 
-/** 좋아요 상태 */
+/** 좋아요 상태 (ApiResponse-SolutionLikeStatus) */
 export interface SolutionLikeStatus {
   likes: number;
   isLiked: boolean;
 }
 
-/** 풀이 제목·태그 저장/수정 요청 */
-export interface UpsertSolutionSummaryRequest {
-  title: string;
-  tags: string[];
-}
-
-// ──── API 함수 ────
-
-const BASE = (wsId: number, boxId: number, wProblemId: number) =>
-  `/api/v1/workspaces/${wsId}/problem-boxes/${boxId}/problems/${wProblemId}/solution-summaries`;
+const MEMBER_BASE = (wsId: number, boxId: number, workspaceProblemId: number) =>
+  `/api/v1/workspaces/${wsId}/problem-boxes/${boxId}/problems/${workspaceProblemId}/solution-members`;
 
 /**
- * 풀이 목록 — 사람 N명 반환 (사이드바)
- * GET /solution-summaries
+ * 사람 기준 풀이 요약 목록
+ * GET /solution-members
  */
 export async function getSolutionSummaries(
   wsId: number,
   boxId: number,
   workspaceProblemId: number,
 ): Promise<SolutionSummary[]> {
-  const res = await authFetch(BASE(wsId, boxId, workspaceProblemId));
+  const res = await authFetch(MEMBER_BASE(wsId, boxId, workspaceProblemId));
   return res.data;
 }
 
 /**
- * 풀이 제목·태그 등록 (최초 1회)
- * POST /solution-summaries
- */
-export async function createSolutionSummary(
-  wsId: number,
-  boxId: number,
-  workspaceProblemId: number,
-  body: UpsertSolutionSummaryRequest,
-): Promise<SolutionSummary> {
-  const res = await authFetch(BASE(wsId, boxId, workspaceProblemId), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  return res.data;
-}
-
-/**
- * 풀이 제목·태그 수정
- * PATCH /solution-summaries/{solutionId}
- */
-export async function updateSolutionSummary(
-  wsId: number,
-  boxId: number,
-  workspaceProblemId: number,
-  solutionId: number,
-  body: UpsertSolutionSummaryRequest,
-): Promise<SolutionSummary> {
-  const res = await authFetch(`${BASE(wsId, boxId, workspaceProblemId)}/${solutionId}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  return res.data;
-}
-
-/**
- * 그 사람의 제출 목록 — 최신순, 페이징 (size=1 → 1페이지 = 코드 1건)
- * GET /solution-summaries/{solutionId}/submissions?page&size
+ * 특정 사람의 제출 목록 — 최신순 페이징
+ * GET /solution-members/{workspaceMemberId}/submissions?page&size
  */
 export async function getSolutionVersions(
   wsId: number,
   boxId: number,
   workspaceProblemId: number,
-  solutionId: number,
+  workspaceMemberId: number,
   page = 0,
   size = 1,
 ): Promise<PagedResult<SolutionVersion>> {
   const res = await authFetch(
-    `${BASE(wsId, boxId, workspaceProblemId)}/${solutionId}/submissions?page=${page}&size=${size}`,
+    `${MEMBER_BASE(wsId, boxId, workspaceProblemId)}/${workspaceMemberId}/submissions?page=${page}&size=${size}`,
   );
   return res.data;
 }
 
 /**
  * 댓글 목록 — 현재 보는 코드(submissionId) 기준
- * GET /solution-summaries/{solutionId}/submissions/{submissionId}/comments
+ * GET /solution-members/{workspaceMemberId}/submissions/{submissionId}/comments
  */
 export async function getSolutionComments(
   wsId: number,
   boxId: number,
   workspaceProblemId: number,
-  solutionId: number,
+  workspaceMemberId: number,
   submissionId: number,
 ): Promise<SolutionComment[]> {
   const res = await authFetch(
-    `${BASE(wsId, boxId, workspaceProblemId)}/${solutionId}/submissions/${submissionId}/comments`,
+    `${MEMBER_BASE(wsId, boxId, workspaceProblemId)}/${workspaceMemberId}/submissions/${submissionId}/comments`,
   );
   return res.data;
 }
 
 /**
  * 댓글 작성
- * POST /solution-summaries/{solutionId}/submissions/{submissionId}/comments
+ * POST /solution-members/{workspaceMemberId}/submissions/{submissionId}/comments
  */
 export async function createSolutionComment(
   wsId: number,
   boxId: number,
   workspaceProblemId: number,
-  solutionId: number,
+  workspaceMemberId: number,
   submissionId: number,
   content: string,
 ): Promise<SolutionComment> {
   const res = await authFetch(
-    `${BASE(wsId, boxId, workspaceProblemId)}/${solutionId}/submissions/${submissionId}/comments`,
+    `${MEMBER_BASE(wsId, boxId, workspaceProblemId)}/${workspaceMemberId}/submissions/${submissionId}/comments`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json;charset=UTF-8' },
       body: JSON.stringify({ content }),
     },
   );
@@ -215,35 +165,35 @@ export async function createSolutionComment(
 
 /**
  * 댓글 삭제
- * DELETE /solution-summaries/{solutionId}/submissions/{submissionId}/comments/{commentId}
+ * DELETE /solution-members/{workspaceMemberId}/submissions/{submissionId}/comments/{commentId}
  */
 export async function deleteSolutionComment(
   wsId: number,
   boxId: number,
   workspaceProblemId: number,
-  solutionId: number,
+  workspaceMemberId: number,
   submissionId: number,
   commentId: number,
 ): Promise<void> {
   await authFetch(
-    `${BASE(wsId, boxId, workspaceProblemId)}/${solutionId}/submissions/${submissionId}/comments/${commentId}`,
+    `${MEMBER_BASE(wsId, boxId, workspaceProblemId)}/${workspaceMemberId}/submissions/${submissionId}/comments/${commentId}`,
     { method: 'DELETE' },
   );
 }
 
 /**
- * 좋아요 — 현재 보는 코드(submissionId) 기준
- * PUT /solution-summaries/{solutionId}/submissions/{submissionId}/likes
+ * 좋아요 등록
+ * PUT /solution-members/{workspaceMemberId}/submissions/{submissionId}/likes
  */
 export async function likeSolution(
   wsId: number,
   boxId: number,
   workspaceProblemId: number,
-  solutionId: number,
+  workspaceMemberId: number,
   submissionId: number,
 ): Promise<SolutionLikeStatus> {
   const res = await authFetch(
-    `${BASE(wsId, boxId, workspaceProblemId)}/${solutionId}/submissions/${submissionId}/likes`,
+    `${MEMBER_BASE(wsId, boxId, workspaceProblemId)}/${workspaceMemberId}/submissions/${submissionId}/likes`,
     { method: 'PUT' },
   );
   return res.data;
@@ -251,17 +201,17 @@ export async function likeSolution(
 
 /**
  * 좋아요 취소
- * DELETE /solution-summaries/{solutionId}/submissions/{submissionId}/likes
+ * DELETE /solution-members/{workspaceMemberId}/submissions/{submissionId}/likes
  */
 export async function unlikeSolution(
   wsId: number,
   boxId: number,
   workspaceProblemId: number,
-  solutionId: number,
+  workspaceMemberId: number,
   submissionId: number,
 ): Promise<SolutionLikeStatus> {
   const res = await authFetch(
-    `${BASE(wsId, boxId, workspaceProblemId)}/${solutionId}/submissions/${submissionId}/likes`,
+    `${MEMBER_BASE(wsId, boxId, workspaceProblemId)}/${workspaceMemberId}/submissions/${submissionId}/likes`,
     { method: 'DELETE' },
   );
   return res.data;
@@ -269,51 +219,40 @@ export async function unlikeSolution(
 
 // ══════════════════════════════════════════════════════════════
 // Mock 데이터 (백엔드 연동 전 UI 개발용)
-// 사용법: 위 함수 구현부를 아래 mock 함수로 교체하거나
-//         별도 mockSolution.ts로 분리해서 import 교체
 // ══════════════════════════════════════════════════════════════
 
 export const MOCK_SOLUTION_SUMMARIES: SolutionSummary[] = [
   {
-    solutionId: 1,
+    workspaceMemberId: 11,
     memberName: '알고리즘마스터',
-    title: 'BufferedReader를 활용한 빠른 입출력',
-    tags: ['Math', 'IO'],
     programmingLanguage: 'JAVA',
     latestStatus: 'ACCEPTED',
     submissionCount: 2,
     likes: 42,
-    views: 128,
     updatedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
   },
   {
-    solutionId: 2,
+    workspaceMemberId: 12,
     memberName: 'pythonista',
-    title: 'Python 한 줄 코딩 (Short coding)',
-    tags: ['Short', 'Math'],
     programmingLanguage: 'PYTHON',
     latestStatus: 'ACCEPTED',
     submissionCount: 1,
     likes: 38,
-    views: 95,
     updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
   },
   {
-    solutionId: 3,
+    workspaceMemberId: 13,
     memberName: 'cppNinja',
-    title: 'C++ ios_base::sync_with_stdio 입출력 최적화',
-    tags: ['Performance', 'IO'],
     programmingLanguage: 'CPP',
     latestStatus: 'ACCEPTED',
     submissionCount: 3,
     likes: 29,
-    views: 150,
     updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
 export const MOCK_SOLUTION_VERSIONS: Record<number, SolutionVersion[]> = {
-  1: [
+  11: [
     {
       submissionId: 12003,
       status: 'ACCEPTED',
@@ -358,7 +297,7 @@ public class Main {
 }`,
     },
   ],
-  2: [
+  12: [
     {
       submissionId: 12005,
       status: 'ACCEPTED',
@@ -372,7 +311,7 @@ public class Main {
       code: `print(sum(map(int, input().split())))`,
     },
   ],
-  3: [
+  13: [
     {
       submissionId: 12010,
       status: 'ACCEPTED',
@@ -446,6 +385,6 @@ export const MOCK_SOLUTION_COMMENTS: Record<number, SolutionComment[]> = {
     { id: 3, authorName: 'helper', content: 'println이 아니라 print를 쓰셔서 줄바꿈이 빠졌네요.', createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() },
   ],
   12005: [
-    { id: 4, authorName: 'beginner42', content: '한 줄로 되네요 신기하다', createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString() },
+    { id: 4, authorName: 'beginner42', content: '한 줄로 되네요 신기하다', createdAt: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString() },
   ],
 };
