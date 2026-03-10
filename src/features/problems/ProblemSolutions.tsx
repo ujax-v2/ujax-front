@@ -16,8 +16,12 @@ import {
 import Editor from '@monaco-editor/react';
 import { useIsDark } from '@/App';
 import { useT } from '@/i18n';
-import { getSolutionSummaries, getSolutionVersions } from '@/api/solution';
-import type { SolutionSummary, SolutionVersion, PagedResult } from '@/api/solution';
+import {
+  MOCK_SOLUTION_SUMMARIES,
+  MOCK_SOLUTION_VERSIONS,
+  MOCK_SOLUTION_COMMENTS,
+} from '@/api/solution';
+import type { SolutionSummary, SolutionVersion, PagedResult, SolutionComment } from '@/api/solution';
 
 const LANG_MONACO: Record<string, string> = {
   JAVA: 'java',
@@ -26,10 +30,6 @@ const LANG_MONACO: Record<string, string> = {
   JAVASCRIPT: 'javascript',
 };
 
-const comments = [
-  { id: 1, user: 'user123', content: '깔끔한 풀이네요! 배웠습니다.', time: '2시간 전' },
-  { id: 2, user: 'coder99', content: 'Scanner 대신 BufferedReader를 쓰면 더 빠르지 않을까요?', time: '1시간 전' },
-];
 
 export const ProblemSolutions = () => {
   const { toWs } = useWorkspaceNavigate();
@@ -42,6 +42,7 @@ export const ProblemSolutions = () => {
   const [versionPage, setVersionPage] = useState(0);
   const [versionResult, setVersionResult] = useState<PagedResult<SolutionVersion> | null>(null);
   const [versionsLoading, setVersionsLoading] = useState(false);
+  const [comments, setComments] = useState<SolutionComment[]>([]);
 
   const activeSolution = summaries.find((s) => s.solutionId === activeSolutionId) ?? null;
   const activeVersion = versionResult?.content[0] ?? null;
@@ -49,22 +50,43 @@ export const ProblemSolutions = () => {
   // 최신이 Version N, 오래된 게 Version 1
   const displayVersionNum = totalVersions - versionPage;
 
-  // 사람 목록 로드
+  // 사람 목록 로드 (mock)
+  // TODO: getSolutionSummaries(wsId, boxId, workspaceProblemId)로 교체
   useEffect(() => {
-    getSolutionSummaries(0, 0, 0).then((data) => {
-      setSummaries(data);
-      if (data.length > 0) setActiveSolutionId(data[0].solutionId);
-    });
+    setSummaries(MOCK_SOLUTION_SUMMARIES);
+    if (MOCK_SOLUTION_SUMMARIES.length > 0) {
+      setActiveSolutionId(MOCK_SOLUTION_SUMMARIES[0].solutionId);
+    }
   }, []);
 
-  // 사람 선택 or 페이지 변경 시 제출 목록 로드 (size=1: 1페이지 = 제출 1건)
+  // 사람 선택 or 페이지 변경 시 제출 목록 로드 (mock, size=1: 1페이지 = 제출 1건)
+  // TODO: getSolutionVersions(wsId, boxId, workspaceProblemId, solutionId, page, 1)로 교체
   useEffect(() => {
     if (activeSolutionId === null) return;
     setVersionsLoading(true);
-    getSolutionVersions(0, 0, 0, activeSolutionId, versionPage, 1)
-      .then(setVersionResult)
-      .finally(() => setVersionsLoading(false));
+    const all = MOCK_SOLUTION_VERSIONS[activeSolutionId] ?? [];
+    const totalElements = all.length;
+    const totalPages = Math.max(1, totalElements);
+    const content = all.slice(versionPage, versionPage + 1);
+    setVersionResult({
+      content,
+      page: versionPage,
+      size: 1,
+      totalElements,
+      totalPages,
+      first: versionPage === 0,
+      last: versionPage >= totalElements - 1,
+    });
+    setVersionsLoading(false);
   }, [activeSolutionId, versionPage]);
+
+  // 버전 변경 시 댓글 로드 (mock)
+  // TODO: getSolutionComments(wsId, boxId, workspaceProblemId, solutionId, submissionId)로 교체
+  useEffect(() => {
+    const submissionId = versionResult?.content[0]?.submissionId;
+    if (!submissionId) return;
+    setComments(MOCK_SOLUTION_COMMENTS[submissionId] ?? []);
+  }, [versionResult]);
 
   const handleSolutionChange = (solutionId: number) => {
     setActiveSolutionId(solutionId);
@@ -257,9 +279,11 @@ export const ProblemSolutions = () => {
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {comments.map((c) => (
               <div key={c.id} className="flex gap-3 text-sm">
-                <div className="font-bold text-text-secondary">{c.user}</div>
+                <div className="font-bold text-text-secondary">{c.authorName}</div>
                 <div className="text-text-muted flex-1">{c.content}</div>
-                <div className="text-text-faint text-xs">{c.time}</div>
+                <div className="text-text-faint text-xs">
+                  {new Date(c.createdAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </div>
               </div>
             ))}
           </div>
