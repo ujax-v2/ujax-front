@@ -263,6 +263,8 @@ export const IDE = () => {
     setErrorMsg('');
     setBottomTab('results');
     cancelledRef.current = false;
+    setExecuteModalStatus('executing');
+    setShowExecuteModal(true);
 
     try {
       const res = await createSubmission(currentWsId, problem.id, {
@@ -271,11 +273,23 @@ export const IDE = () => {
         testCases: testCases.map((tc) => ({ input: tc.input, expected: tc.expected })),
       });
       await pollResults(res!.submissionToken);
+      setExecuteModalStatus('done');
     } catch {
       setErrorMsg('실행에 실패했습니다. 다시 시도해주세요.');
+      setShowExecuteModal(false);
+      setExecuteModalStatus('idle');
     } finally {
       setIsExecuting(false);
     }
+  };
+
+  // ─── Execute Modal ───
+  const [showExecuteModal, setShowExecuteModal] = useState(false);
+  const [executeModalStatus, setExecuteModalStatus] = useState<'idle' | 'executing' | 'done'>('idle');
+
+  const closeExecuteModal = () => {
+    setShowExecuteModal(false);
+    setExecuteModalStatus('idle');
   };
 
   // ─── Submit (제출) → Extension을 통해 백준 자동 제출 ───
@@ -779,6 +793,67 @@ export const IDE = () => {
                 </Button>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Execute Result Modal ─── */}
+      {showExecuteModal && executeModalStatus !== 'idle' && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={executeModalStatus === 'done' ? closeExecuteModal : undefined}
+        >
+          <div
+            className="relative bg-surface border border-border-default rounded-xl shadow-xl w-full max-w-sm mx-4 py-10 flex flex-col items-center gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {executeModalStatus === 'done' && (
+              <button
+                onClick={closeExecuteModal}
+                className="absolute top-3 right-3 text-text-faint hover:text-text-primary transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+
+            {executeModalStatus === 'executing' && (
+              <>
+                <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
+                <p className="text-sm font-semibold text-text-secondary">
+                  {problem ? `${problem.problemNumber}번 문제` : ''}
+                </p>
+                <p className="text-lg font-bold text-indigo-400">실행 중입니다...</p>
+              </>
+            )}
+
+            {executeModalStatus === 'done' && (() => {
+              const passed = testResults.filter((r) => r.isCorrect).length;
+              const total = testResults.length;
+              const allPass = passed === total && total > 0;
+              return allPass ? (
+                <>
+                  <CheckCircle2 className="w-12 h-12 text-emerald-500" />
+                  <p className="text-sm font-semibold text-text-secondary">
+                    {problem ? `${problem.problemNumber}번 문제` : ''}
+                  </p>
+                  <p className="text-lg font-bold text-emerald-500">전체 통과 ({passed}/{total})</p>
+                  <Button variant="primary" onClick={closeExecuteModal} className="mt-2 text-sm px-6 py-2">
+                    확인
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="w-12 h-12 text-red-500" />
+                  <p className="text-sm font-semibold text-text-secondary">
+                    {problem ? `${problem.problemNumber}번 문제` : ''}
+                  </p>
+                  <p className="text-lg font-bold text-red-500">{passed}/{total} 통과</p>
+                  <Button variant="secondary" onClick={closeExecuteModal} className="mt-2 text-sm px-6 py-2">
+                    닫기
+                  </Button>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
