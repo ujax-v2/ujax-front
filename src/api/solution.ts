@@ -45,7 +45,7 @@ export interface SolutionVersion {
   createdAt: string;
 }
 
-/** 풀이 상세 (버전 히스토리 포함) */
+/** 풀이 상세 메타데이터 (버전/코드 미포함 — 별도 API로 조회) */
 export interface SolutionDetail extends SolutionItem {
   /** 풀이 제목 (작성자가 붙인 설명) */
   title: string;
@@ -57,8 +57,6 @@ export interface SolutionDetail extends SolutionItem {
   views: number;
   /** 내가 좋아요를 눌렀는지 */
   isLiked: boolean;
-  /** 제출 버전 목록 (최신순, index 0이 최신) */
-  versions: SolutionVersion[];
 }
 
 /** 풀이 댓글 */
@@ -94,47 +92,6 @@ const MOCK_SOLUTIONS: SolutionDetail[] = [
     likes: 42,
     views: 128,
     isLiked: false,
-    // 최신순 (index 0 = 최신)
-    versions: [
-      {
-        submissionId: 12003,
-        status: 'ACCEPTED',
-        time: '80 ms',
-        memory: '11456 KB',
-        codeLength: '298 B',
-        createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-        code: `import java.io.*;
-
-public class Main {
-    public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String[] tokens = br.readLine().split(" ");
-        int a = Integer.parseInt(tokens[0]);
-        int b = Integer.parseInt(tokens[1]);
-        System.out.println(a + b);
-    }
-}`,
-      },
-      {
-        submissionId: 12001,
-        status: 'WRONG_ANSWER',
-        time: null,
-        memory: null,
-        codeLength: '210 B',
-        createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-        code: `import java.util.Scanner;
-
-public class Main {
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int a = sc.nextInt();
-        int b = sc.nextInt();
-        // 초기 시도: println 대신 print 사용해서 오답
-        System.out.print(a + b);
-    }
-}`,
-      },
-    ],
   },
   {
     id: 2,
@@ -152,17 +109,6 @@ public class Main {
     likes: 38,
     views: 95,
     isLiked: true,
-    versions: [
-      {
-        submissionId: 12005,
-        status: 'ACCEPTED',
-        time: '68 ms',
-        memory: '31256 KB',
-        codeLength: '38 B',
-        createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-        code: `print(sum(map(int, input().split())))`,
-      },
-    ],
   },
   {
     id: 3,
@@ -180,15 +126,70 @@ public class Main {
     likes: 29,
     views: 150,
     isLiked: false,
-    versions: [
-      {
-        submissionId: 12010,
-        status: 'ACCEPTED',
-        time: '0 ms',
-        memory: '2020 KB',
-        codeLength: '152 B',
-        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        code: `#include <iostream>
+  },
+];
+
+// 풀이별 제출 버전 목록 (최신순, index 0 = 최신)
+const MOCK_VERSIONS: Record<number, SolutionVersion[]> = {
+  1: [
+    {
+      submissionId: 12003,
+      status: 'ACCEPTED',
+      time: '80 ms',
+      memory: '11456 KB',
+      codeLength: '298 B',
+      createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+      code: `import java.io.*;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String[] tokens = br.readLine().split(" ");
+        int a = Integer.parseInt(tokens[0]);
+        int b = Integer.parseInt(tokens[1]);
+        System.out.println(a + b);
+    }
+}`,
+    },
+    {
+      submissionId: 12001,
+      status: 'WRONG_ANSWER',
+      time: null,
+      memory: null,
+      codeLength: '210 B',
+      createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+      code: `import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int a = sc.nextInt();
+        int b = sc.nextInt();
+        System.out.print(a + b);
+    }
+}`,
+    },
+  ],
+  2: [
+    {
+      submissionId: 12005,
+      status: 'ACCEPTED',
+      time: '68 ms',
+      memory: '31256 KB',
+      codeLength: '38 B',
+      createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+      code: `print(sum(map(int, input().split())))`,
+    },
+  ],
+  3: [
+    {
+      submissionId: 12010,
+      status: 'ACCEPTED',
+      time: '0 ms',
+      memory: '2020 KB',
+      codeLength: '152 B',
+      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      code: `#include <iostream>
 using namespace std;
 
 int main() {
@@ -200,15 +201,15 @@ int main() {
     cout << a + b;
     return 0;
 }`,
-      },
-      {
-        submissionId: 12008,
-        status: 'TIME_LIMIT_EXCEEDED',
-        time: null,
-        memory: null,
-        codeLength: '130 B',
-        createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
-        code: `#include <iostream>
+    },
+    {
+      submissionId: 12008,
+      status: 'TIME_LIMIT_EXCEEDED',
+      time: null,
+      memory: null,
+      codeLength: '130 B',
+      createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
+      code: `#include <iostream>
 using namespace std;
 
 int main() {
@@ -217,25 +218,24 @@ int main() {
     cout << a + b;
     return 0;
 }`,
-      },
-      {
-        submissionId: 12006,
-        status: 'COMPILE_ERROR',
-        time: null,
-        memory: null,
-        codeLength: '95 B',
-        createdAt: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
-        code: `#include <iostream>
+    },
+    {
+      submissionId: 12006,
+      status: 'COMPILE_ERROR',
+      time: null,
+      memory: null,
+      codeLength: '95 B',
+      createdAt: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
+      code: `#include <iostream>
 
 int main() {
     int a, b;
     cin >> a >> b;
     cout << a + b;
 }`,
-      },
-    ],
-  },
-];
+    },
+  ],
+};
 
 const MOCK_COMMENTS: Record<number, SolutionComment[]> = {
   1: [
@@ -253,7 +253,7 @@ const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
 // ──── Mock API 함수 ────
 
 /**
- * [MOCK] 풀이 상세 조회
+ * [MOCK] 풀이 상세 조회 (메타데이터만, 코드/버전 제외)
  * TODO: GET /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{problemId}/solutions/{solutionId}
  */
 export async function getSolutionDetail(
@@ -266,6 +266,21 @@ export async function getSolutionDetail(
   const found = MOCK_SOLUTIONS.find((s) => s.id === solutionId);
   if (!found) throw new Error('풀이를 찾을 수 없습니다.');
   return { ...found };
+}
+
+/**
+ * [MOCK] 풀이 제출 버전 목록 조회 (최신순)
+ * 프론트가 currentVersionIndex 상태로 < > 네비게이션 관리
+ * TODO: GET /api/v1/workspaces/{wsId}/problem-boxes/{boxId}/problems/{problemId}/solutions/{solutionId}/versions
+ */
+export async function getSolutionVersions(
+  _wsId: number,
+  _boxId: number,
+  _problemId: number,
+  solutionId: number,
+): Promise<SolutionVersion[]> {
+  await delay();
+  return [...(MOCK_VERSIONS[solutionId] ?? [])];
 }
 
 /**
