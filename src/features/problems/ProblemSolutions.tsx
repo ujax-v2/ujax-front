@@ -17,7 +17,7 @@ import Editor from '@monaco-editor/react';
 import { useIsDark } from '@/App';
 import { useT } from '@/i18n';
 import { getSolutionSummaries, getSolutionVersions } from '@/api/solution';
-import type { SolutionSummary, SolutionVersion } from '@/api/solution';
+import type { SolutionSummary, SolutionVersion, PagedResult } from '@/api/solution';
 
 const LANG_MONACO: Record<string, string> = {
   JAVA: 'java',
@@ -39,16 +39,15 @@ export const ProblemSolutions = () => {
 
   const [summaries, setSummaries] = useState<SolutionSummary[]>([]);
   const [activeSolutionId, setActiveSolutionId] = useState<number | null>(null);
-  const [versionPage, setVersionPage] = useState(0); // 현재 페이지 (0-based)
-  const [versions, setVersions] = useState<SolutionVersion[]>([]);
-  const [versionMeta, setVersionMeta] = useState({ totalElements: 0, totalPages: 1, first: true, last: true });
+  const [versionPage, setVersionPage] = useState(0);
+  const [versionResult, setVersionResult] = useState<PagedResult<SolutionVersion> | null>(null);
   const [versionsLoading, setVersionsLoading] = useState(false);
 
-  const activeSolution = summaries.find((s) => s.solutionId === activeSolutionId) ?? summaries[0] ?? null;
-  const activeVersion = versions[0] ?? null;
-  const totalVersions = versionMeta.totalElements;
-  // 표시 번호: 최신이 가장 큰 번호 (totalElements - page)
-  const displayVersionNum = versionMeta.totalElements - versionPage;
+  const activeSolution = summaries.find((s) => s.solutionId === activeSolutionId) ?? null;
+  const activeVersion = versionResult?.content[0] ?? null;
+  const totalVersions = versionResult?.totalElements ?? 0;
+  // 최신이 Version N, 오래된 게 Version 1
+  const displayVersionNum = totalVersions - versionPage;
 
   // 사람 목록 로드
   useEffect(() => {
@@ -63,10 +62,7 @@ export const ProblemSolutions = () => {
     if (activeSolutionId === null) return;
     setVersionsLoading(true);
     getSolutionVersions(0, 0, 0, activeSolutionId, versionPage, 1)
-      .then((res) => {
-        setVersions(res.content);
-        setVersionMeta({ totalElements: res.totalElements, totalPages: res.totalPages, first: res.first, last: res.last });
-      })
+      .then(setVersionResult)
       .finally(() => setVersionsLoading(false));
   }, [activeSolutionId, versionPage]);
 
@@ -134,7 +130,7 @@ export const ProblemSolutions = () => {
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="flex items-center gap-0.5">
-                      <ThumbsUp className="w-3 h-3" /> {sol.likes}
+                      <ThumbsUp className="w-3 h-3" /> {sol.latestLikes}
                     </span>
                     {sol.submissionCount > 1 && (
                       <span className="flex items-center gap-0.5" title={`${sol.submissionCount}번 제출`}>
@@ -170,8 +166,8 @@ export const ProblemSolutions = () => {
                   </span>
                 </div>
               </div>
-              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 gap-2">
-                <ThumbsUp className="w-3 h-3" /> {activeSolution.likes}
+              <Button size="sm" className={`gap-2 ${activeVersion?.isLiked ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-surface-subtle hover:bg-border-subtle text-text-secondary border border-border-subtle'}`}>
+                <ThumbsUp className="w-3 h-3" /> {activeVersion?.likes ?? 0}
               </Button>
             </>
           ) : (
@@ -213,7 +209,7 @@ export const ProblemSolutions = () => {
           <div className="flex items-center gap-1">
             <button
               onClick={() => setVersionPage((p) => p + 1)}
-              disabled={versionMeta.last}
+              disabled={versionResult?.last ?? true}
               className="p-1 rounded hover:bg-border-subtle text-text-muted disabled:opacity-30 disabled:hover:bg-transparent"
               title="이전 제출"
             >
@@ -221,7 +217,7 @@ export const ProblemSolutions = () => {
             </button>
             <button
               onClick={() => setVersionPage((p) => p - 1)}
-              disabled={versionMeta.first}
+              disabled={versionResult?.first ?? true}
               className="p-1 rounded hover:bg-border-subtle text-text-muted disabled:opacity-30 disabled:hover:bg-transparent"
               title="최신 제출"
             >
