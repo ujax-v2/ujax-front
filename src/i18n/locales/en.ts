@@ -153,6 +153,7 @@ export const en: Record<string, string> = {
   'problems.registration.goBack': 'Go Back',
 
   // Problem Solutions
+  'problems.solutions.title': 'Solutions',
   'problems.solutions.backToProblem': 'Back to Problem',
   'problems.solutions.comments': 'Comments',
   'problems.solutions.writeComment': 'Write a comment...',

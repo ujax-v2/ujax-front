@@ -7,7 +7,8 @@ import type { WorkspaceMemberResponse, WorkspaceMemberPageResponse } from '@/api
 
 type MemberItem = WorkspaceMemberPageResponse['content'][number];
 import { parseApiError } from '@/utils/error';
-import { UserPlus, AlertTriangle, MoreHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
+import { UserPlus, AlertTriangle, MoreHorizontal } from 'lucide-react';
+import { PageNav } from '@/components/ui/PageNav';
 import { useT } from '@/i18n';
 
 export const WsMembersTab = () => {
@@ -249,38 +250,9 @@ export const WsMembersTab = () => {
           </div>
 
           {/* 페이지네이션 */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-3">
-              <button
-                onClick={() => loadMembers(currentPage - 1)}
-                disabled={currentPage === 0 || membersLoading}
-                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-hover-bg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => loadMembers(i)}
-                  disabled={membersLoading}
-                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                    i === currentPage
-                      ? 'bg-emerald-600 text-white'
-                      : 'text-text-muted hover:text-text-primary hover:bg-hover-bg'
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                onClick={() => loadMembers(currentPage + 1)}
-                disabled={currentPage >= totalPages - 1 || membersLoading}
-                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-hover-bg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+          <div className="flex justify-center pt-3">
+            <PageNav page={currentPage} totalPages={totalPages} onPageChange={loadMembers} />
+          </div>
           </>
         )}
       </div>

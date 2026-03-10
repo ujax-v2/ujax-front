@@ -16,10 +16,9 @@ import {
   Filter,
   Check,
   Search,
-  ChevronLeft,
-  ChevronRight,
   Loader2,
 } from 'lucide-react';
+import { PageNav } from '@/components/ui/PageNav';
 import { useT } from '@/i18n';
 
 type TagLabel = 'all' | 'free' | 'question' | 'data';
@@ -214,35 +213,7 @@ export const Community = () => {
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
             <span className="text-xs text-text-faint">{t('community.totalPosts', { n: totalElements })}</span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setPage(p => Math.max(0, p - 1))}
-                disabled={page === 0}
-                className="p-2 text-text-muted hover:text-text-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setPage(i)}
-                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
-                    page === i
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                      : 'text-text-faint hover:bg-surface-subtle hover:text-text-secondary'
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-                className="p-2 text-text-muted hover:text-text-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+            <PageNav page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         )}
       </div>
