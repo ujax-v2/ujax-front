@@ -7,18 +7,14 @@ import {
   Bell,
   Settings as SettingsIcon,
   Users,
-  Globe,
-  Database,
   X,
 } from 'lucide-react';
 import { getMe } from '@/api/user';
 import { ProfileTab } from './settings/ProfileTab';
 import { GeneralTab } from './settings/GeneralTab';
 import { NotificationsTab } from './settings/NotificationsTab';
-import { ConnectionsTab } from './settings/ConnectionsTab';
 import { WsGeneralTab } from './settings/WsGeneralTab';
 import { WsMembersTab } from './settings/WsMembersTab';
-import { WsImportTab } from './settings/WsImportTab';
 import { useT } from '@/i18n';
 
 export const Settings = () => {
@@ -52,13 +48,11 @@ export const Settings = () => {
     { id: 'profile', label: t('settings.tabs.profile'), icon: User },
     { id: 'general', label: t('settings.tabs.general'), icon: SettingsIcon },
     { id: 'notifications', label: t('settings.tabs.notifications'), icon: Bell },
-    { id: 'connections', label: t('settings.tabs.connections'), icon: Globe },
   ];
 
   const workspaceTabs = [
     { id: 'ws-general', label: t('settings.tabs.wsGeneral'), icon: SettingsIcon },
     { id: 'ws-members', label: t('settings.tabs.members'), icon: Users },
-    { id: 'ws-import', label: t('settings.tabs.import'), icon: Database },
   ];
 
   return (
@@ -137,10 +131,8 @@ export const Settings = () => {
             {activeTab === 'profile' && <ProfileTab />}
             {activeTab === 'general' && <GeneralTab />}
             {activeTab === 'notifications' && <NotificationsTab />}
-            {activeTab === 'connections' && <ConnectionsTab />}
             {activeTab === 'ws-general' && <WsGeneralTab />}
             {activeTab === 'ws-members' && <WsMembersTab />}
-            {activeTab === 'ws-import' && <WsImportTab />}
           </div>
         </div>
       </div>

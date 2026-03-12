@@ -40,9 +40,9 @@ export function IDEExecuteModal({ show, status, testResults, problemNumber, onCl
 
         {status === 'executing' && (
           <>
-            <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
+            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
             <p className="text-sm font-semibold text-text-secondary">{problemLabel}</p>
-            <p className="text-lg font-bold text-indigo-400">실행 중입니다...</p>
+            <p className="text-lg font-bold text-indigo-500">실행 중입니다...</p>
           </>
         )}
 

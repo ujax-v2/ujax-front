@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useRecoilState, useSetRecoilState } from 'recoil';
+import { useRecoilState, useSetRecoilState, useRecoilValue } from 'recoil';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import {
   sidebarOpenState,
@@ -7,7 +7,8 @@ import {
   currentWorkspaceState,
   userState,
   settingsTabState,
-  isCreateWorkspaceModalOpenState
+  isCreateWorkspaceModalOpenState,
+  myWorkspaceRoleState
 } from '@/store/atoms';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -28,6 +29,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../ui/Base';
 import { useT } from '@/i18n';
+import { getMyMembership } from '@/api/workspace';
 
 export const Sidebar = () => {
   const navigate = useNavigate();
@@ -40,6 +42,8 @@ export const Sidebar = () => {
   const setIsCreateWorkspaceModalOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
   const [user] = useRecoilState(userState);
   const { logout } = useAuth();
+  const myWorkspaceRole = useRecoilValue(myWorkspaceRoleState);
+  const setMyWorkspaceRole = useSetRecoilState(myWorkspaceRoleState);
 
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -55,6 +59,13 @@ export const Sidebar = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!currentWorkspaceId) return;
+    getMyMembership(currentWorkspaceId)
+      .then(data => setMyWorkspaceRole(data.role ?? 'MEMBER'))
+      .catch(() => setMyWorkspaceRole('MEMBER'));
+  }, [currentWorkspaceId]);
 
   const handleLogout = () => logout(user.refreshToken);
 
@@ -148,20 +159,22 @@ export const Sidebar = () => {
                     navigate('/settings');
                     setIsWorkspaceMenuOpen(false);
                   }}
-                  className="flex-1 py-1.5 text-xs text-text-secondary bg-border-subtle/50 hover:bg-border-subtle rounded border border-border-subtle/50 flex items-center justify-center gap-1.5 transition-colors"
+                  className="px-3 py-1.5 text-xs text-text-secondary bg-border-subtle/50 hover:bg-border-subtle rounded border border-border-subtle/50 flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <Settings className="w-3.5 h-3.5" /> {t('nav.settings')}
                 </button>
-                <button
-                  onClick={() => {
-                    setSettingsTab('ws-members');
-                    navigate('/settings');
-                    setIsWorkspaceMenuOpen(false);
-                  }}
-                  className="flex-1 py-1.5 text-xs text-text-secondary bg-border-subtle/50 hover:bg-border-subtle rounded border border-border-subtle/50 flex items-center justify-center gap-1.5 transition-colors"
-                >
-                  <UserPlus className="w-3.5 h-3.5" /> {t('nav.inviteMember')}
-                </button>
+                {myWorkspaceRole === 'OWNER' && (
+                  <button
+                    onClick={() => {
+                      setSettingsTab('ws-members');
+                      navigate('/settings');
+                      setIsWorkspaceMenuOpen(false);
+                    }}
+                    className="px-3 py-1.5 text-xs text-text-secondary bg-border-subtle/50 hover:bg-border-subtle rounded border border-border-subtle/50 flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" /> {t('nav.inviteMember')}
+                  </button>
+                )}
               </div>
             </div>
 

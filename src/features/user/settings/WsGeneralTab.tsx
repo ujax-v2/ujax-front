@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Base';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { currentWorkspaceState, workspacesState, settingsTabState } from '@/store/atoms';
+import { currentWorkspaceState, workspacesState, settingsTabState, myWorkspaceRoleState } from '@/store/atoms';
 import { getWorkspaceSettings, updateWorkspace, deleteWorkspace, leaveWorkspace, getMyMembership, updateMyNickname, getWorkspaceImagePresignedUrl } from '@/api/workspace';
 import { parseApiError } from '@/utils/error';
 import { AlertTriangle, LogOut } from 'lucide-react';
@@ -11,14 +11,17 @@ export const WsGeneralTab = () => {
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
   const workspaces = useRecoilValue(workspacesState);
   const setWorkspaces = useSetRecoilState(workspacesState);
+  const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
+  const myRole = useRecoilValue(myWorkspaceRoleState);
+  const isOwner = myRole === 'OWNER';
   const setCurrentWorkspaceId = useSetRecoilState(currentWorkspaceState);
   const setActiveTab = useSetRecoilState(settingsTabState);
   const t = useT();
 
   // Workspace general settings state
-  const [wsName, setWsName] = useState('');
-  const [wsDescription, setWsDescription] = useState('');
-  const [wsMmWebhookUrl, setWsMmWebhookUrl] = useState('');
+  const [wsName, setWsName] = useState(currentWorkspace?.name ?? '');
+  const [wsDescription, setWsDescription] = useState(currentWorkspace?.description ?? '');
+  const [wsMmWebhookUrl, setWsMmWebhookUrl] = useState(currentWorkspace?.mmWebhookUrl ?? '');
   const [wsOriginalName, setWsOriginalName] = useState('');
   const [wsOriginalDescription, setWsOriginalDescription] = useState('');
   const [wsOriginalMmWebhookUrl, setWsOriginalMmWebhookUrl] = useState('');
@@ -39,7 +42,7 @@ export const WsGeneralTab = () => {
   const [wsLeaveError, setWsLeaveError] = useState('');
 
   // Workspace image state
-  const [wsImageUrl, setWsImageUrl] = useState('');
+  const [wsImageUrl, setWsImageUrl] = useState(currentWorkspace?.imageUrl ?? '');
   const [wsOriginalImageUrl, setWsOriginalImageUrl] = useState('');
   const [wsPreviewUrl, setWsPreviewUrl] = useState('');
   const [wsPendingFile, setWsPendingFile] = useState<File | null>(null);
@@ -64,6 +67,7 @@ export const WsGeneralTab = () => {
       setWsPreviewUrl('');
       setWsPendingFile(null);
       setWsImageRemoved(false);
+      setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, mmWebhookUrl: data.mmWebhookUrl ?? null } : w));
     }).catch(err => {
       console.error('Failed to load workspace settings:', err);
     });
@@ -152,7 +156,7 @@ export const WsGeneralTab = () => {
       setWsPendingFile(null);
       setWsImageRemoved(false);
       if (wsFileInputRef.current) wsFileInputRef.current.value = '';
-      setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, name: updated.name ?? w.name, description: updated.description ?? null, imageUrl: (updated as any).imageUrl ?? null } : w));
+      setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, name: updated.name ?? w.name, description: updated.description ?? null, imageUrl: (updated as any).imageUrl ?? null, mmWebhookUrl: wsMmWebhookUrl || null } : w));
       setWsSaveResult('success');
     } catch (err: any) {
       setWsSaveResult('error');
@@ -244,8 +248,12 @@ export const WsGeneralTab = () => {
               className="hidden"
               onChange={handleWsFileChange}
             />
-            <Button variant="secondary" size="sm" onClick={() => wsFileInputRef.current?.click()}>{t('settings.wsGeneral.changeImage')}</Button>
-            <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600" onClick={handleWsRemoveImage}>{t('settings.wsGeneral.removeImage')}</Button>
+            {isOwner && (
+              <>
+                <Button variant="secondary" size="sm" onClick={() => wsFileInputRef.current?.click()}>{t('settings.wsGeneral.changeImage')}</Button>
+                <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600" onClick={handleWsRemoveImage}>{t('settings.wsGeneral.removeImage')}</Button>
+              </>
+            )}
           </div>
           <p className="text-xs text-text-faint">{t('settings.wsGeneral.imageDesc')}</p>
         </div>
@@ -255,11 +263,20 @@ export const WsGeneralTab = () => {
         <h3 className="text-sm font-bold text-text-secondary">{t('settings.wsGeneral.wsInfo')}</h3>
         <div>
           <label className="block text-xs font-bold text-text-faint mb-1">{t('settings.wsGeneral.name')}</label>
-          <input type="text" value={wsName} onChange={e => setWsName(e.target.value)} className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+          <input type="text" value={wsName} onChange={e => setWsName(e.target.value)} readOnly={!isOwner} className={`w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary outline-none ${isOwner ? 'focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500' : 'opacity-60 cursor-default'}`} />
         </div>
         <div>
           <label className="block text-xs font-bold text-text-faint mb-1">{t('settings.wsGeneral.description')}</label>
-          <input type="text" value={wsDescription} onChange={e => setWsDescription(e.target.value)} placeholder={t('settings.wsGeneral.descPlaceholder')} className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+          <textarea
+            value={wsDescription}
+            onChange={e => { setWsDescription(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+            onInput={e => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
+            ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
+            placeholder={t('settings.wsGeneral.descPlaceholder')}
+            readOnly={!isOwner}
+            rows={1}
+            className={`w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary outline-none resize-none overflow-hidden ${isOwner ? 'focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500' : 'opacity-60 cursor-default'}`}
+          />
         </div>
       </div>
 
@@ -267,21 +284,23 @@ export const WsGeneralTab = () => {
         <h3 className="text-sm font-bold text-text-secondary">{t('settings.wsGeneral.integration')}</h3>
         <div>
           <label className="block text-xs font-bold text-text-faint mb-1">Mattermost Webhook URL</label>
-          <input type="text" value={wsMmWebhookUrl} onChange={e => setWsMmWebhookUrl(e.target.value)} placeholder="https://mattermost.example.com/hooks/..." className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+          <input type="text" value={wsMmWebhookUrl} onChange={e => setWsMmWebhookUrl(e.target.value)} placeholder="https://mattermost.example.com/hooks/..." readOnly={!isOwner} className={`w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary outline-none ${isOwner ? 'focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500' : 'opacity-60 cursor-default'}`} />
           <p className="text-[11px] text-text-faint mt-1">{t('settings.wsGeneral.mmWebhookDesc')}</p>
         </div>
-        <div className="space-y-2 pt-2">
-          <Button
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
-            onClick={handleWsSave}
-            disabled={wsSaving}
-          >
-            {wsSaving ? t('common.saving') : wsSaveResult === 'success' ? t('common.saved') : wsSaveResult === 'error' ? t('common.saveFailed') : t('common.save')}
-          </Button>
-          {wsSaveError && (
-            <p className="text-xs text-red-500">{wsSaveError}</p>
-          )}
-        </div>
+        {isOwner && (
+          <div className="space-y-2 pt-2">
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
+              onClick={handleWsSave}
+              disabled={wsSaving}
+            >
+              {wsSaving ? t('common.saving') : wsSaveResult === 'success' ? t('common.saved') : wsSaveResult === 'error' ? t('common.saveFailed') : t('common.save')}
+            </Button>
+            {wsSaveError && (
+              <p className="text-xs text-red-500">{wsSaveError}</p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="pt-6 border-t border-border-default space-y-4 max-w-md">
@@ -321,7 +340,7 @@ export const WsGeneralTab = () => {
               <LogOut className="w-4 h-4 mr-1.5" />{t('settings.wsGeneral.leave')}
             </Button>
           </div>
-          <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 flex items-center justify-between">
+          {isOwner && <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 flex items-center justify-between">
             <div>
               <div className="text-sm font-medium text-text-secondary">{t('settings.wsGeneral.deleteWorkspace')}</div>
               <div className="text-xs text-text-faint mt-0.5">{t('settings.wsGeneral.wsDeleteDesc')}</div>
@@ -333,7 +352,7 @@ export const WsGeneralTab = () => {
             >
               {t('common.delete')}
             </Button>
-          </div>
+          </div>}
         </div>
       </div>
 

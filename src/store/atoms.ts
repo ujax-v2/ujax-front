@@ -186,6 +186,7 @@ export interface Workspace {
   name: string;
   description: string | null;
   imageUrl?: string | null;
+  mmWebhookUrl?: string | null;
 }
 
 export const currentWorkspaceState = atom<number>({
@@ -198,6 +199,11 @@ export const workspacesState = atom<Workspace[]>({
   key: 'workspacesState',
   default: [],
   effects: [localStorageEffect('workspaces')],
+});
+
+export const myWorkspaceRoleState = atom<string>({
+  key: 'myWorkspaceRoleState',
+  default: 'MEMBER',
 });
 
 export const settingsTabState = atom({

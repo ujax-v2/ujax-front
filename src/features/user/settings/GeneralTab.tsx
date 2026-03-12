@@ -46,16 +46,6 @@ export const GeneralTab = () => {
             </select>
           </div>
 
-          <div className="flex items-center justify-between py-2 mt-4">
-            <div>
-              <div className="text-sm font-medium text-text-secondary">{t('settings.general.textDirection')}</div>
-              <div className="text-xs text-text-faint max-w-md">{t('settings.general.textDirectionDesc')}</div>
-            </div>
-            <div className="relative inline-block w-10 h-5 transition duration-200 ease-in-out">
-              <input type="checkbox" className="peer absolute opacity-0 w-0 h-0" />
-              <label className="block w-10 h-5 bg-border-subtle rounded-full cursor-pointer peer-checked:bg-emerald-500 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:left-[22px]"></label>
-            </div>
-          </div>
         </div>
       </div>
     </div>

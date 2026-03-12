@@ -3,7 +3,7 @@ import { useRecoilState, useRecoilValue, RecoilRoot } from 'recoil';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, Workspace, themeState, ThemeMode, languageState } from './store/atoms';
 import { Sidebar } from './components/layout/Sidebar';
-import { getWorkspaces } from './api/workspace';
+import { getWorkspaces, getWorkspaceSettings } from './api/workspace';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { Home } from './features/home/Home';
 import { IDE } from './features/ide/IDE';
@@ -196,6 +196,19 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true; };
   }, [workspaces.length, setWorkspaces]);
 
+  // 현재 워크스페이스 settings(mmWebhookUrl 포함) 로드
+  React.useEffect(() => {
+    if (!numericWsId) return;
+    getWorkspaceSettings(numericWsId)
+      .then(data => {
+        setWorkspaces(prev => prev.map(w => w.id === numericWsId
+          ? { ...w, mmWebhookUrl: data.mmWebhookUrl ?? null }
+          : w
+        ));
+      })
+      .catch(() => {});
+  }, [numericWsId]);
+
   const isMember = workspaces.some(w => w.id === numericWsId);
 
   // URL의 wsId가 변경되면 Recoil 상태도 동기화
@@ -236,7 +249,7 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
             </button>
             <button
               onClick={() => navigate('/explore')}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-medium text-sm"
+              className="px-5 py-2.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg transition-colors font-medium text-sm"
             >
               {t('app.findOtherStudy')}
             </button>

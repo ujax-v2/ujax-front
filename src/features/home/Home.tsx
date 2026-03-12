@@ -92,7 +92,7 @@ export const Home = () => {
             <nav className="border-b border-border-default bg-surface/80 backdrop-blur-md sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold">
                             U
                         </div>
                         <span className="font-bold text-xl tracking-tight">UJAX</span>
@@ -105,7 +105,7 @@ export const Home = () => {
                                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                                     className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-hover-bg transition-colors"
                                 >
-                                    <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-bold border border-indigo-500">
+                                    <div className="w-8 h-8 rounded-full bg-indigo-700 flex items-center justify-center text-white text-sm font-bold border border-indigo-600">
                                         {user.name.charAt(0)}
                                     </div>
                                     <span className="text-sm font-medium text-text-secondary hidden sm:block">{user.name}</span>
@@ -155,7 +155,7 @@ export const Home = () => {
                 {/* Hero Section */}
                 <section id="hero" className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center text-center px-6 relative overflow-hidden shrink-0">
                     {/* Background Gradients */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/10 rounded-full blur-3xl -z-10 animate-pulse" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-3xl -z-10 animate-pulse" />
 
                     <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-text-muted mt-[-4rem]">
                         {t('home.heroTitle1')}<br />{t('home.heroTitle2')}
@@ -168,7 +168,7 @@ export const Home = () => {
                     <div className="flex flex-col sm:flex-row gap-4 mb-4 z-10">
                         {user.isLoggedIn ? (
                             <Button
-                                className="h-12 px-8 text-lg bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-900/20"
+                                className="h-12 px-8 text-lg bg-indigo-700 hover:bg-indigo-800 shadow-lg shadow-indigo-900/20"
                                 onClick={() => setCreateWorkspaceOpen(true)}
                             >
                                 <Zap className="w-5 h-5 mr-2" />
@@ -200,7 +200,7 @@ export const Home = () => {
                     <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-border-default to-transparent opacity-50"></div>
                     <div className="max-w-7xl mx-auto px-6 relative z-10 w-full mb-12">
                         <div className="text-center mb-16 mt-[-2rem]">
-                            <h2 className="text-4xl lg:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-indigo-500 dark:via-indigo-200 to-text-muted">
+                            <h2 className="text-4xl lg:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-text-primary via-indigo-600 dark:via-indigo-300 to-text-muted">
                                 {t('home.whyUjax')}
                             </h2>
                             <p className="text-lg text-text-muted max-w-2xl mx-auto">
@@ -210,11 +210,11 @@ export const Home = () => {
 
                         <div className="grid md:grid-cols-3 gap-8">
                             {/* Card 1 */}
-                            <div className="group relative p-[1px] rounded-2xl bg-gradient-to-b from-border-subtle to-surface-subtle dark:from-slate-800 dark:to-slate-900 hover:from-indigo-500 hover:to-purple-500 transition-all duration-500 hover:-translate-y-2 shadow-xl hover:shadow-indigo-500/25">
+                            <div className="group relative p-[1px] rounded-2xl bg-gradient-to-b from-border-subtle to-surface-subtle dark:from-slate-800 dark:to-slate-900 hover:from-indigo-600 hover:to-purple-500 transition-all duration-500 hover:-translate-y-2 shadow-xl hover:shadow-indigo-600/25">
                                 <div className="relative h-full bg-surface p-8 rounded-2xl flex flex-col items-start overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-indigo-500/30 transition-colors duration-500"></div>
-                                    <div className="w-14 h-14 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-indigo-500/20">
-                                        <Layout className="w-7 h-7 text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-500 dark:group-hover:text-indigo-300" />
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-indigo-600/30 transition-colors duration-500"></div>
+                                    <div className="w-14 h-14 rounded-xl bg-indigo-600/10 border border-indigo-600/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-indigo-600/20">
+                                        <Layout className="w-7 h-7 text-indigo-700 dark:text-indigo-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
                                     </div>
                                     <h3 className="text-2xl font-bold mb-4 text-text-primary group-hover:text-text-primary transition-colors">{t('home.featureWorkspace')}</h3>
                                     <p className="text-text-muted leading-relaxed group-hover:text-text-secondary transition-colors">
@@ -283,12 +283,12 @@ export const Home = () => {
                                     value={exploreQuery}
                                     onChange={(e) => setExploreQuery(e.target.value)}
                                     placeholder={t('home.searchPlaceholder')}
-                                    className="w-full h-14 bg-surface border border-border-subtle rounded-xl pl-12 pr-4 text-text-secondary placeholder:text-text-faint focus:outline-none focus:border-indigo-500 transition-colors shadow-lg"
+                                    className="w-full h-14 bg-surface border border-border-subtle rounded-xl pl-12 pr-4 text-text-secondary placeholder:text-text-faint focus:outline-none focus:border-indigo-600 transition-colors shadow-lg"
                                 />
                             </div>
                             <Button
                                 type="submit"
-                                className="h-14 px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-lg"
+                                className="h-14 px-8 bg-indigo-700 hover:bg-indigo-800 text-white font-medium shadow-lg"
                             >
                                 {t('common.search')}
                             </Button>
@@ -304,7 +304,7 @@ export const Home = () => {
                                         setExploreQuery(tag);
                                         navigate(`/explore?q=${encodeURIComponent(tag)}`);
                                     }}
-                                    className="px-4 py-2 text-sm rounded-full bg-surface-subtle text-text-muted border border-border-subtle hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
+                                    className="px-4 py-2 text-sm rounded-full bg-surface-subtle text-text-muted border border-border-subtle hover:border-indigo-600/50 hover:text-indigo-700 dark:hover:text-indigo-500 hover:bg-indigo-600/10 transition-colors"
                                 >
                                     #{tag}
                                 </button>

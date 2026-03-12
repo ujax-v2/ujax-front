@@ -319,12 +319,14 @@ export const ProblemList = () => {
                 {t('problems.myProblemBoxesDesc')}
               </p>
             </div>
-            <Button
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shrink-0 items-center justify-center py-2 px-4 shadow-sm transition-all"
-              onClick={() => setIsCreateModalOpen(true)}
-            >
-              <FolderPlus className="w-5 h-5 mr-1" /> {t('problems.createBox')}
-            </Button>
+            {canManage && (
+              <Button
+                className="bg-indigo-700 hover:bg-indigo-800 text-white font-bold shrink-0 items-center justify-center py-2 px-4 shadow-sm transition-all"
+                onClick={() => setIsCreateModalOpen(true)}
+              >
+                <FolderPlus className="w-5 h-5 mr-1" /> {t('problems.createBox')}
+              </Button>
+            )}
           </div>
 
           {/* 로딩 */}
@@ -403,7 +405,7 @@ export const ProblemList = () => {
               {boxes.length === 0 && (
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="border-2 border-dashed border-border-default rounded-xl p-6 flex flex-col items-center justify-center gap-4 text-text-faint hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all min-h-[180px]"
+                  className="border-2 border-dashed border-border-default rounded-xl p-6 flex flex-col items-center justify-center gap-4 text-text-faint hover:text-indigo-700 dark:hover:text-indigo-500 hover:border-indigo-600/50 hover:bg-indigo-600/5 transition-all min-h-[180px]"
                 >
                   <div className="w-12 h-12 rounded-full bg-surface-inset border border-border-default flex items-center justify-center transition-all shadow-inner">
                     <Plus className="w-6 h-6" />
@@ -542,7 +544,7 @@ export const ProblemList = () => {
           <div className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium border animate-in fade-in slide-in-from-top-2 ${
             notification.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
             notification.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
-            'bg-indigo-500/10 border-indigo-500/20 text-indigo-300'
+            'bg-indigo-600/10 border-indigo-600/20 text-indigo-400'
           }`}>
             {notification.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> :
              notification.type === 'error' ? <AlertCircle className="w-4 h-4 shrink-0" /> :

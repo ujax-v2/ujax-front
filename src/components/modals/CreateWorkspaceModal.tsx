@@ -82,7 +82,7 @@ export const CreateWorkspaceModal = () => {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full h-12 bg-input-bg/50 border border-border-subtle rounded-lg px-4 text-text-secondary focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full h-12 bg-input-bg/50 border border-border-subtle rounded-lg px-4 text-text-secondary focus:outline-none focus:border-indigo-600 transition-colors"
             />
           </div>
 
@@ -92,7 +92,7 @@ export const CreateWorkspaceModal = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="w-full bg-input-bg/50 border border-border-subtle rounded-lg px-4 py-3 text-text-secondary focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+              className="w-full bg-input-bg/50 border border-border-subtle rounded-lg px-4 py-3 text-text-secondary focus:outline-none focus:border-indigo-600 transition-colors resize-none"
               placeholder={t('createWs.descPlaceholder')}
             />
           </div>
@@ -106,7 +106,7 @@ export const CreateWorkspaceModal = () => {
           <Button
             onClick={handleCreate}
             disabled={!name || isSubmitting}
-            className="w-full h-12 text-base font-semibold bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 text-base font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? t('createWs.creating') : t('createWs.create')}
           </Button>

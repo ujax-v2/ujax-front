@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/Base';
-import { useRecoilValue } from 'recoil';
-import { currentWorkspaceState } from '@/store/atoms';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { currentWorkspaceState, myWorkspaceRoleState } from '@/store/atoms';
 import { getWorkspaceMembers, getMyMembership, inviteMember, updateMemberRole, removeMember } from '@/api/workspace';
 import type { WorkspaceMemberResponse, WorkspaceMemberPageResponse } from '@/api/workspace';
 
@@ -13,6 +14,7 @@ import { useT } from '@/i18n';
 
 export const WsMembersTab = () => {
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
+  const setMyWorkspaceRole = useSetRecoilState(myWorkspaceRoleState);
   const t = useT();
 
   // Members tab state
@@ -21,6 +23,7 @@ export const WsMembersTab = () => {
   const [myRole, setMyRole] = useState<string>('MEMBER');
   const [membersLoading, setMembersLoading] = useState(false);
   const [memberMenuOpen, setMemberMenuOpen] = useState<number | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviting, setInviting] = useState(false);
@@ -54,7 +57,9 @@ export const WsMembersTab = () => {
       setTotalPages(membersData.page.totalPages);
       setTotalElements(membersData.page.totalElements);
       setMyMemberId(myData.workspaceMemberId ?? 0);
-      setMyRole(myData.role ?? 'MEMBER');
+      const role = myData.role ?? 'MEMBER';
+      setMyRole(role);
+      setMyWorkspaceRole(role);
     } catch (err) {
       console.error('Failed to load members:', err);
     } finally {
@@ -152,12 +157,14 @@ export const WsMembersTab = () => {
           <h2 className="text-xl font-bold text-text-primary">{t('settings.members.title')}</h2>
           <p className="text-sm text-text-faint mt-1">{t('settings.members.titleDesc')}</p>
         </div>
-        <Button
-          className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
-          onClick={() => { setShowInviteModal(true); setInviteEmail(''); setInviteError(''); setInviteSuccess(false); }}
-        >
-          <UserPlus className="w-4 h-4" /> {t('settings.members.invite')}
-        </Button>
+        {myRole === 'OWNER' && (
+          <Button
+            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+            onClick={() => { setShowInviteModal(true); setInviteEmail(''); setInviteError(''); setInviteSuccess(false); }}
+          >
+            <UserPlus className="w-4 h-4" /> {t('settings.members.invite')}
+          </Button>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -172,13 +179,13 @@ export const WsMembersTab = () => {
         ) : (
           <>
           <div className="rounded-lg border border-border-subtle overflow-hidden divide-y-2 divide-border-default">
-            {members.map(member => {
+            {[...members].sort((a, b) => (b.workspaceMemberId === myMemberId ? 1 : 0) - (a.workspaceMemberId === myMemberId ? 1 : 0)).map(member => {
               const isMe = member.workspaceMemberId === myMemberId;
               const role = member.role as string;
-              const canManage = (myRole === 'OWNER' || myRole === 'MANAGER') && !isMe && role !== 'OWNER';
+              const canManage = myRole === 'OWNER' && !isMe && role !== 'OWNER';
               const menuOpen = memberMenuOpen === member.workspaceMemberId;
               return (
-                <div key={member.workspaceMemberId} className="flex items-center justify-between py-3 px-4 bg-surface-overlay hover:bg-hover-bg transition-colors">
+                <div key={member.workspaceMemberId} className={`flex items-center justify-between py-3 px-4 transition-colors ${isMe ? 'bg-emerald-500/5 hover:bg-emerald-500/10' : 'bg-surface-overlay hover:bg-hover-bg'}`}>
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-surface-subtle flex items-center justify-center">
                       <span className="text-sm font-bold text-text-muted">
@@ -198,19 +205,31 @@ export const WsMembersTab = () => {
                     {canManage && (
                       <div className="relative">
                         <button
-                          onClick={() => setMemberMenuOpen(menuOpen ? null : member.workspaceMemberId!)}
+                          onClick={(e) => {
+                            if (menuOpen) {
+                              setMemberMenuOpen(null);
+                              setMenuPosition(null);
+                            } else {
+                              const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                              setMenuPosition({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                              setMemberMenuOpen(member.workspaceMemberId!);
+                            }
+                          }}
                           className="p-1 rounded hover:bg-hover-bg text-text-muted hover:text-text-secondary transition-colors"
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </button>
-                        {menuOpen && (
+                        {menuOpen && menuPosition && createPortal(
                           <>
-                            <div className="fixed inset-0 z-[150]" onClick={() => setMemberMenuOpen(null)} />
-                            <div className="absolute right-0 top-full mt-1 z-[151] w-48 bg-surface-overlay rounded-lg shadow-lg border border-border-subtle py-1">
+                            <div className="fixed inset-0 z-[150]" onClick={() => { setMemberMenuOpen(null); setMenuPosition(null); }} />
+                            <div
+                              className="fixed z-[151] w-48 bg-surface-overlay rounded-lg shadow-lg border border-border-subtle py-1"
+                              style={{ top: menuPosition.top, right: menuPosition.right }}
+                            >
                               {role !== 'MANAGER' && (
                                 <button
                                   className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-hover-bg"
-                                  onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'MANAGER'); }}
+                                  onClick={() => { setMemberMenuOpen(null); setMenuPosition(null); confirmRoleChange(member, 'MANAGER'); }}
                                 >
                                   {t('settings.members.changeToManager')}
                                 </button>
@@ -218,7 +237,7 @@ export const WsMembersTab = () => {
                               {role !== 'MEMBER' && (
                                 <button
                                   className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-hover-bg"
-                                  onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'MEMBER'); }}
+                                  onClick={() => { setMemberMenuOpen(null); setMenuPosition(null); confirmRoleChange(member, 'MEMBER'); }}
                                 >
                                   {t('settings.members.changeToMember')}
                                 </button>
@@ -226,7 +245,7 @@ export const WsMembersTab = () => {
                               {myRole === 'OWNER' && (
                                 <button
                                   className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-hover-bg"
-                                  onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'OWNER'); }}
+                                  onClick={() => { setMemberMenuOpen(null); setMenuPosition(null); confirmRoleChange(member, 'OWNER'); }}
                                 >
                                   {t('settings.members.changeToOwner')}
                                 </button>
@@ -234,12 +253,13 @@ export const WsMembersTab = () => {
                               <div className="border-t border-border-subtle my-1" />
                               <button
                                 className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-500/10"
-                                onClick={() => { setMemberMenuOpen(null); confirmRemoveMember(member); }}
+                                onClick={() => { setMemberMenuOpen(null); setMenuPosition(null); confirmRemoveMember(member); }}
                               >
                                 {t('settings.members.removeFromWs')}
                               </button>
                             </div>
-                          </>
+                          </>,
+                          document.body
                         )}
                       </div>
                     )}
@@ -310,6 +330,12 @@ export const WsMembersTab = () => {
             <p className="text-sm text-text-faint">
               {t('settings.members.roleChangeConfirm', { name: roleChangeMember.nickname ?? '', role: roleLabel(roleChangeTarget) })}
             </p>
+            {roleChangeTarget === 'OWNER' && (
+              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                <p className="text-xs text-amber-400">{t('settings.members.ownerTransferWarning')}</p>
+              </div>
+            )}
 
             {roleChangeError && (
               <p className="text-xs text-red-500 bg-red-500/10 rounded px-3 py-2">{roleChangeError}</p>

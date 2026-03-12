@@ -339,6 +339,7 @@ export const en: Record<string, string> = {
   'settings.members.removeFromWs': 'Remove from Workspace',
   'settings.members.roleChange': 'Change Role',
   'settings.members.roleChangeConfirm': 'Change {name}\'s role to {role}?',
+  'settings.members.ownerTransferWarning': 'Transferring ownership will change your role to Manager. This action cannot be undone.',
   'settings.members.memberRemove': 'Remove Member',
   'settings.members.memberRemoveDesc': 'Remove {name} from the workspace? They will no longer have access.',
   'settings.members.inviteEmail': 'Email Address',

@@ -338,7 +338,7 @@ export const IDE = () => {
                     <div className="flex gap-3">
                       {problem.timeLimit && (
                         <div className="flex items-center gap-2 text-sm text-text-muted bg-surface-subtle/60 rounded-md px-3 py-2 border border-border-subtle/50">
-                          <Clock className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                          <Clock className="w-3.5 h-3.5 text-indigo-700 dark:text-indigo-500" />
                           <span>{problem.timeLimit}</span>
                         </div>
                       )}
@@ -400,7 +400,7 @@ export const IDE = () => {
           </div>
         </ResizablePanel>
 
-        <ResizableHandle withHandle className="bg-surface-subtle hover:bg-indigo-500/50 transition-colors w-[3px]" />
+        <ResizableHandle withHandle className="bg-surface-subtle hover:bg-indigo-600/50 transition-colors w-[3px]" />
 
         {/* ─── Right: Editor (top) + Test Panel (bottom) ─── */}
         <ResizablePanel defaultSize={62} minSize={40}>
@@ -427,7 +427,7 @@ export const IDE = () => {
               </div>
             </ResizablePanel>
 
-            <ResizableHandle withHandle className="bg-surface-subtle hover:bg-indigo-500/50 transition-colors h-[3px]" />
+            <ResizableHandle withHandle className="bg-surface-subtle hover:bg-indigo-600/50 transition-colors h-[3px]" />
 
             {/* Bottom Panel: Test Cases / Results */}
             <ResizablePanel defaultSize={35} minSize={15}>

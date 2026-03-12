@@ -184,12 +184,12 @@ export const ProblemRegistration = () => {
                 }}
                 onKeyDown={handleKeyDown}
                 placeholder="예: 2504"
-                className="flex-1 bg-input-bg border border-border-default rounded-lg px-4 py-3 text-text-secondary focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-input-bg border border-border-default rounded-lg px-4 py-3 text-text-secondary focus:outline-none focus:border-indigo-600"
               />
               <Button
                 onClick={handleLookup}
                 disabled={isProcessing}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 disabled:opacity-50"
+                className="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-4 disabled:opacity-50"
               >
                 {flowStatus === 'loading'
                   ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -206,7 +206,7 @@ export const ProblemRegistration = () => {
                 <span className="text-yellow-600 dark:text-yellow-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {t('problems.registration.crawling')}</span>
               )}
               {flowStatus === 'registering' && (
-                <span className="text-indigo-600 dark:text-indigo-400 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {t('common.creating')}</span>
+                <span className="text-indigo-700 dark:text-indigo-500 text-sm flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {t('common.creating')}</span>
               )}
               {flowStatus === 'found' && (
                 <span className="text-green-400 text-sm flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> {t('problems.registration.found')}</span>
@@ -307,7 +307,7 @@ export const ProblemRegistration = () => {
             {flowStatus === 'done' ? (
               <>
                 <Button
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6"
+                  className="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-6"
                   onClick={handleReset}
                 >
                   {t('problems.registration.registerAnother')}
@@ -323,7 +323,7 @@ export const ProblemRegistration = () => {
             ) : (
               <>
                 <Button
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 disabled:opacity-50"
+                  className="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-6 disabled:opacity-50"
                   onClick={handleRegister}
                   disabled={!problem || isProcessing}
                 >

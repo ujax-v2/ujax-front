@@ -148,12 +148,12 @@ export const WorkspaceExplore = () => {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder={t('explore.searchPlaceholder')}
-                                className="w-full h-12 bg-surface border border-border-default rounded-xl pl-12 pr-4 text-text-secondary placeholder:text-text-faint focus:outline-none focus:border-indigo-500 transition-colors"
+                                className="w-full h-12 bg-surface border border-border-default rounded-xl pl-12 pr-4 text-text-secondary placeholder:text-text-faint focus:outline-none focus:border-indigo-600 transition-colors"
                             />
                         </div>
                         <Button
                             type="submit"
-                            className="h-12 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+                            className="h-12 px-6 bg-indigo-700 hover:bg-indigo-800 text-white font-medium"
                         >
                             <Search className="w-4 h-4 mr-2" />
                             {t('common.search')}
@@ -232,7 +232,7 @@ export const WorkspaceExplore = () => {
                                             {ws.tags.map(tag => (
                                                 <span
                                                     key={tag}
-                                                    className="px-2 py-0.5 text-xs rounded bg-surface-subtle text-text-muted border border-border-subtle cursor-pointer hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                                    className="px-2 py-0.5 text-xs rounded bg-surface-subtle text-text-muted border border-border-subtle cursor-pointer hover:border-indigo-600/50 hover:text-indigo-700 dark:hover:text-indigo-500 transition-colors"
                                                     onClick={() => {
                                                         setSearchQuery(tag);
                                                         setSubmittedQuery(tag);
@@ -258,7 +258,7 @@ export const WorkspaceExplore = () => {
                                             </Button>
                                         ) : (
                                             <Button
-                                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                                className="bg-indigo-700 hover:bg-indigo-800 text-white"
                                                 onClick={() => handleJoin(ws.id, ws.name)}
                                             >
                                                 {t('explore.join')}
