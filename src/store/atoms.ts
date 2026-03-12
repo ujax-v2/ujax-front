@@ -186,6 +186,7 @@ export interface Workspace {
   name: string;
   description: string | null;
   imageUrl?: string | null;
+  mmWebhookUrl?: string | null;
 }
 
 export const currentWorkspaceState = atom<number>({
