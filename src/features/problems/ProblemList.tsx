@@ -319,12 +319,14 @@ export const ProblemList = () => {
                 {t('problems.myProblemBoxesDesc')}
               </p>
             </div>
-            <Button
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shrink-0 items-center justify-center py-2 px-4 shadow-sm transition-all"
-              onClick={() => setIsCreateModalOpen(true)}
-            >
-              <FolderPlus className="w-5 h-5 mr-1" /> {t('problems.createBox')}
-            </Button>
+            {canManage && (
+              <Button
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shrink-0 items-center justify-center py-2 px-4 shadow-sm transition-all"
+                onClick={() => setIsCreateModalOpen(true)}
+              >
+                <FolderPlus className="w-5 h-5 mr-1" /> {t('problems.createBox')}
+              </Button>
+            )}
           </div>
 
           {/* 로딩 */}
