@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/Base';
 import { useRecoilValue } from 'recoil';
 import { currentWorkspaceState } from '@/store/atoms';
@@ -21,6 +22,7 @@ export const WsMembersTab = () => {
   const [myRole, setMyRole] = useState<string>('MEMBER');
   const [membersLoading, setMembersLoading] = useState(false);
   const [memberMenuOpen, setMemberMenuOpen] = useState<number | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviting, setInviting] = useState(false);
@@ -198,19 +200,31 @@ export const WsMembersTab = () => {
                     {canManage && (
                       <div className="relative">
                         <button
-                          onClick={() => setMemberMenuOpen(menuOpen ? null : member.workspaceMemberId!)}
+                          onClick={(e) => {
+                            if (menuOpen) {
+                              setMemberMenuOpen(null);
+                              setMenuPosition(null);
+                            } else {
+                              const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                              setMenuPosition({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                              setMemberMenuOpen(member.workspaceMemberId!);
+                            }
+                          }}
                           className="p-1 rounded hover:bg-hover-bg text-text-muted hover:text-text-secondary transition-colors"
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </button>
-                        {menuOpen && (
+                        {menuOpen && menuPosition && createPortal(
                           <>
-                            <div className="fixed inset-0 z-[150]" onClick={() => setMemberMenuOpen(null)} />
-                            <div className="absolute right-0 top-full mt-1 z-[151] w-48 bg-surface-overlay rounded-lg shadow-lg border border-border-subtle py-1">
+                            <div className="fixed inset-0 z-[150]" onClick={() => { setMemberMenuOpen(null); setMenuPosition(null); }} />
+                            <div
+                              className="fixed z-[151] w-48 bg-surface-overlay rounded-lg shadow-lg border border-border-subtle py-1"
+                              style={{ top: menuPosition.top, right: menuPosition.right }}
+                            >
                               {role !== 'MANAGER' && (
                                 <button
                                   className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-hover-bg"
-                                  onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'MANAGER'); }}
+                                  onClick={() => { setMemberMenuOpen(null); setMenuPosition(null); confirmRoleChange(member, 'MANAGER'); }}
                                 >
                                   {t('settings.members.changeToManager')}
                                 </button>
@@ -218,7 +232,7 @@ export const WsMembersTab = () => {
                               {role !== 'MEMBER' && (
                                 <button
                                   className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-hover-bg"
-                                  onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'MEMBER'); }}
+                                  onClick={() => { setMemberMenuOpen(null); setMenuPosition(null); confirmRoleChange(member, 'MEMBER'); }}
                                 >
                                   {t('settings.members.changeToMember')}
                                 </button>
@@ -226,7 +240,7 @@ export const WsMembersTab = () => {
                               {myRole === 'OWNER' && (
                                 <button
                                   className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-hover-bg"
-                                  onClick={() => { setMemberMenuOpen(null); confirmRoleChange(member, 'OWNER'); }}
+                                  onClick={() => { setMemberMenuOpen(null); setMenuPosition(null); confirmRoleChange(member, 'OWNER'); }}
                                 >
                                   {t('settings.members.changeToOwner')}
                                 </button>
@@ -234,12 +248,13 @@ export const WsMembersTab = () => {
                               <div className="border-t border-border-subtle my-1" />
                               <button
                                 className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-500/10"
-                                onClick={() => { setMemberMenuOpen(null); confirmRemoveMember(member); }}
+                                onClick={() => { setMemberMenuOpen(null); setMenuPosition(null); confirmRemoveMember(member); }}
                               >
                                 {t('settings.members.removeFromWs')}
                               </button>
                             </div>
-                          </>
+                          </>,
+                          document.body
                         )}
                       </div>
                     )}
