@@ -1,39 +1,70 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { PieChart, Pie, Cell, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, Tooltip } from 'recharts';
 import { Card, Button, Badge } from '@/components/ui/Base';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
-import { userState, workspacesState, currentWorkspaceState } from '@/store/atoms';
+import { userState, currentWorkspaceState } from '@/store/atoms';
 import { ArrowLeft } from 'lucide-react';
 import { useIsDark } from '@/App';
 import { useT } from '@/i18n';
 // 잔디(Contribution) 그래프 컴포넌트
-const ContributionGraph = ({ title, activeColorClass = 'emerald' }: { title: string, activeColorClass?: string }) => {
+const ContributionGraph = ({ title, activeColorClass = 'emerald', joinDate = '2024-01-01' }: { title: string, activeColorClass?: string, joinDate?: string }) => {
   const t = useT();
-  const weeks = 39;
   const days = 7;
+  const currentYear = new Date().getFullYear();
+  const joinYear = new Date(joinDate).getFullYear();
+  const availableYears = Array.from({ length: currentYear - joinYear + 1 }, (_, i) => currentYear - i);
 
+  const [selectedYear, setSelectedYear] = useState<number | null>(null); // null = 최근
   const [hoverInfo, setHoverInfo] = useState({ show: false, x: 0, y: 0, count: 0, date: '' });
 
-  const getDate = (w: number, d: number) => {
-    const date = new Date();
-    date.setDate(date.getDate() - ((weeks - w) * 7 + (6 - d)));
-    return date.toISOString().split('T')[0];
-  };
-
   const activityData = useMemo(() => {
-    return Array.from({ length: weeks }).map((_, weekIndex) =>
-      Array.from({ length: days }).map((_, dayIndex) => {
-        const level = Math.random() > 0.8 ? Math.floor(Math.random() * 5) : 0;
-        const count = level === 0 ? 0 : level * 2 + Math.floor(Math.random() * 3);
-        const dateStr = getDate(weekIndex, dayIndex);
-        return { level, count, dateStr };
-      })
-    );
-  }, [weeks, days]);
+    if (selectedYear === null) {
+      // 오늘부터 365일 전까지
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const start = new Date(today); start.setDate(today.getDate() - 364);
+      start.setDate(start.getDate() - start.getDay()); // 해당 주 일요일로 맞춤
+      const weeks: { level: number; count: number; dateStr: string }[][] = [];
+      const cur = new Date(start);
+      while (cur <= today) {
+        const week = Array.from({ length: days }).map((_, d) => {
+          const day = new Date(cur); day.setDate(cur.getDate() + d);
+          const inRange = day >= new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()) && day <= today;
+          const level = inRange && Math.random() > 0.8 ? Math.floor(Math.random() * 5) : 0;
+          const count = level === 0 ? 0 : level * 2 + Math.floor(Math.random() * 3);
+          return { level: inRange ? level : -1, count, dateStr: day.toISOString().split('T')[0] };
+        });
+        weeks.push(week);
+        cur.setDate(cur.getDate() + 7);
+      }
+      return weeks;
+    } else {
+      // 선택된 연도의 1월 1일부터 12월 31일까지
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const startDate = new Date(selectedYear, 0, 1);
+      startDate.setDate(startDate.getDate() - startDate.getDay());
+      const endDate = new Date(selectedYear, 11, 31);
+      const weeks: { level: number; count: number; dateStr: string }[][] = [];
+      const cur = new Date(startDate);
+      while (cur <= endDate) {
+        const week = Array.from({ length: days }).map((_, d) => {
+          const day = new Date(cur); day.setDate(cur.getDate() + d);
+          const inYear = day.getFullYear() === selectedYear;
+          const isFuture = day > today;
+          const level = inYear && !isFuture && Math.random() > 0.8 ? Math.floor(Math.random() * 5) : 0;
+          const count = level === 0 ? 0 : level * 2 + Math.floor(Math.random() * 3);
+          return { level: inYear && !isFuture ? level : -1, count, dateStr: day.toISOString().split('T')[0] };
+        });
+        weeks.push(week);
+        cur.setDate(cur.getDate() + 7);
+      }
+      return weeks;
+    }
+  }, [selectedYear]);
 
   const getActivityColor = (level: number) => {
+    if (level === -1) return 'bg-transparent';
     const isEmerald = activeColorClass === 'emerald';
     switch (level) {
       case 0: return 'bg-surface-subtle';
@@ -45,13 +76,25 @@ const ContributionGraph = ({ title, activeColorClass = 'emerald' }: { title: str
     }
   };
 
+  const totalContributions = activityData.flat().reduce((sum, d) => sum + d.count, 0);
+
   return (
     <Card className="bg-surface-raised border-border-default p-6 flex flex-col relative w-full overflow-hidden">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-bold text-text-primary">{title}</h2>
+      {/* 헤더 */}
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="text-base font-bold text-text-primary">{title}</h2>
+          <p className="text-xs text-text-faint mt-0.5">
+            {selectedYear === null ? `최근 39주 활동 기록` : `${selectedYear}년 활동 기록`}
+          </p>
+        </div>
+        <div className="text-right">
+          <div className="text-xl font-extrabold text-text-secondary">{totalContributions}</div>
+          <div className="text-[10px] text-text-faint">총 기여</div>
+        </div>
       </div>
 
-      <div className="w-full relative">
+      <div className="w-full relative flex gap-3">
         {hoverInfo.show && createPortal(
           <div
             className="fixed z-[9999] px-3 py-2 bg-surface-inset text-xs text-text-primary rounded shadow-xl border border-border-subtle pointer-events-none transform -translate-x-1/2 -translate-y-full mt-[-8px]"
@@ -64,27 +107,76 @@ const ContributionGraph = ({ title, activeColorClass = 'emerald' }: { title: str
           document.body
         )}
 
-        <div className="flex w-full justify-between min-w-fit">
-          {activityData.map((week, weekIndex) => (
-            <div key={weekIndex} className="flex flex-col gap-[4px]">
-              {week.map((day, dayIndex) => (
-                <div
-                  key={`${weekIndex}-${dayIndex}`}
-                  className={`w-[14px] h-[14px] rounded-[3px] ${getActivityColor(day.level)} transition-colors hover:ring-1 hover:ring-white/50 cursor-pointer`}
-                  onMouseEnter={(e) => {
-                    const rect = (e.target as HTMLElement).getBoundingClientRect();
-                    setHoverInfo({
-                      show: true,
-                      x: rect.left + rect.width / 2,
-                      y: rect.top,
-                      count: day.count,
-                      date: day.dateStr
-                    });
-                  }}
-                  onMouseLeave={() => setHoverInfo({ ...hoverInfo, show: false })}
-                />
-              ))}
-            </div>
+        {/* 잔디 그리드 */}
+        <div className="flex-1 overflow-hidden">
+          {/* 연도 레이블 */}
+          <div className="flex w-full justify-between mb-1">
+            {activityData.map((week, weekIndex) => {
+              const year = new Date(week[0].dateStr).getFullYear();
+              const prevYear = weekIndex > 0 ? new Date(activityData[weekIndex - 1][0].dateStr).getFullYear() : null;
+              const showYear = weekIndex === 0 || year !== prevYear;
+              return (
+                <div key={weekIndex} className="flex flex-col" style={{ width: 14 }}>
+                  {showYear ? (
+                    <span className="text-[9px] text-text-faint font-medium whitespace-nowrap">{year}</span>
+                  ) : (
+                    <span className="text-[9px] invisible">.</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex w-full justify-between">
+            {activityData.map((week, weekIndex) => (
+              <div key={weekIndex} className="flex flex-col gap-[4px]">
+                {week.map((day, dayIndex) => (
+                  <div
+                    key={`${weekIndex}-${dayIndex}`}
+                    className={`w-[14px] h-[14px] rounded-[3px] ${getActivityColor(day.level)} transition-colors hover:ring-1 hover:ring-white/50 cursor-pointer`}
+                    onMouseEnter={(e) => {
+                      const rect = (e.target as HTMLElement).getBoundingClientRect();
+                      setHoverInfo({
+                        show: true,
+                        x: rect.left + rect.width / 2,
+                        y: rect.top,
+                        count: day.count,
+                        date: day.dateStr
+                      });
+                    }}
+                    onMouseLeave={() => setHoverInfo({ ...hoverInfo, show: false })}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* 레전드 */}
+          <div className="flex items-center justify-end gap-1.5 mt-3">
+            <span className="text-[10px] text-text-faint">적음</span>
+            {[0, 1, 2, 3, 4].map(level => (
+              <div key={level} className={`w-[12px] h-[12px] rounded-[2px] ${getActivityColor(level)}`} />
+            ))}
+            <span className="text-[10px] text-text-faint">많음</span>
+          </div>
+        </div>
+
+        {/* 연도 선택 - 오른쪽 세로 배치 */}
+        <div className="flex flex-col gap-1 pt-4 flex-shrink-0 overflow-y-auto max-h-[140px] scrollbar-hide [&::-webkit-scrollbar]:hidden">
+          <button
+            onClick={() => setSelectedYear(null)}
+            className={`px-2.5 py-1 rounded text-base font-bold transition-colors text-left ${selectedYear === null ? 'bg-surface-subtle text-text-secondary' : 'text-text-faint hover:text-text-secondary hover:bg-surface-subtle'}`}
+          >
+            최근
+          </button>
+          {availableYears.map(year => (
+            <button
+              key={year}
+              onClick={() => setSelectedYear(year)}
+              className={`px-2.5 py-1 rounded text-sm font-medium transition-colors text-left ${selectedYear === year ? 'bg-surface-subtle text-text-secondary' : 'text-text-faint hover:text-text-secondary hover:bg-surface-subtle'}`}
+            >
+              {year}
+            </button>
           ))}
         </div>
       </div>
@@ -97,7 +189,6 @@ export const Profile = () => {
   const t = useT();
   const isDark = useIsDark();
   const currentUser = useRecoilValue(userState);
-  const workspaces = useRecoilValue(workspacesState);
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
 
   // User Data from state (fallback for mockup metrics)
@@ -146,7 +237,7 @@ export const Profile = () => {
 
   return (
     <div className="flex-1 overflow-y-auto bg-page p-8 pb-12 font-sans text-text-primary">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6">
 
         {/* Header Title */}
         <div className="flex items-center gap-4 mb-10 border-b border-border-default pb-4">
@@ -160,21 +251,18 @@ export const Profile = () => {
         </div>
 
         {/* ROW 1: 내 정보 상세 & 활동 지표 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 1. 내 정보 상세 (좌측 1단) */}
           <Card className="bg-surface-raised border-border-default p-6 relative flex flex-col lg:col-span-1">
             <div className="flex justify-between items-start mb-5">
               <h2 className="text-base font-bold text-text-secondary">{t('profile.detailInfo')}</h2>
             </div>
-            <div className="grid grid-cols-[80px_1fr] gap-y-3 text-xs items-center">
+            <div className="grid grid-cols-[90px_1fr] gap-y-4 text-sm items-center">
               <div className="text-text-faint">{t('profile.nickname')}</div>
               <div className="text-text-secondary font-medium">{user.name}</div>
 
               <div className="text-text-faint">{t('profile.email')}</div>
               <div className="text-text-secondary truncate pr-2">{user.email}</div>
-
-              <div className="text-text-faint">{t('profile.participatingLabs')}</div>
-              <div className="text-text-secondary font-medium">{workspaces.length}</div>
 
               <div className="text-text-faint">{t('profile.mainLanguage')}</div>
               <div className="text-text-secondary font-medium">{bestLanguage}</div>
@@ -187,38 +275,24 @@ export const Profile = () => {
             </div>
           </Card>
 
-          {/* 2. 활동 지표 (우측 2단) */}
-          <Card className="bg-surface-raised border-border-default p-6 flex flex-col justify-center lg:col-span-2">
+          {/* 2. 활동 지표 */}
+          <Card className="bg-surface-raised border-border-default p-6 flex flex-col justify-center lg:col-span-1">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-base font-bold text-text-secondary">{t('profile.activityMetrics')}</h2>
-              <span className="text-[10px] text-text-faint">{t('profile.charts.tierSolvedAccuracy')}</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center flex-1 h-[200px]">
-              {/* Tier Bar Chart */}
-              <div className="w-full h-[180px] bg-surface-inset rounded-xl border border-border-default/80 p-4">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={tierSolveData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={16}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e2e8f0'} vertical={false} />
-                    <XAxis dataKey="tier" axisLine={false} tickLine={false} tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 10, fontWeight: 'bold' }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fill: isDark ? '#64748b' : '#94a3b8', fontSize: 10 }} />
-                    <Tooltip cursor={{ fill: isDark ? '#334155' : '#e2e8f0', opacity: 0.4 }} contentStyle={{ backgroundColor: isDark ? '#0f1117' : '#ffffff', borderColor: isDark ? '#334155' : '#e2e8f0', color: isDark ? '#f1f5f9' : '#0f172a', borderRadius: '8px', fontSize: '12px' }} />
-                    <Bar dataKey="count" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
+            <div className="flex items-center justify-center flex-1 h-[200px]">
               {/* Accuracy Donut Chart */}
-              <div className="flex items-center justify-center relative w-full h-[160px]">
+              <div className="flex items-center justify-center relative w-full h-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Tooltip contentStyle={{ backgroundColor: isDark ? '#1b202c' : '#ffffff', borderColor: isDark ? '#334155' : '#e2e8f0', borderRadius: '8px', color: isDark ? '#f1f5f9' : '#0f172a', fontSize: '12px' }} itemStyle={{ color: isDark ? '#f1f5f9' : '#0f172a', fontWeight: 'bold' }} cursor={{ fill: 'transparent' }} />
                     <Pie
                       data={chartData}
-                      innerRadius={35}
-                      outerRadius={48}
-                      cornerRadius={4}
-                      paddingAngle={2}
+                      innerRadius={55}
+                      outerRadius={72}
+                      cornerRadius={6}
+                      paddingAngle={3}
                       dataKey="value"
                       stroke="none"
                     >
@@ -229,7 +303,8 @@ export const Profile = () => {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-lg font-extrabold text-text-primary">{user.accuracy}%</span>
+                  <span className="text-2xl font-extrabold text-text-primary">{user.accuracy}%</span>
+                  <span className="text-xs text-text-faint mt-1">정답률</span>
                 </div>
               </div>
             </div>
@@ -302,9 +377,9 @@ export const Profile = () => {
         </div>
 
         {/* 5. Daily Streak */}
-        <ContributionGraph title="Daily Streak" activeColorClass="emerald" />
+        <ContributionGraph title="Daily Streak" activeColorClass="emerald" joinDate="2020-01-01" />
 
-        {/* 5. 힌트보기 설정 */}
+        {/* 6. 힌트보기 설정 */}
         <Card className="bg-surface-raised border-border-default p-8 flex justify-between items-center">
           <div>
             <h2 className="text-lg font-bold text-text-secondary">{t('profile.hintSettings')}</h2>
