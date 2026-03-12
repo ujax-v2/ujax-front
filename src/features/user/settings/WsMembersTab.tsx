@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/Base';
-import { useRecoilValue } from 'recoil';
-import { currentWorkspaceState } from '@/store/atoms';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { currentWorkspaceState, myWorkspaceRoleState } from '@/store/atoms';
 import { getWorkspaceMembers, getMyMembership, inviteMember, updateMemberRole, removeMember } from '@/api/workspace';
 import type { WorkspaceMemberResponse, WorkspaceMemberPageResponse } from '@/api/workspace';
 
@@ -14,6 +14,7 @@ import { useT } from '@/i18n';
 
 export const WsMembersTab = () => {
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
+  const setMyWorkspaceRole = useSetRecoilState(myWorkspaceRoleState);
   const t = useT();
 
   // Members tab state
@@ -56,7 +57,9 @@ export const WsMembersTab = () => {
       setTotalPages(membersData.page.totalPages);
       setTotalElements(membersData.page.totalElements);
       setMyMemberId(myData.workspaceMemberId ?? 0);
-      setMyRole(myData.role ?? 'MEMBER');
+      const role = myData.role ?? 'MEMBER';
+      setMyRole(role);
+      setMyWorkspaceRole(role);
     } catch (err) {
       console.error('Failed to load members:', err);
     } finally {
@@ -154,12 +157,14 @@ export const WsMembersTab = () => {
           <h2 className="text-xl font-bold text-text-primary">{t('settings.members.title')}</h2>
           <p className="text-sm text-text-faint mt-1">{t('settings.members.titleDesc')}</p>
         </div>
-        <Button
-          className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
-          onClick={() => { setShowInviteModal(true); setInviteEmail(''); setInviteError(''); setInviteSuccess(false); }}
-        >
-          <UserPlus className="w-4 h-4" /> {t('settings.members.invite')}
-        </Button>
+        {myRole === 'OWNER' && (
+          <Button
+            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+            onClick={() => { setShowInviteModal(true); setInviteEmail(''); setInviteError(''); setInviteSuccess(false); }}
+          >
+            <UserPlus className="w-4 h-4" /> {t('settings.members.invite')}
+          </Button>
+        )}
       </div>
 
       <div className="space-y-3">

@@ -200,6 +200,11 @@ export const workspacesState = atom<Workspace[]>({
   effects: [localStorageEffect('workspaces')],
 });
 
+export const myWorkspaceRoleState = atom<string>({
+  key: 'myWorkspaceRoleState',
+  default: 'MEMBER',
+});
+
 export const settingsTabState = atom({
   key: 'settingsTabState',
   default: 'profile',
