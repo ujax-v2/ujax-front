@@ -180,7 +180,7 @@ export const Sidebar = () => {
 
             {/* Workspace List */}
             <div className="py-2 max-h-[240px] overflow-y-auto">
-              <div className="px-3 py-1.5 text-xs font-medium text-text-faint">bookandpapers717@gmail.com</div>
+              <div className="px-3 py-1.5 text-xs font-medium text-text-faint">{user.email}</div>
               {workspaces.map(ws => (
                 <div
                   key={ws.id}
