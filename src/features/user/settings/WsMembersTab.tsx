@@ -177,7 +177,7 @@ export const WsMembersTab = () => {
             {members.map(member => {
               const isMe = member.workspaceMemberId === myMemberId;
               const role = member.role as string;
-              const canManage = (myRole === 'OWNER' || myRole === 'MANAGER') && !isMe && role !== 'OWNER';
+              const canManage = myRole === 'OWNER' && !isMe && role !== 'OWNER';
               const menuOpen = memberMenuOpen === member.workspaceMemberId;
               return (
                 <div key={member.workspaceMemberId} className="flex items-center justify-between py-3 px-4 bg-surface-overlay hover:bg-hover-bg transition-colors">
@@ -325,6 +325,12 @@ export const WsMembersTab = () => {
             <p className="text-sm text-text-faint">
               {t('settings.members.roleChangeConfirm', { name: roleChangeMember.nickname ?? '', role: roleLabel(roleChangeTarget) })}
             </p>
+            {roleChangeTarget === 'OWNER' && (
+              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                <p className="text-xs text-amber-400">{t('settings.members.ownerTransferWarning')}</p>
+              </div>
+            )}
 
             {roleChangeError && (
               <p className="text-xs text-red-500 bg-red-500/10 rounded px-3 py-2">{roleChangeError}</p>

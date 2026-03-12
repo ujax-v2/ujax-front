@@ -339,6 +339,7 @@ export const ko: Record<string, string> = {
   'settings.members.removeFromWs': '워크스페이스에서 제거',
   'settings.members.roleChange': '역할 변경',
   'settings.members.roleChangeConfirm': '{name}의 역할을 {role}(으)로 변경하시겠습니까?',
+  'settings.members.ownerTransferWarning': '소유권을 양도하면 본인은 매니저로 변경됩니다. 이 작업은 되돌릴 수 없습니다.',
   'settings.members.memberRemove': '멤버 제거',
   'settings.members.memberRemoveDesc': '{name}을(를) 워크스페이스에서 제거하시겠습니까? 이 멤버는 더 이상 워크스페이스에 접근할 수 없습니다.',
   'settings.members.inviteEmail': '이메일 주소',
