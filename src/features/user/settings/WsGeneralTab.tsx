@@ -11,13 +11,14 @@ export const WsGeneralTab = () => {
   const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
   const workspaces = useRecoilValue(workspacesState);
   const setWorkspaces = useSetRecoilState(workspacesState);
+  const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
   const setCurrentWorkspaceId = useSetRecoilState(currentWorkspaceState);
   const setActiveTab = useSetRecoilState(settingsTabState);
   const t = useT();
 
   // Workspace general settings state
-  const [wsName, setWsName] = useState('');
-  const [wsDescription, setWsDescription] = useState('');
+  const [wsName, setWsName] = useState(currentWorkspace?.name ?? '');
+  const [wsDescription, setWsDescription] = useState(currentWorkspace?.description ?? '');
   const [wsMmWebhookUrl, setWsMmWebhookUrl] = useState('');
   const [wsOriginalName, setWsOriginalName] = useState('');
   const [wsOriginalDescription, setWsOriginalDescription] = useState('');
@@ -39,7 +40,7 @@ export const WsGeneralTab = () => {
   const [wsLeaveError, setWsLeaveError] = useState('');
 
   // Workspace image state
-  const [wsImageUrl, setWsImageUrl] = useState('');
+  const [wsImageUrl, setWsImageUrl] = useState(currentWorkspace?.imageUrl ?? '');
   const [wsOriginalImageUrl, setWsOriginalImageUrl] = useState('');
   const [wsPreviewUrl, setWsPreviewUrl] = useState('');
   const [wsPendingFile, setWsPendingFile] = useState<File | null>(null);

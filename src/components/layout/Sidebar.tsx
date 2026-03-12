@@ -159,7 +159,7 @@ export const Sidebar = () => {
                     navigate('/settings');
                     setIsWorkspaceMenuOpen(false);
                   }}
-                  className="flex-1 py-1.5 text-xs text-text-secondary bg-border-subtle/50 hover:bg-border-subtle rounded border border-border-subtle/50 flex items-center justify-center gap-1.5 transition-colors"
+                  className="px-3 py-1.5 text-xs text-text-secondary bg-border-subtle/50 hover:bg-border-subtle rounded border border-border-subtle/50 flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <Settings className="w-3.5 h-3.5" /> {t('nav.settings')}
                 </button>
@@ -170,7 +170,7 @@ export const Sidebar = () => {
                       navigate('/settings');
                       setIsWorkspaceMenuOpen(false);
                     }}
-                    className="flex-1 py-1.5 text-xs text-text-secondary bg-border-subtle/50 hover:bg-border-subtle rounded border border-border-subtle/50 flex items-center justify-center gap-1.5 transition-colors"
+                    className="px-3 py-1.5 text-xs text-text-secondary bg-border-subtle/50 hover:bg-border-subtle rounded border border-border-subtle/50 flex items-center justify-center gap-1.5 transition-colors"
                   >
                     <UserPlus className="w-3.5 h-3.5" /> {t('nav.inviteMember')}
                   </button>
