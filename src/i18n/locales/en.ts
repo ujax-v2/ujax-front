@@ -406,6 +406,7 @@ export const en: Record<string, string> = {
 
   // ===== Profile Page =====
   'profile.title': 'My Profile',
+  'profile.subtitle': 'View your activity history, solve stats, and main algorithms at a glance.',
   'profile.detailInfo': 'Profile Details',
   'profile.activityMetrics': 'Activity Metrics',
   'profile.mainAlgorithm': 'Main Algorithm',
