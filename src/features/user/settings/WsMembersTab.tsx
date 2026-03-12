@@ -179,13 +179,13 @@ export const WsMembersTab = () => {
         ) : (
           <>
           <div className="rounded-lg border border-border-subtle overflow-hidden divide-y-2 divide-border-default">
-            {members.map(member => {
+            {[...members].sort((a, b) => (b.workspaceMemberId === myMemberId ? 1 : 0) - (a.workspaceMemberId === myMemberId ? 1 : 0)).map(member => {
               const isMe = member.workspaceMemberId === myMemberId;
               const role = member.role as string;
               const canManage = myRole === 'OWNER' && !isMe && role !== 'OWNER';
               const menuOpen = memberMenuOpen === member.workspaceMemberId;
               return (
-                <div key={member.workspaceMemberId} className="flex items-center justify-between py-3 px-4 bg-surface-overlay hover:bg-hover-bg transition-colors">
+                <div key={member.workspaceMemberId} className={`flex items-center justify-between py-3 px-4 transition-colors ${isMe ? 'bg-emerald-500/5 hover:bg-emerald-500/10' : 'bg-surface-overlay hover:bg-hover-bg'}`}>
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-surface-subtle flex items-center justify-center">
                       <span className="text-sm font-bold text-text-muted">
