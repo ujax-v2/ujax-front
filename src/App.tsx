@@ -249,7 +249,7 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
             </button>
             <button
               onClick={() => navigate('/explore')}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-medium text-sm"
+              className="px-5 py-2.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg transition-colors font-medium text-sm"
             >
               {t('app.findOtherStudy')}
             </button>

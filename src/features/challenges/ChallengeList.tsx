@@ -55,7 +55,7 @@ export const ChallengeList = () => {
       startDate: "2023.12.01",
       reward: "Certificate",
       status: "ended",
-      color: "bg-indigo-500",
+      color: "bg-indigo-600",
       description: "겨울방학동안 알고리즘 마스터하기"
     }
   ]);

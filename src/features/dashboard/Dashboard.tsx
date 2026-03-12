@@ -62,7 +62,7 @@ export const Dashboard = () => {
       <div className="flex-1 flex flex-col items-center justify-center bg-page text-text-muted p-8">
         <div className="text-center space-y-4">
           <p className="text-lg">{t('dashboard.noWorkspace')}</p>
-          <Button onClick={() => setCreateWorkspaceOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+          <Button onClick={() => setCreateWorkspaceOpen(true)} className="bg-indigo-700 hover:bg-indigo-800 text-white">
             {t('dashboard.createWorkspace')}
           </Button>
           <div className="mt-4">
@@ -90,7 +90,7 @@ export const Dashboard = () => {
           <Button
             variant="outline"
             onClick={() => navigate('/profile')}
-            className="border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-500 dark:hover:text-indigo-300 font-bold shrink-0 items-center justify-center py-2 px-4 shadow-sm transition-all"
+            className="border-indigo-600/30 text-indigo-700 dark:text-indigo-500 hover:bg-indigo-600/10 hover:text-indigo-600 dark:hover:text-indigo-400 font-bold shrink-0 items-center justify-center py-2 px-4 shadow-sm transition-all"
           >
             <UserCircle className="w-5 h-5 mr-1" />
             {t('dashboard.goToMypage')}
@@ -104,10 +104,10 @@ export const Dashboard = () => {
           <section className="flex flex-col">
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-lg font-bold text-text-secondary flex items-center gap-2">
-                <span className="w-1.5 h-6 bg-indigo-500 rounded-full"></span>
+                <span className="w-1.5 h-6 bg-indigo-600 rounded-full"></span>
                 {t('dashboard.recentNotices')}
               </h2>
-              <span onClick={() => toWs('community')} className="text-xs text-indigo-600 dark:text-indigo-400 font-medium cursor-pointer hover:underline">{t('common.more')}</span>
+              <span onClick={() => toWs('community')} className="text-xs text-indigo-700 dark:text-indigo-500 font-medium cursor-pointer hover:underline">{t('common.more')}</span>
             </div>
             <div className="flex flex-col gap-2.5 flex-1 w-full relative">
               {mockNotices.map(notice => (

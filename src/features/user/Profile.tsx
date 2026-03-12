@@ -38,9 +38,9 @@ const ContributionGraph = ({ title, activeColorClass = 'emerald' }: { title: str
     switch (level) {
       case 0: return 'bg-surface-subtle';
       case 1: return isEmerald ? 'bg-emerald-900/40' : 'bg-indigo-900/40';
-      case 2: return isEmerald ? 'bg-emerald-700/60' : 'bg-indigo-700/60';
-      case 3: return isEmerald ? 'bg-emerald-500' : 'bg-indigo-500';
-      case 4: return isEmerald ? 'bg-emerald-400' : 'bg-indigo-400';
+      case 2: return isEmerald ? 'bg-emerald-700/60' : 'bg-indigo-800/60';
+      case 3: return isEmerald ? 'bg-emerald-500' : 'bg-indigo-600';
+      case 4: return isEmerald ? 'bg-emerald-400' : 'bg-indigo-500';
       default: return 'bg-surface-subtle';
     }
   };
@@ -312,15 +312,15 @@ export const Profile = () => {
           <div className="flex items-center gap-6">
             <span className="text-xs text-text-faint mr-2">문제 풀이 시 힌트 표시 여부</span>
             <label className="flex items-center gap-2 cursor-pointer">
-              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${hintSettings === 'on' ? 'border-indigo-500' : 'border-border-subtle'}`}>
-                {hintSettings === 'on' && <div className="w-2 h-2 rounded-full bg-indigo-500"></div>}
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${hintSettings === 'on' ? 'border-indigo-600' : 'border-border-subtle'}`}>
+                {hintSettings === 'on' && <div className="w-2 h-2 rounded-full bg-indigo-600"></div>}
               </div>
               <span className={`text-sm font-bold ${hintSettings === 'on' ? 'text-text-secondary' : 'text-text-faint'}`}>On</span>
               <input type="radio" className="hidden" checked={hintSettings === 'on'} onChange={() => setHintSettings('on')} />
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
-              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${hintSettings === 'off' ? 'border-indigo-500' : 'border-border-subtle'}`}>
-                {hintSettings === 'off' && <div className="w-2 h-2 rounded-full bg-indigo-500"></div>}
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${hintSettings === 'off' ? 'border-indigo-600' : 'border-border-subtle'}`}>
+                {hintSettings === 'off' && <div className="w-2 h-2 rounded-full bg-indigo-600"></div>}
               </div>
               <span className={`text-sm font-bold ${hintSettings === 'off' ? 'text-text-secondary' : 'text-text-faint'}`}>Off</span>
               <input type="radio" className="hidden" checked={hintSettings === 'off'} onChange={() => setHintSettings('off')} />
