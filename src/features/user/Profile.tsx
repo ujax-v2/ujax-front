@@ -2,10 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, Tooltip } from 'recharts';
 import { Card, Button, Badge } from '@/components/ui/Base';
-import { useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
-import { userState, currentWorkspaceState } from '@/store/atoms';
-import { ArrowLeft } from 'lucide-react';
+import { userState } from '@/store/atoms';
 import { useIsDark } from '@/App';
 import { useT } from '@/i18n';
 // 잔디(Contribution) 그래프 컴포넌트
@@ -83,7 +81,7 @@ const ContributionGraph = ({ title, activeColorClass = 'emerald', joinDate = '20
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-base font-bold text-text-primary">{title}</h2>
+          <h2 className="text-lg font-bold text-text-primary">{title}</h2>
           <p className="text-xs text-text-faint mt-0.5">
             {selectedYear === null ? `최근 39주 활동 기록` : `${selectedYear}년 활동 기록`}
           </p>
@@ -185,11 +183,11 @@ const ContributionGraph = ({ title, activeColorClass = 'emerald', joinDate = '20
 };
 
 export const Profile = () => {
-  const navigate = useNavigate();
+
   const t = useT();
   const isDark = useIsDark();
   const currentUser = useRecoilValue(userState);
-  const currentWorkspaceId = useRecoilValue(currentWorkspaceState);
+
 
   // User Data from state (fallback for mockup metrics)
   const user = {
@@ -240,57 +238,60 @@ export const Profile = () => {
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* Header Title */}
-        <div className="flex items-center gap-4 mb-10 border-b border-border-default pb-4">
-          <button
-            onClick={() => currentWorkspaceId ? navigate(`/ws/${currentWorkspaceId}/dashboard`) : navigate(-1)}
-            className="p-2 -ml-2 text-text-muted hover:text-text-primary hover:bg-surface-subtle rounded-lg transition-colors group"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          </button>
-          <h1 className="text-2xl font-extrabold text-text-primary tracking-tight">{t('profile.title')}</h1>
+        <div className="border-b border-border-default pb-8 mt-2">
+          <h1 className="text-4xl font-extrabold text-text-primary tracking-tight mb-3">{t('profile.title')}</h1>
+          <p className="text-base text-text-muted font-medium leading-relaxed">{t('profile.subtitle')}</p>
         </div>
 
         {/* ROW 1: 내 정보 상세 & 활동 지표 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 1. 내 정보 상세 (좌측 1단) */}
-          <Card className="bg-surface-raised border-border-default p-6 relative flex flex-col lg:col-span-1">
-            <div className="flex justify-between items-start mb-5">
-              <h2 className="text-base font-bold text-text-secondary">{t('profile.detailInfo')}</h2>
-            </div>
-            <div className="grid grid-cols-[90px_1fr] gap-y-4 text-sm items-center">
-              <div className="text-text-faint">{t('profile.nickname')}</div>
-              <div className="text-text-secondary font-medium">{user.name}</div>
+          <Card className="bg-surface-raised border-border-default p-4 relative flex flex-col lg:col-span-1">
+            <h2 className="text-lg font-bold text-text-primary mb-3">{t('profile.detailInfo')}</h2>
+            <div className="flex flex-col gap-2 justify-end flex-1 pb-3">
 
-              <div className="text-text-faint">{t('profile.email')}</div>
-              <div className="text-text-secondary truncate pr-2">{user.email}</div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-text-faint">{t('profile.nickname')}</span>
+                <span className="text-sm font-medium text-text-primary">{user.name}</span>
+              </div>
 
-              <div className="text-text-faint">{t('profile.mainLanguage')}</div>
-              <div className="text-text-secondary font-medium">{bestLanguage}</div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-text-faint">{t('profile.email')}</span>
+                <span className="text-sm font-medium text-text-primary truncate max-w-[60%] text-right">{user.email}</span>
+              </div>
 
-              <div className="text-text-faint">{t('profile.solvedCount')}</div>
-              <div className="text-text-secondary font-bold text-emerald-400">{totalSolved}</div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-text-faint">{t('profile.mainLanguage')}</span>
+                <span className="text-sm font-medium text-text-primary">{bestLanguage}</span>
+              </div>
 
-              <div className="text-text-faint">{t('profile.streak')}</div>
-              <div className="text-text-secondary font-bold text-blue-400">{currentStreak}</div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-text-faint">{t('profile.solvedCount')}</span>
+                <span className="text-base font-bold text-emerald-400">{totalSolved}</span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-text-faint">{t('profile.streak')}</span>
+                <span className="text-base font-bold text-blue-400">{currentStreak}</span>
+              </div>
+
             </div>
           </Card>
 
-          {/* 2. 활동 지표 */}
-          <Card className="bg-surface-raised border-border-default p-6 flex flex-col justify-center lg:col-span-1">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-base font-bold text-text-secondary">{t('profile.activityMetrics')}</h2>
-            </div>
+          {/* 2. 정답률 */}
+          <Card className="bg-surface-raised border-border-default p-4 flex flex-col justify-center lg:col-span-1">
+            <h2 className="text-lg font-bold text-text-primary mb-3">정답률</h2>
 
-            <div className="flex items-center justify-center flex-1 h-[200px]">
+            <div className="flex items-center justify-center flex-1 h-[180px]">
               {/* Accuracy Donut Chart */}
-              <div className="flex items-center justify-center relative w-full h-[200px]">
+              <div className="relative w-full h-[180px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Tooltip contentStyle={{ backgroundColor: isDark ? '#1b202c' : '#ffffff', borderColor: isDark ? '#334155' : '#e2e8f0', borderRadius: '8px', color: isDark ? '#f1f5f9' : '#0f172a', fontSize: '12px' }} itemStyle={{ color: isDark ? '#f1f5f9' : '#0f172a', fontWeight: 'bold' }} cursor={{ fill: 'transparent' }} />
                     <Pie
                       data={chartData}
-                      innerRadius={55}
-                      outerRadius={72}
+                      innerRadius={68}
+                      outerRadius={88}
                       cornerRadius={6}
                       paddingAngle={3}
                       dataKey="value"
@@ -302,7 +303,7 @@ export const Profile = () => {
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="absolute flex flex-col items-center justify-center pointer-events-none">
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="text-2xl font-extrabold text-text-primary">{user.accuracy}%</span>
                   <span className="text-xs text-text-faint mt-1">정답률</span>
                 </div>
@@ -316,7 +317,7 @@ export const Profile = () => {
           {/* 3. 주력 알고리즘 (Radar Chart) */}
           <Card className="bg-surface-raised border-border-default p-6 flex flex-col justify-between shadow-md">
             <div className="flex justify-between items-center mb-2">
-              <h2 className="text-base font-bold text-text-secondary">{t('profile.mainAlgorithm')}</h2>
+              <h2 className="text-lg font-bold text-text-primary">{t('profile.mainAlgorithm')}</h2>
               <span className="text-[10px] text-text-faint">{t('profile.charts.solutionTypes')}</span>
             </div>
             <div className="w-full h-[320px] flex items-center justify-center mt-4">
@@ -334,7 +335,7 @@ export const Profile = () => {
           {/* 4. 주력 언어 (Pie Chart) */}
           <Card className="bg-surface-raised border-border-default p-6 flex flex-col justify-between shadow-md">
             <div className="flex justify-between items-center mb-2">
-              <h2 className="text-base font-bold text-text-secondary">{t('profile.mainLanguage')}</h2>
+              <h2 className="text-lg font-bold text-text-primary">{t('profile.mainLanguage')}</h2>
               <span className="text-[10px] text-text-faint">{t('profile.charts.languageDistribution')}</span>
             </div>
 

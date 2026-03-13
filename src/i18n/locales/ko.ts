@@ -406,6 +406,7 @@ export const ko: Record<string, string> = {
 
   // ===== Profile Page =====
   'profile.title': '내 프로필',
+  'profile.subtitle': '내 활동 기록, 풀이 통계, 주력 알고리즘을 한눈에 확인하세요.',
   'profile.detailInfo': '내 정보 상세',
   'profile.activityMetrics': '활동 지표',
   'profile.mainAlgorithm': '주력 알고리즘',

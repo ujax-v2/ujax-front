@@ -116,8 +116,8 @@ export const Dashboard = () => {
                   className="bg-surface-raised border-border-default p-4 cursor-pointer hover:border-border-subtle transition-colors flex flex-col justify-between flex-1"
                   onClick={() => setSelectedNotice(notice)}
                 >
-                  <h3 className="text-sm font-bold text-text-secondary mb-3 truncate">{notice.title}</h3>
-                  <div className="flex items-center justify-between text-[10px] text-text-faint">
+                  <h3 className="text-base font-bold text-text-secondary mb-3 truncate">{notice.title}</h3>
+                  <div className="flex items-center justify-between text-xs text-text-faint">
                     <div className="flex items-center gap-2">
                       <span className="text-text-muted font-medium">{notice.author}</span>
                       <span>{notice.date}</span>
@@ -142,13 +142,13 @@ export const Dashboard = () => {
               {mockProblems.slice(0, 3).map((problem) => (
                 <Card key={problem.id} className="bg-surface-raised border-border-default p-4 flex flex-col justify-between cursor-pointer flex-1 hover:border-border-subtle transition-colors">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-bold text-text-secondary truncate">{problem.title}</h3>
+                    <h3 className="text-base font-bold text-text-secondary truncate">{problem.title}</h3>
                     <div className="flex gap-1 shrink-0">
-                      <span className="px-2 py-0.5 text-[10px] font-medium bg-surface-subtle text-text-secondary rounded border border-border-subtle">{problem.source}</span>
-                      <span className="px-2 py-0.5 text-[10px] font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded border border-emerald-200 dark:border-emerald-800/50">{problem.difficulty}</span>
+                      <span className="px-2 py-0.5 text-xs font-medium bg-surface-subtle text-text-secondary rounded border border-border-subtle">{problem.source}</span>
+                      <span className="px-2 py-0.5 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded border border-emerald-200 dark:border-emerald-800/50">{problem.difficulty}</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-text-faint">
+                  <div className="flex items-center justify-between text-xs text-text-faint">
                     <div className="flex gap-1 overflow-hidden">
                       {problem.tags.map(tag => (
                         <span key={tag}>#{tag}</span>
@@ -171,14 +171,14 @@ export const Dashboard = () => {
             </div>
             <div className="flex flex-col gap-2.5 flex-1 w-full relative">
               <Card className="bg-surface-raised border-border-default p-4 flex-1 flex flex-col justify-center shadow-md hover:border-border-subtle transition-colors cursor-pointer">
-                <h3 className="text-sm font-medium text-text-muted mb-1">{t('dashboard.monthSolved')}</h3>
-                <div className="text-2xl font-extrabold text-text-primary tracking-tight">342<span className="text-xs ml-1 text-text-faint font-medium">문제</span></div>
-                <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-bold">+15% (상승곡선 유지 중)</div>
+                <h3 className="text-base font-medium text-text-muted mb-1">{t('dashboard.monthSolved')}</h3>
+                <div className="text-2xl font-extrabold text-text-primary tracking-tight">342<span className="text-sm ml-1 text-text-faint font-medium">문제</span></div>
+                <div className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-bold">+15% (상승곡선 유지 중)</div>
               </Card>
               <Card className="bg-surface-raised border-border-default p-4 flex-1 flex flex-col justify-center shadow-md hover:border-border-subtle transition-colors cursor-pointer">
-                <h3 className="text-sm font-medium text-text-muted mb-1">{t('dashboard.avgAccuracy')}</h3>
-                <div className="text-2xl font-extrabold text-text-primary tracking-tight">87<span className="text-xs ml-1 text-text-faint font-medium">%</span></div>
-                <div className="text-[11px] text-blue-600 dark:text-blue-400 mt-1 font-bold">오답 노트 적극 활용 요망</div>
+                <h3 className="text-base font-medium text-text-muted mb-1">{t('dashboard.avgAccuracy')}</h3>
+                <div className="text-2xl font-extrabold text-text-primary tracking-tight">87<span className="text-sm ml-1 text-text-faint font-medium">%</span></div>
+                <div className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-bold">오답 노트 적극 활용 요망</div>
               </Card>
             </div>
           </section>
