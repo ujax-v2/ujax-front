@@ -402,7 +402,7 @@ export const ProblemList = () => {
               ))}
 
               {/* 빈 상태 */}
-              {boxes.length === 0 && (
+              {boxes.length === 0 && canManage && (
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
                   className="border-2 border-dashed border-border-default rounded-xl p-6 flex flex-col items-center justify-center gap-4 text-text-faint hover:text-indigo-700 dark:hover:text-indigo-500 hover:border-indigo-600/50 hover:bg-indigo-600/5 transition-all min-h-[180px]"
