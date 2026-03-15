@@ -108,6 +108,8 @@ export const ko: Record<string, string> = {
   'problems.myProblemBoxesDesc': '풀고 싶은 문제들을 테마별 그룹으로 분류하여 체계적으로 학습하고 관리해보세요.',
   'problems.createBox': '문제집 생성',
   'problems.firstBox': '첫 문제집 만들기',
+  'problems.noBoxesMember': '아직 등록된 문제집이 없습니다.',
+  'problems.noBoxesMemberDesc': '관리자에게 문의하거나 잠시 기다려 주세요.',
   'problems.newBox': '새 문제집 만들기',
   'problems.importProblems': '문제 가져오기',
   'problems.searchProblems': '문제 검색...',

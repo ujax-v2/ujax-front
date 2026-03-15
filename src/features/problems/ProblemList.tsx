@@ -401,7 +401,7 @@ export const ProblemList = () => {
                 </Card>
               ))}
 
-              {/* 빈 상태 */}
+              {/* 빈 상태 - 관리자 이상 */}
               {boxes.length === 0 && canManage && (
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
@@ -412,6 +412,17 @@ export const ProblemList = () => {
                   </div>
                   <span className="font-bold text-sm">{t('problems.firstBox')}</span>
                 </button>
+              )}
+
+              {/* 빈 상태 - 멤버 */}
+              {boxes.length === 0 && !canManage && (
+                <div className="border border-border-default rounded-xl p-8 flex flex-col items-center justify-center gap-3 text-text-faint min-h-[180px]">
+                  <div className="w-12 h-12 rounded-full bg-surface-inset border border-border-default flex items-center justify-center shadow-inner">
+                    <FolderPlus className="w-6 h-6" />
+                  </div>
+                  <p className="font-bold text-sm">{t('problems.noBoxesMember')}</p>
+                  <p className="text-xs text-text-faint">{t('problems.noBoxesMemberDesc')}</p>
+                </div>
               )}
             </div>
 

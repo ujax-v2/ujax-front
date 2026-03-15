@@ -108,6 +108,8 @@ export const en: Record<string, string> = {
   'problems.myProblemBoxesDesc': 'Organize problems by theme for structured learning and management.',
   'problems.createBox': 'Create Problem Set',
   'problems.firstBox': 'Create Your First Set',
+  'problems.noBoxesMember': 'No problem sets yet.',
+  'problems.noBoxesMemberDesc': 'Ask an admin or check back later.',
   'problems.newBox': 'New Problem Set',
   'problems.importProblems': 'Import Problems',
   'problems.searchProblems': 'Search problems...',
