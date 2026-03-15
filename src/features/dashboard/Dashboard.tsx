@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState } from '@/store/atoms';
@@ -13,28 +13,28 @@ const mockNotices = [
   { id: 3, title: '게시판 이용 규칙', author: '박민수', date: '2025. 01. 10', type: '규칙', content: '서로를 존중하고 예의를 지켜주세요.' },
 ];
 
-const mockRankingsLevel = [
-  { id: 1, name: '고스디님', count: '98.5 %' },
-  { id: 2, name: '이서형', count: '94.2 %' },
-  { id: 3, name: '박민수', count: '91.8 %' },
-  { id: 4, name: '김지우', count: '88.4 %' },
-  { id: 5, name: '최유진', count: '85.1 %' },
+const mockRankingsMonthSolved = [
+  { id: 1, name: '고스디님', count: '42 문제' },
+  { id: 2, name: '이서형', count: '38 문제' },
+  { id: 3, name: '박민수', count: '31 문제' },
+  { id: 4, name: '김지우', count: '27 문제' },
+  { id: 5, name: '최유진', count: '19 문제' },
 ];
 
-const mockRankingsSolved = [
-  { id: 1, name: '고스디님', count: '1,284 문제' },
-  { id: 2, name: '이서형', count: '1,102 문제' },
-  { id: 3, name: '박민수', count: '942 문제' },
-  { id: 4, name: '김지우', count: '730 문제' },
-  { id: 5, name: '최유진', count: '612 문제' },
-];
-
-const mockRankingsComments = [
+const mockRankingsStreak = [
   { id: 1, name: '정하늘', count: '142 일' },
   { id: 2, name: '박민수', count: '128 일' },
   { id: 3, name: '최유진', count: '94 일' },
   { id: 4, name: '고스디님', count: '63 일' },
   { id: 5, name: '이서형', count: '55 일' },
+];
+
+const mockRankingsDeadlineRate = [
+  { id: 1, name: '이서형', count: '97 %' },
+  { id: 2, name: '고스디님', count: '92 %' },
+  { id: 3, name: '김지우', count: '88 %' },
+  { id: 4, name: '최유진', count: '81 %' },
+  { id: 5, name: '박민수', count: '74 %' },
 ];
 
 const mockProblems = [
@@ -53,7 +53,7 @@ export const Dashboard = () => {
   const setCreateWorkspaceOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
 
   const [selectedNotice, setSelectedNotice] = useState<any>(null);
-  const [activeRankingTab, setActiveRankingTab] = useState<'accuracy' | 'solved' | 'streak'>('accuracy');
+  const [activeRankingTab, setActiveRankingTab] = useState<'monthSolved' | 'streak' | 'deadlineRate'>('monthSolved');
 
   const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
 
@@ -171,14 +171,24 @@ export const Dashboard = () => {
             </div>
             <div className="flex flex-col gap-2.5 flex-1 w-full relative">
               <Card className="bg-surface-raised border-border-default p-4 flex-1 flex flex-col justify-center shadow-md hover:border-border-subtle transition-colors cursor-pointer">
-                <h3 className="text-base font-medium text-text-muted mb-1">{t('dashboard.monthSolved')}</h3>
-                <div className="text-2xl font-extrabold text-text-primary tracking-tight">342<span className="text-sm ml-1 text-text-faint font-medium">문제</span></div>
-                <div className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-bold">+15% (상승곡선 유지 중)</div>
+                <h3 className="text-base font-medium text-text-muted mb-1">{t('dashboard.weekSubmissions')}</h3>
+                <div className="text-2xl font-extrabold text-text-primary tracking-tight">127<span className="text-sm ml-1 text-text-faint font-medium">건</span></div>
+                <div className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-bold">이번 주 활발한 제출 중</div>
               </Card>
               <Card className="bg-surface-raised border-border-default p-4 flex-1 flex flex-col justify-center shadow-md hover:border-border-subtle transition-colors cursor-pointer">
-                <h3 className="text-base font-medium text-text-muted mb-1">{t('dashboard.avgAccuracy')}</h3>
-                <div className="text-2xl font-extrabold text-text-primary tracking-tight">87<span className="text-sm ml-1 text-text-faint font-medium">%</span></div>
-                <div className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-bold">오답 노트 적극 활용 요망</div>
+                <h3 className="text-base font-medium text-text-muted mb-1">{t('dashboard.hotProblem')}</h3>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-2xl font-extrabold text-text-primary tracking-tight truncate mr-2">숨바꼭질</span>
+                  <div className="flex gap-1 shrink-0">
+                    <span className="px-2 py-0.5 text-xs font-medium bg-surface-subtle text-text-secondary rounded border border-border-subtle">백준</span>
+                    <span className="px-2 py-0.5 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded border border-emerald-200 dark:border-emerald-800/50">실버 1</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-text-faint mt-1">
+                  <span>#BFS</span>
+                  <span>#그래프</span>
+                  <span className="ml-auto font-bold text-orange-500 dark:text-orange-400">🔥 이번 주 제출 12건</span>
+                </div>
               </Card>
             </div>
           </section>
@@ -199,7 +209,7 @@ export const Dashboard = () => {
           <Card className="bg-surface-raised border-border-default p-0 overflow-hidden shadow-md">
             {/* 탭 헤더 영역 */}
             <div className="flex border-b border-border-default/60 bg-page/50">
-              {(['accuracy', 'solved', 'streak'] as const).map(tab => (
+              {(['monthSolved', 'streak', 'deadlineRate'] as const).map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveRankingTab(tab)}
@@ -209,10 +219,10 @@ export const Dashboard = () => {
                     }`}
                 >
                   <div className="flex items-center justify-center gap-2">
-                    {tab === 'accuracy' && <Trophy className="w-4 h-4" />}
-                    {tab === 'solved' && <Activity className="w-4 h-4" />}
-                    {tab === 'streak' && <CheckCircle2 className="w-4 h-4" />}
-                    {tab === 'accuracy' ? t('dashboard.rankingAccuracy') : tab === 'solved' ? t('dashboard.rankingSolved') : t('dashboard.rankingStreak')}
+                    {tab === 'monthSolved' && <Trophy className="w-4 h-4" />}
+                    {tab === 'streak' && <Activity className="w-4 h-4" />}
+                    {tab === 'deadlineRate' && <CheckCircle2 className="w-4 h-4" />}
+                    {tab === 'monthSolved' ? t('dashboard.rankingMonthSolved') : tab === 'streak' ? t('dashboard.rankingStreak') : t('dashboard.rankingDeadlineRate')}
                   </div>
                 </button>
               ))}
@@ -221,9 +231,9 @@ export const Dashboard = () => {
             {/* 리스트 렌더링 영역 (Clean & Modern) */}
             <div className="p-6">
               <div className="flex flex-col">
-                {(activeRankingTab === 'accuracy' ? mockRankingsLevel
-                  : activeRankingTab === 'solved' ? mockRankingsSolved
-                    : mockRankingsComments).map((rank, idx) => (
+                {(activeRankingTab === 'monthSolved' ? mockRankingsMonthSolved
+                  : activeRankingTab === 'streak' ? mockRankingsStreak
+                    : mockRankingsDeadlineRate).map((rank, idx) => (
                       <div key={rank.id} className="flex items-center justify-between py-3.5 border-b border-border-default/40 last:border-0 group hover:px-2 rounded-lg hover:bg-hover-bg transition-all duration-200 cursor-default">
                         <div className="flex items-center gap-4">
                           {/* 순위 하이라이트 */}
@@ -247,9 +257,9 @@ export const Dashboard = () => {
                         </div>
 
                         {/* 기록 데이터 */}
-                        <span className={`font-black tracking-tight ${idx === 0 && activeRankingTab === 'accuracy' ? 'text-yellow-600 dark:text-yellow-400 text-lg' :
-                          idx === 0 && activeRankingTab === 'solved' ? 'text-emerald-600 dark:text-emerald-400 text-lg' :
-                            idx === 0 && activeRankingTab === 'streak' ? 'text-blue-600 dark:text-blue-400 text-lg' :
+                        <span className={`font-black tracking-tight ${idx === 0 && activeRankingTab === 'monthSolved' ? 'text-yellow-600 dark:text-yellow-400 text-lg' :
+                          idx === 0 && activeRankingTab === 'streak' ? 'text-emerald-600 dark:text-emerald-400 text-lg' :
+                            idx === 0 && activeRankingTab === 'deadlineRate' ? 'text-blue-600 dark:text-blue-400 text-lg' :
                               'text-text-muted text-sm'
                           }`}>
                           {rank.count}
