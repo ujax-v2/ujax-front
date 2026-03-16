@@ -267,6 +267,9 @@ export const ProblemList = () => {
     }
   };
 
+  // Delete Confirm Modal
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'box' | 'problem'; id: number } | null>(null);
+
   // Delete Box
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
@@ -376,11 +379,7 @@ export const ProblemList = () => {
                         <DropdownMenuItem
                           variant="destructive"
                           disabled={deletingId === box.id}
-                          onClick={() => {
-                            if (confirm(t('problems.confirmDeleteBox'))) {
-                              handleDeleteBox(box.id);
-                            }
-                          }}
+                          onClick={() => setDeleteConfirm({ type: 'box', id: box.id })}
                         >
                           {deletingId === box.id ? (
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -509,6 +508,31 @@ export const ProblemList = () => {
             </div>
           </form>
         </Modal>
+
+        {/* 삭제 확인 모달 */}
+        {deleteConfirm?.type === 'box' && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)}>
+            <div className="bg-surface-overlay rounded-xl shadow-2xl border border-border-subtle/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                  <Trash2 className="w-5 h-5 text-red-500" />
+                </div>
+                <h3 className="text-lg font-bold text-text-primary">{t('common.deleteConfirmTitle')}</h3>
+              </div>
+              <p className="text-sm text-text-secondary font-medium">{t('problems.confirmDeleteBox')}</p>
+              <p className="text-sm text-text-faint">{t('problems.confirmDeleteBoxWarning')}</p>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="ghost" onClick={() => setDeleteConfirm(null)}>{t('common.cancel')}</Button>
+                <Button
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold"
+                  onClick={() => { handleDeleteBox(deleteConfirm.id); setDeleteConfirm(null); }}
+                >
+                  {t('common.delete')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -545,7 +569,7 @@ export const ProblemList = () => {
               </Button>
             </div>
             {currentBox.description && (
-              <p className="text-text-muted text-sm mt-4 leading-relaxed">{currentBox.description}</p>
+              <p className="text-base text-text-muted font-medium leading-relaxed max-w-3xl mt-4">{currentBox.description}</p>
             )}
           </div>
         </div>
@@ -661,9 +685,7 @@ export const ProblemList = () => {
                                   <DropdownMenuItem
                                     variant="destructive"
                                     disabled={deletingProblemId === p.id}
-                                    onSelect={() => {
-                                      if (confirm(t('problems.confirmDeleteProblem'))) handleDeleteProblem(p.id);
-                                    }}
+                                    onSelect={() => setDeleteConfirm({ type: 'problem', id: p.id })}
                                   >
                                     {deletingProblemId === p.id ? (
                                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -692,6 +714,30 @@ export const ProblemList = () => {
           </>
         )}
       </div>
+
+      {/* 삭제 확인 모달 */}
+      {deleteConfirm?.type === 'problem' && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setDeleteConfirm(null)}>
+          <div className="bg-surface-overlay rounded-xl shadow-2xl border border-border-subtle/50 w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                <Trash2 className="w-5 h-5 text-red-500" />
+              </div>
+              <h3 className="text-lg font-bold text-text-primary">{t('common.deleteConfirmTitle')}</h3>
+            </div>
+            <p className="text-sm text-text-faint">{t('problems.confirmDeleteProblem')}</p>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="ghost" onClick={() => setDeleteConfirm(null)}>{t('common.cancel')}</Button>
+              <Button
+                className="bg-red-600 hover:bg-red-700 text-white font-bold"
+                onClick={() => { handleDeleteProblem(deleteConfirm.id); setDeleteConfirm(null); }}
+              >
+                {t('common.delete')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 문제 수정 모달 */}
       <Modal isOpen={!!editProblemTarget} onClose={closeEditProblemModal} title={t('problems.editProblem')}>
