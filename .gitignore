@@ -64,6 +64,11 @@ bower_components
 build/
 dist/
 
+# Env files
+.env
+.env.*
+!.env.example
+
 *.sublime*
 
 psd

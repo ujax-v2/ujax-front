@@ -38,7 +38,7 @@ export const Login = ({ oauthError, onClearError }: LoginProps) => {
       navigate('/');
     } catch (err: any) {
       console.error('Login error', err);
-      setError(parseApiError(err, '로그인에 실패했습니다.'));
+      setError(err instanceof Error ? err.message : '로그인에 실패했습니다.');
     } finally {
       setLoading(false);
     }

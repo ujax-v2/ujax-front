@@ -288,7 +288,7 @@ function AppContent() {
   const location = useLocation();
 
   // 사이드바를 숨겨야 하는 페이지: 인증, IDE, 홈, 풀이 보기(solutions)
-  const isFullScreen = ['/login', '/signup', '/auth/callback', '/'].includes(location.pathname)
+  const isFullScreen = ['/login', '/signup', '/oauth/callback', '/'].includes(location.pathname)
     || location.pathname.includes('/ide')
     || location.pathname.includes('/solutions');
   // 워크스페이스가 없으면 사이드바 숨김 (컨텍스트 없으므로)
@@ -314,7 +314,7 @@ function AppContent() {
           {/* 공개 라우트 */}
           <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
           <Route path="/signup" element={<PublicOnlyRoute><SignUp /></PublicOnlyRoute>} />
-          <Route path="/auth/callback" element={<OAuthCallback />} />
+          <Route path="/oauth/callback" element={<OAuthCallback />} />
 
           {/* 홈 (비로그인/로그인 모두 접근 가능) */}
           <Route path="/" element={<Home />} />
