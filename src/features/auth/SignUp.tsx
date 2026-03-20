@@ -4,7 +4,6 @@ import { useT } from '@/i18n';
 import { signupApi } from '@/api/auth';
 import { Button, Card } from '@/components/ui/Base';
 import { Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { parseApiError } from '@/utils/error';
 import { useAuth } from '@/hooks/useAuth';
 
 export const SignUp = () => {
@@ -54,7 +53,7 @@ export const SignUp = () => {
       navigate('/');
     } catch (err: any) {
       console.error('Signup error', err);
-      setApiError(parseApiError(err, '회원가입에 실패했습니다.'));
+      setApiError(err instanceof Error ? err.message : '회원가입에 실패했습니다.');
     } finally {
       setLoading(false);
     }
