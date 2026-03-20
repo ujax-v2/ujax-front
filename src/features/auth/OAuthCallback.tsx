@@ -25,7 +25,8 @@ export const OAuthCallback = ({ onComplete }: Props) => {
       if (onComplete) {
         onComplete(message ? decodeURIComponent(message) : error);
       } else {
-        navigate('/login', { replace: true });
+        const errorMsg = message ? decodeURIComponent(message) : error;
+        navigate(`/login?oauthError=${encodeURIComponent(errorMsg)}`, { replace: true });
       }
       return;
     }

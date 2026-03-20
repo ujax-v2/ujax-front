@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useT } from '@/i18n';
 import { loginApi } from '@/api/auth';
 import { Button, Card } from '@/components/ui/Base';
@@ -12,14 +12,17 @@ interface LoginProps {
   onClearError?: () => void;
 }
 
-export const Login = ({ oauthError, onClearError }: LoginProps) => {
+export const Login = ({ oauthError: oauthErrorProp, onClearError }: LoginProps) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const t = useT();
   const { setAuthUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const oauthError = oauthErrorProp || searchParams.get('oauthError') || '';
 
   const clearOauthError = () => {
     if (oauthError && onClearError) onClearError();
