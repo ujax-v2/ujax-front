@@ -28,7 +28,13 @@ export function useAuth() {
     // authFetch가 토큰을 localStorage에서 읽으므로 임시 저장
     localStorage.setItem('auth', JSON.stringify({ accessToken, refreshToken }));
 
-    const me = await getMe();
+    let me;
+    try {
+      me = await getMe();
+    } catch (e) {
+      localStorage.removeItem('auth');
+      throw e;
+    }
 
     const userData: UserState = {
       isLoggedIn: true,
