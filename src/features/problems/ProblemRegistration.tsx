@@ -246,9 +246,9 @@ export const ProblemRegistration = () => {
           </div>
 
           {/* 마감일 & 알림 */}
-          <div className="space-y-4">
+          <div className="space-y-3 bg-surface-subtle border border-border-default rounded-lg p-4">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-indigo-500">{t('problems.registration.deadline')}</label>
+              <label className="text-sm font-bold text-text-muted">{t('problems.registration.deadline')}</label>
               <div className="relative">
                 <DateTimePicker
                   value={deadline}
@@ -277,8 +277,9 @@ export const ProblemRegistration = () => {
                   checked={reminderEnabled}
                   onCheckedChange={setReminderEnabled}
                   disabled={!deadline}
+                  className="border-border-subtle"
                 />
-                <label className="text-sm font-medium text-indigo-400">{t('problems.registration.reminder')}</label>
+                <label className="text-sm text-text-primary">{t('problems.registration.reminder')}</label>
               </div>
 
               <div className={reminderEnabled && deadline ? 'visible' : 'invisible'}>
@@ -286,7 +287,7 @@ export const ProblemRegistration = () => {
                   value={String(reminderHours)}
                   onValueChange={(v) => setReminderHours(Number(v))}
                 >
-                  <SelectTrigger className="w-40 bg-input-bg border-border-default">
+                  <SelectTrigger className="w-40 bg-input-bg border-border-default text-text-primary">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
