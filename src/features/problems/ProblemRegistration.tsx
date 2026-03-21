@@ -248,7 +248,7 @@ export const ProblemRegistration = () => {
           {/* 마감일 & 알림 */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-text-muted">{t('problems.registration.deadline')}</label>
+              <label className="text-sm font-bold text-indigo-500">{t('problems.registration.deadline')}</label>
               <div className="relative">
                 <DateTimePicker
                   value={deadline}
@@ -271,17 +271,17 @@ export const ProblemRegistration = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 min-h-[40px]">
               <div className="flex items-center gap-2">
                 <Switch
                   checked={reminderEnabled}
                   onCheckedChange={setReminderEnabled}
                   disabled={!deadline}
                 />
-                <label className="text-sm text-text-secondary">{t('problems.registration.reminder')}</label>
+                <label className="text-sm font-medium text-indigo-400">{t('problems.registration.reminder')}</label>
               </div>
 
-              {reminderEnabled && deadline && (
+              <div className={reminderEnabled && deadline ? 'visible' : 'invisible'}>
                 <Select
                   value={String(reminderHours)}
                   onValueChange={(v) => setReminderHours(Number(v))}
@@ -298,7 +298,7 @@ export const ProblemRegistration = () => {
                     <SelectItem value="24">{t('reminder.24hours')}</SelectItem>
                   </SelectContent>
                 </Select>
-              )}
+              </div>
             </div>
           </div>
 
