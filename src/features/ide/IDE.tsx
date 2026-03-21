@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button, Badge } from '@/components/ui/Base';
-import { Play, RotateCcw, Settings, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, Plus, Code2, Clock, HardDrive, X } from 'lucide-react';
+import { Play, Pause, RotateCcw, Settings, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, Plus, Code2, Clock, HardDrive, X } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { useParams } from 'react-router-dom';
@@ -79,17 +79,50 @@ public class Main {
 const POLL_INTERVAL = 1500;
 const MAX_POLL_ATTEMPTS = 40;
 
-const Stopwatch = () => {
-  const [time, setTime] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
+const Stopwatch = ({ problemId }: { problemId: string }) => {
+  const storageKey = `timer_${problemId}`;
+
+  const loadState = (): { startedAt: number | null; elapsed: number } => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { startedAt: null, elapsed: 0 };
+  };
+
+  const [timerState, setTimerState] = useState(loadState);
+
+  const getDisplayTime = () => {
+    if (timerState.startedAt !== null) {
+      return timerState.elapsed + Math.floor((Date.now() - timerState.startedAt) / 1000);
+    }
+    return timerState.elapsed;
+  };
+
+  const [displayTime, setDisplayTime] = useState(getDisplayTime);
 
   useEffect(() => {
-    let interval: any;
-    if (isRunning) {
-      interval = setInterval(() => setTime((t) => t + 1), 1000);
+    if (timerState.startedAt === null) {
+      setDisplayTime(timerState.elapsed);
+      return;
     }
+    const interval = setInterval(() => {
+      setDisplayTime(timerState.elapsed + Math.floor((Date.now() - timerState.startedAt!) / 1000));
+    }, 1000);
     return () => clearInterval(interval);
-  }, [isRunning]);
+  }, [timerState]);
+
+  const toggle = () => {
+    setTimerState((prev) => {
+      const next = prev.startedAt !== null
+        ? { startedAt: null, elapsed: prev.elapsed + Math.floor((Date.now() - prev.startedAt) / 1000) }
+        : { ...prev, startedAt: Date.now() };
+      localStorage.setItem(storageKey, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const isRunning = timerState.startedAt !== null;
 
   const fmt = (s: number) => {
     const ss = `0${s % 60}`.slice(-2);
@@ -101,9 +134,9 @@ const Stopwatch = () => {
   return (
     <div className="flex items-center gap-2 bg-surface-subtle rounded px-3 py-1.5 text-sm font-mono text-text-secondary">
       <Timer className="w-3.5 h-3.5 text-emerald-500" />
-      <span>{fmt(time)}</span>
-      <button onClick={() => setIsRunning(!isRunning)} className="hover:text-text-primary">
-        {isRunning ? 'II' : '▶'}
+      <span>{fmt(displayTime)}</span>
+      <button onClick={toggle} className="hover:text-text-primary">
+        {isRunning ? <Pause className="w-3.5 h-3.5" fill="currentColor" /> : <Play className="w-3.5 h-3.5" fill="currentColor" />}
       </button>
     </div>
   );
@@ -297,7 +330,7 @@ export const IDE = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Stopwatch />
+          <Stopwatch problemId={problemId || ''} />
           <div className="h-5 w-px bg-surface-subtle" />
           <select
             value={language}
