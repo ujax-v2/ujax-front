@@ -77,7 +77,7 @@ public class Main {
 };
 
 const POLL_INTERVAL = 1500;
-const MAX_POLL_ATTEMPTS = 40;
+const MAX_POLL_ATTEMPTS = 160;
 
 const Stopwatch = ({ problemId }: { problemId: string }) => {
   const storageKey = `timer_${problemId}`;

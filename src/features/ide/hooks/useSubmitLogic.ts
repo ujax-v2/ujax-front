@@ -59,7 +59,7 @@ export function useSubmitLogic(problem: ProblemResponse | null) {
     if (submitTimeoutRef.current) clearTimeout(submitTimeoutRef.current);
     submitTimeoutRef.current = window.setTimeout(() => {
       setSubmitStatus((prev) => prev === 'submitted' ? 'timeout' : prev);
-    }, 60000);
+    }, 240000);
   }, [problem]);
 
   const closeSubmitModal = useCallback(() => {
