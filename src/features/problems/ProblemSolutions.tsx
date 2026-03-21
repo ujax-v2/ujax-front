@@ -384,6 +384,14 @@ export const ProblemSolutions = () => {
                 readOnly: true,
                 scrollBeyondLastLine: false,
                 padding: { top: 16 },
+                renderWhitespace: 'none',
+                renderControlCharacters: false,
+                unicodeHighlight: { ambiguousCharacters: false, invisibleCharacters: false },
+                guides: { indentation: false, bracketPairs: false },
+                smoothScrolling: true,
+                scrollbar: { verticalScrollbarSize: 6 },
+                selectionHighlight: false,
+                occurrencesHighlight: 'off',
               }}
             />
           )}
