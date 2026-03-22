@@ -15,6 +15,9 @@ import {
   User,
   Send,
   Loader2,
+  Clock,
+  HardDrive,
+  Trash2,
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useIsDark } from '@/App';
@@ -25,11 +28,22 @@ import {
   getSolutionVersions,
   getSolutionComments,
   createSolutionComment,
+  deleteSolutionComment,
   likeSolution,
   unlikeSolution,
 } from '@/api/solution';
 import type { components } from '@ujax/api-spec/types';
 import type { SolutionSummary, SolutionVersion, SolutionComment } from '@/api/solution';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type SolutionVersionPageData = components['schemas']['ApiResponse-SolutionVersionList']['data'];
 
@@ -59,7 +73,7 @@ function StatusBadge({ status }: { status: string }) {
       ? 'bg-yellow-500/20 text-yellow-500'
       : 'bg-surface-subtle text-text-faint';
   return (
-    <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${colorClass}`}>
+    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${colorClass}`}>
       {STATUS_LABEL[status] ?? status}
     </span>
   );
@@ -89,7 +103,8 @@ export const ProblemSolutions = () => {
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const commentInputRef = useRef<HTMLInputElement>(null);
+  const [deleteCommentId, setDeleteCommentId] = useState<number | null>(null);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
   const activeSolution = summaries.find((s) => s.workspaceMemberId === activeWorkspaceMemberId) ?? null;
   const activeVersion = versionResult?.content[0] ?? null;
@@ -196,7 +211,50 @@ export const ProblemSolutions = () => {
     }
   };
 
+  const handleCommentDelete = async () => {
+    if (!wsId || !boxId || !problemId || !activeWorkspaceMemberId || !activeVersion || deleteCommentId === null) return;
+    try {
+      await deleteSolutionComment(wsId, boxId, problemId, activeWorkspaceMemberId, activeVersion.submissionId, deleteCommentId);
+      setComments((prev) => prev.filter((c) => c.id !== deleteCommentId));
+      setVersionResult((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          content: prev.content.map((v) =>
+            v.submissionId === activeVersion.submissionId
+              ? { ...v, commentCount: v.commentCount - 1 }
+              : v,
+          ),
+        };
+      });
+    } catch (err) {
+      alert(parseApiError(err));
+    } finally {
+      setDeleteCommentId(null);
+    }
+  };
+
   return (
+    <>
+    <AlertDialog open={deleteCommentId !== null} onOpenChange={(open) => { if (!open) setDeleteCommentId(null); }}>
+      <AlertDialogContent className="bg-surface border-border-default">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-text-primary">댓글 삭제</AlertDialogTitle>
+          <AlertDialogDescription className="text-text-muted">
+            댓글을 삭제하시겠습니까? 삭제한 댓글은 복구할 수 없습니다.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="bg-transparent border-border-default text-text-secondary hover:bg-hover-bg">취소</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleCommentDelete}
+            className="bg-red-600 hover:bg-red-700 text-white border-none"
+          >
+            삭제
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     <div className="flex h-full bg-page">
       {/* ── Sidebar ── */}
       <div className="w-80 bg-page border-r border-border-subtle flex flex-col">
@@ -320,25 +378,36 @@ export const ProblemSolutions = () => {
         </div>
 
         {/* Version bar */}
-        <div className="h-10 border-b border-border-default bg-surface-overlay flex items-center justify-between px-4">
-          <div className="flex items-center gap-2 text-xs text-text-muted">
-            <History className="w-3.5 h-3.5" />
+        <div className="border-b border-border-default bg-surface-overlay flex items-center justify-between px-4 py-2.5">
+          <div className="flex items-center gap-2.5 text-sm text-text-muted">
+            <History className="w-4 h-4 shrink-0" />
             {versionsLoading ? (
-              <span className="flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> 로딩 중...</span>
+              <span className="flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> 로딩 중...</span>
             ) : (
               <>
-                <span>제출 기록 (Version {displayVersionNum} / {totalVersions})</span>
+                <span className="font-medium text-text-secondary">제출 기록 (Version {displayVersionNum} / {totalVersions})</span>
                 {activeVersion && (
-                  <span className="text-text-faint ml-2">
+                  <span className="text-text-faint">
                     {new Date(activeVersion.createdAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </span>
                 )}
-                {activeVersion && <span className="ml-2"><StatusBadge status={activeVersion.status} /></span>}
+                {activeVersion && <StatusBadge status={activeVersion.status} />}
                 {activeVersion && activeVersion.time && (
-                  <span className="text-text-faint ml-1">{activeVersion.time}</span>
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-subtle border border-border-subtle/50">
+                    <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                    {activeVersion.time} ms
+                  </span>
                 )}
                 {activeVersion && activeVersion.memory && (
-                  <span className="text-text-faint">{activeVersion.memory}</span>
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-subtle border border-border-subtle/50">
+                    <HardDrive className="w-3.5 h-3.5 text-emerald-400" />
+                    {(() => {
+                      const kb = parseFloat(activeVersion.memory);
+                      return !isNaN(kb) && kb >= 1024
+                        ? `${(kb / 1024).toFixed(1)} MB`
+                        : `${activeVersion.memory} KB`;
+                    })()}
+                  </span>
                 )}
               </>
             )}
@@ -348,7 +417,7 @@ export const ProblemSolutions = () => {
             <button
               onClick={() => setVersionPage((p) => p + 1)}
               disabled={versionResult?.page.last ?? true}
-              className="p-1 rounded hover:bg-border-subtle text-text-muted disabled:opacity-30 disabled:hover:bg-transparent"
+              className="p-1.5 rounded hover:bg-border-subtle text-text-muted disabled:opacity-30 disabled:hover:bg-transparent"
               title="이전 제출"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -356,7 +425,7 @@ export const ProblemSolutions = () => {
             <button
               onClick={() => setVersionPage((p) => p - 1)}
               disabled={versionResult?.page.first ?? true}
-              className="p-1 rounded hover:bg-border-subtle text-text-muted disabled:opacity-30 disabled:hover:bg-transparent"
+              className="p-1.5 rounded hover:bg-border-subtle text-text-muted disabled:opacity-30 disabled:hover:bg-transparent"
               title="최신 제출"
             >
               <ChevronRight className="w-4 h-4" />
@@ -376,7 +445,7 @@ export const ProblemSolutions = () => {
             <Editor
               height="100%"
               theme={isDark ? 'vs-dark' : 'light'}
-              language={activeSolution ? (LANG_MONACO[activeSolution.programmingLanguage] ?? 'plaintext') : 'plaintext'}
+              language={LANG_MONACO[activeVersion.programmingLanguage ?? activeSolution?.programmingLanguage ?? ''] ?? 'plaintext'}
               value={activeVersion.code ?? ''}
               options={{
                 minimap: { enabled: false },
@@ -418,8 +487,18 @@ export const ProblemSolutions = () => {
                 <div key={c.id} className="flex gap-3 text-sm">
                   <div className="font-bold text-text-secondary shrink-0">{c.authorName}</div>
                   <div className="text-text-muted flex-1">{c.content}</div>
-                  <div className="text-text-faint text-xs shrink-0">
-                    {new Date(c.createdAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-text-faint text-xs">
+                      {new Date(c.createdAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    {c.isMyComment && (
+                      <button
+                        onClick={() => setDeleteCommentId(c.id)}
+                        className="text-text-faint hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))
@@ -427,27 +506,35 @@ export const ProblemSolutions = () => {
           </div>
           <div className="p-3 border-t border-border-default bg-surface">
             <div className="relative">
-              <input
+              <textarea
                 ref={commentInputRef}
-                type="text"
                 value={commentInput}
-                onChange={(e) => setCommentInput(e.target.value)}
+                rows={1}
+                maxLength={255}
+                onChange={(e) => {
+                  setCommentInput(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCommentSubmit(); } }}
                 placeholder={t('problems.solutions.writeComment')}
                 disabled={!activeVersion || commentSubmitting}
-                className="w-full bg-input-bg border border-border-default rounded-lg py-2 pl-3 pr-10 text-sm text-text-secondary focus:outline-none focus:border-emerald-500 disabled:opacity-50"
+                className="w-full bg-input-bg border border-border-default rounded-lg py-2 pl-3 pr-10 text-sm text-text-secondary focus:outline-none focus:border-emerald-500 disabled:opacity-50 resize-none overflow-hidden max-h-24"
+                style={{ height: 'auto' }}
               />
               <button
                 onClick={handleCommentSubmit}
                 disabled={!commentInput.trim() || !activeVersion || commentSubmitting}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-emerald-500 hover:text-emerald-400 disabled:opacity-30"
+                className="absolute right-2 top-2 text-emerald-500 hover:text-emerald-400 disabled:opacity-30"
               >
                 {commentSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
             </div>
+            <div className="text-right text-xs text-text-faint mt-1">{commentInput.length}/255</div>
           </div>
         </div>
       </div>
     </div>
+    </>
   );
 };

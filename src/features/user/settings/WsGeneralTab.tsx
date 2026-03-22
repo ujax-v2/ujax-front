@@ -13,6 +13,7 @@ export const WsGeneralTab = () => {
   const setWorkspaces = useSetRecoilState(workspacesState);
   const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
   const myRole = useRecoilValue(myWorkspaceRoleState);
+  const setMyWorkspaceRole = useSetRecoilState(myWorkspaceRoleState);
   const isOwner = myRole === 'OWNER';
   const setCurrentWorkspaceId = useSetRecoilState(currentWorkspaceState);
   const setActiveTab = useSetRecoilState(settingsTabState);
@@ -52,28 +53,38 @@ export const WsGeneralTab = () => {
   const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
-  // Load workspace settings + my nickname
+  // 멤버십 먼저 로드 → OWNER일 때만 설정 API 호출
   useEffect(() => {
     if (!currentWorkspaceId) return;
-    getWorkspaceSettings(currentWorkspaceId).then(data => {
-      setWsName(data.name ?? '');
-      setWsDescription(data.description ?? '');
-      setWsMmWebhookUrl(data.mmWebhookUrl ?? '');
-      setWsOriginalName(data.name ?? '');
-      setWsOriginalDescription(data.description ?? '');
-      setWsOriginalMmWebhookUrl(data.mmWebhookUrl ?? '');
-      setWsImageUrl((data as any).imageUrl ?? '');
-      setWsOriginalImageUrl((data as any).imageUrl ?? '');
-      setWsPreviewUrl('');
-      setWsPendingFile(null);
-      setWsImageRemoved(false);
-      setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, mmWebhookUrl: data.mmWebhookUrl ?? null } : w));
-    }).catch(err => {
-      console.error('Failed to load workspace settings:', err);
-    });
+
     getMyMembership(currentWorkspaceId).then(data => {
+      const role = data.role ?? 'MEMBER';
+      setMyWorkspaceRole(role);
       setWsNickname(data.nickname ?? '');
       setWsOriginalNickname(data.nickname ?? '');
+
+      if (role === 'OWNER') {
+        getWorkspaceSettings(currentWorkspaceId).then(settings => {
+          setWsName(settings.name ?? '');
+          setWsDescription(settings.description ?? '');
+          setWsMmWebhookUrl(settings.hookUrl ?? '');
+          setWsOriginalName(settings.name ?? '');
+          setWsOriginalDescription(settings.description ?? '');
+          setWsOriginalMmWebhookUrl(settings.hookUrl ?? '');
+          setWsImageUrl(settings.imageUrl ?? '');
+          setWsOriginalImageUrl(settings.imageUrl ?? '');
+          setWsPreviewUrl('');
+          setWsPendingFile(null);
+          setWsImageRemoved(false);
+          setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, mmWebhookUrl: settings.hookUrl ?? null } : w));
+        }).catch(err => {
+          console.error('Failed to load workspace settings:', err);
+        });
+      } else {
+        // OWNER가 아니면 workspaces Recoil 상태에서 기본값 읽기
+        setWsName(currentWorkspace?.name ?? '');
+        setWsDescription(currentWorkspace?.description ?? '');
+      }
     }).catch(err => {
       console.error('Failed to load membership:', err);
     });
@@ -118,7 +129,7 @@ export const WsGeneralTab = () => {
       const body: Record<string, string | null> = {};
       if (wsName !== wsOriginalName) body.name = wsName;
       if (wsDescription !== wsOriginalDescription) body.description = wsDescription || null;
-      if (wsMmWebhookUrl !== wsOriginalMmWebhookUrl) body.mmWebhookUrl = wsMmWebhookUrl || null;
+      if (wsMmWebhookUrl !== wsOriginalMmWebhookUrl) body.hookUrl = wsMmWebhookUrl || null;
 
       if (wsImageRemoved) {
         body.imageUrl = null;
@@ -128,13 +139,21 @@ export const WsGeneralTab = () => {
           wsPendingFile.size,
           wsPendingFile.type,
         );
-        const uploadRes = await fetch(presignedUrl, {
-          method: 'PUT',
-          headers: { 'Content-Type': wsPendingFile.type },
-          body: wsPendingFile,
-        });
+        let uploadRes: Response;
+        try {
+          uploadRes = await fetch(presignedUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': wsPendingFile.type },
+            body: wsPendingFile,
+          });
+        } catch (uploadErr: any) {
+          console.error('[WsGeneralTab] S3 upload fetch error:', uploadErr);
+          throw new Error('이미지 업로드에 실패했습니다. (네트워크 오류: ' + (uploadErr?.message || 'unknown') + ')');
+        }
         if (!uploadRes.ok) {
-          throw new Error('이미지 업로드에 실패했습니다.');
+          const errText = await uploadRes.text().catch(() => '');
+          console.error('[WsGeneralTab] S3 upload failed:', uploadRes.status, errText);
+          throw new Error('이미지 업로드에 실패했습니다. (S3 ' + uploadRes.status + ')');
         }
         body.imageUrl = imageUrl;
       }
@@ -160,7 +179,8 @@ export const WsGeneralTab = () => {
       setWsSaveResult('success');
     } catch (err: any) {
       setWsSaveResult('error');
-      setWsSaveError(parseApiError(err, '저장에 실패했습니다.'));
+      const apiError = parseApiError(err, '');
+      setWsSaveError(apiError || err?.message || '저장에 실패했습니다.');
     } finally {
       setWsSaving(false);
       setTimeout(() => setWsSaveResult(null), 3000);
