@@ -195,7 +195,7 @@ export const WsMembersTab = () => {
                     <div className="text-sm font-medium text-text-secondary">
                       {member.nickname ?? t('settings.members.noNickname')}
                       {member.email && (
-                        <span className="text-xs text-text-faint font-normal ml-1">({member.email})</span>
+                        <span className="text-sm text-text-muted font-normal ml-1">({member.email})</span>
                       )}
                     </div>
                   </div>
