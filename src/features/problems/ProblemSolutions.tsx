@@ -73,7 +73,7 @@ function StatusBadge({ status }: { status: string }) {
       ? 'bg-yellow-500/20 text-yellow-500'
       : 'bg-surface-subtle text-text-faint';
   return (
-    <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${colorClass}`}>
+    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${colorClass}`}>
       {STATUS_LABEL[status] ?? status}
     </span>
   );
