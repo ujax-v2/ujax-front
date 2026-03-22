@@ -451,7 +451,7 @@ export const ProblemSolutions = () => {
               <div className="text-text-faint text-sm">아직 댓글이 없습니다.</div>
             ) : (
               comments.map((c) => (
-                <div key={c.id} className="flex gap-3 text-sm group">
+                <div key={c.id} className="flex gap-3 text-sm">
                   <div className="font-bold text-text-secondary shrink-0">{c.authorName}</div>
                   <div className="text-text-muted flex-1">{c.content}</div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -460,8 +460,10 @@ export const ProblemSolutions = () => {
                     </span>
                     {c.isMyComment && (
                       <button
-                        onClick={() => handleCommentDelete(c.id)}
-                        className="opacity-0 group-hover:opacity-100 text-text-faint hover:text-red-400 transition-all"
+                        onClick={() => {
+                          if (window.confirm('댓글을 삭제하시겠습니까?')) handleCommentDelete(c.id);
+                        }}
+                        className="text-text-faint hover:text-red-400 transition-colors"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
