@@ -67,16 +67,16 @@ export const WsGeneralTab = () => {
         getWorkspaceSettings(currentWorkspaceId).then(settings => {
           setWsName(settings.name ?? '');
           setWsDescription(settings.description ?? '');
-          setWsMmWebhookUrl((settings as any).mmWebhookUrl ?? '');
+          setWsMmWebhookUrl(settings.hookUrl ?? '');
           setWsOriginalName(settings.name ?? '');
           setWsOriginalDescription(settings.description ?? '');
-          setWsOriginalMmWebhookUrl((settings as any).mmWebhookUrl ?? '');
-          setWsImageUrl((settings as any).imageUrl ?? '');
-          setWsOriginalImageUrl((settings as any).imageUrl ?? '');
+          setWsOriginalMmWebhookUrl(settings.hookUrl ?? '');
+          setWsImageUrl(settings.imageUrl ?? '');
+          setWsOriginalImageUrl(settings.imageUrl ?? '');
           setWsPreviewUrl('');
           setWsPendingFile(null);
           setWsImageRemoved(false);
-          setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, mmWebhookUrl: (settings as any).mmWebhookUrl ?? null } : w));
+          setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, mmWebhookUrl: settings.hookUrl ?? null } : w));
         }).catch(err => {
           console.error('Failed to load workspace settings:', err);
         });
@@ -129,7 +129,7 @@ export const WsGeneralTab = () => {
       const body: Record<string, string | null> = {};
       if (wsName !== wsOriginalName) body.name = wsName;
       if (wsDescription !== wsOriginalDescription) body.description = wsDescription || null;
-      if (wsMmWebhookUrl !== wsOriginalMmWebhookUrl) body.mmWebhookUrl = wsMmWebhookUrl || null;
+      if (wsMmWebhookUrl !== wsOriginalMmWebhookUrl) body.hookUrl = wsMmWebhookUrl || null;
 
       if (wsImageRemoved) {
         body.imageUrl = null;
@@ -139,13 +139,21 @@ export const WsGeneralTab = () => {
           wsPendingFile.size,
           wsPendingFile.type,
         );
-        const uploadRes = await fetch(presignedUrl, {
-          method: 'PUT',
-          headers: { 'Content-Type': wsPendingFile.type },
-          body: wsPendingFile,
-        });
+        let uploadRes: Response;
+        try {
+          uploadRes = await fetch(presignedUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': wsPendingFile.type },
+            body: wsPendingFile,
+          });
+        } catch (uploadErr: any) {
+          console.error('[WsGeneralTab] S3 upload fetch error:', uploadErr);
+          throw new Error('이미지 업로드에 실패했습니다. (네트워크 오류: ' + (uploadErr?.message || 'unknown') + ')');
+        }
         if (!uploadRes.ok) {
-          throw new Error('이미지 업로드에 실패했습니다.');
+          const errText = await uploadRes.text().catch(() => '');
+          console.error('[WsGeneralTab] S3 upload failed:', uploadRes.status, errText);
+          throw new Error('이미지 업로드에 실패했습니다. (S3 ' + uploadRes.status + ')');
         }
         body.imageUrl = imageUrl;
       }
@@ -171,7 +179,8 @@ export const WsGeneralTab = () => {
       setWsSaveResult('success');
     } catch (err: any) {
       setWsSaveResult('error');
-      setWsSaveError(parseApiError(err, '저장에 실패했습니다.'));
+      const apiError = parseApiError(err, '');
+      setWsSaveError(apiError || err?.message || '저장에 실패했습니다.');
     } finally {
       setWsSaving(false);
       setTimeout(() => setWsSaveResult(null), 3000);
