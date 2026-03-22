@@ -104,7 +104,7 @@ export const ProblemSolutions = () => {
   const [likeLoading, setLikeLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteCommentId, setDeleteCommentId] = useState<number | null>(null);
-  const commentInputRef = useRef<HTMLInputElement>(null);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
   const activeSolution = summaries.find((s) => s.workspaceMemberId === activeWorkspaceMemberId) ?? null;
   const activeVersion = versionResult?.content[0] ?? null;
@@ -506,24 +506,31 @@ export const ProblemSolutions = () => {
           </div>
           <div className="p-3 border-t border-border-default bg-surface">
             <div className="relative">
-              <input
+              <textarea
                 ref={commentInputRef}
-                type="text"
                 value={commentInput}
-                onChange={(e) => setCommentInput(e.target.value)}
+                rows={1}
+                maxLength={255}
+                onChange={(e) => {
+                  setCommentInput(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCommentSubmit(); } }}
                 placeholder={t('problems.solutions.writeComment')}
                 disabled={!activeVersion || commentSubmitting}
-                className="w-full bg-input-bg border border-border-default rounded-lg py-2 pl-3 pr-10 text-sm text-text-secondary focus:outline-none focus:border-emerald-500 disabled:opacity-50"
+                className="w-full bg-input-bg border border-border-default rounded-lg py-2 pl-3 pr-10 text-sm text-text-secondary focus:outline-none focus:border-emerald-500 disabled:opacity-50 resize-none overflow-hidden max-h-24"
+                style={{ height: 'auto' }}
               />
               <button
                 onClick={handleCommentSubmit}
                 disabled={!commentInput.trim() || !activeVersion || commentSubmitting}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-emerald-500 hover:text-emerald-400 disabled:opacity-30"
+                className="absolute right-2 top-2 text-emerald-500 hover:text-emerald-400 disabled:opacity-30"
               >
                 {commentSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
             </div>
+            <div className="text-right text-xs text-text-faint mt-1">{commentInput.length}/255</div>
           </div>
         </div>
       </div>
