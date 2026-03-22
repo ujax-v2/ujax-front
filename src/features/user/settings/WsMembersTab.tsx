@@ -192,12 +192,10 @@ export const WsMembersTab = () => {
                         {(member.nickname ?? '?').charAt(0).toUpperCase()}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-sm font-medium text-text-secondary">
-                        {member.nickname ?? t('settings.members.noNickname')}
-                      </div>
+                    <div className="text-sm font-medium text-text-secondary">
+                      {member.nickname ?? t('settings.members.noNickname')}
                       {member.email && (
-                        <div className="text-xs text-text-faint">{member.email}</div>
+                        <span className="text-xs text-text-faint font-normal ml-1">({member.email})</span>
                       )}
                     </div>
                   </div>
