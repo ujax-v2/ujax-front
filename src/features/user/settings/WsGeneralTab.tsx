@@ -13,6 +13,7 @@ export const WsGeneralTab = () => {
   const setWorkspaces = useSetRecoilState(workspacesState);
   const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
   const myRole = useRecoilValue(myWorkspaceRoleState);
+  const setMyWorkspaceRole = useSetRecoilState(myWorkspaceRoleState);
   const isOwner = myRole === 'OWNER';
   const setCurrentWorkspaceId = useSetRecoilState(currentWorkspaceState);
   const setActiveTab = useSetRecoilState(settingsTabState);
@@ -52,28 +53,38 @@ export const WsGeneralTab = () => {
   const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
-  // Load workspace settings + my nickname
+  // 멤버십 먼저 로드 → OWNER일 때만 설정 API 호출
   useEffect(() => {
     if (!currentWorkspaceId) return;
-    getWorkspaceSettings(currentWorkspaceId).then(data => {
-      setWsName(data.name ?? '');
-      setWsDescription(data.description ?? '');
-      setWsMmWebhookUrl(data.mmWebhookUrl ?? '');
-      setWsOriginalName(data.name ?? '');
-      setWsOriginalDescription(data.description ?? '');
-      setWsOriginalMmWebhookUrl(data.mmWebhookUrl ?? '');
-      setWsImageUrl((data as any).imageUrl ?? '');
-      setWsOriginalImageUrl((data as any).imageUrl ?? '');
-      setWsPreviewUrl('');
-      setWsPendingFile(null);
-      setWsImageRemoved(false);
-      setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, mmWebhookUrl: data.mmWebhookUrl ?? null } : w));
-    }).catch(err => {
-      console.error('Failed to load workspace settings:', err);
-    });
+
     getMyMembership(currentWorkspaceId).then(data => {
+      const role = data.role ?? 'MEMBER';
+      setMyWorkspaceRole(role);
       setWsNickname(data.nickname ?? '');
       setWsOriginalNickname(data.nickname ?? '');
+
+      if (role === 'OWNER') {
+        getWorkspaceSettings(currentWorkspaceId).then(settings => {
+          setWsName(settings.name ?? '');
+          setWsDescription(settings.description ?? '');
+          setWsMmWebhookUrl((settings as any).mmWebhookUrl ?? '');
+          setWsOriginalName(settings.name ?? '');
+          setWsOriginalDescription(settings.description ?? '');
+          setWsOriginalMmWebhookUrl((settings as any).mmWebhookUrl ?? '');
+          setWsImageUrl((settings as any).imageUrl ?? '');
+          setWsOriginalImageUrl((settings as any).imageUrl ?? '');
+          setWsPreviewUrl('');
+          setWsPendingFile(null);
+          setWsImageRemoved(false);
+          setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, mmWebhookUrl: (settings as any).mmWebhookUrl ?? null } : w));
+        }).catch(err => {
+          console.error('Failed to load workspace settings:', err);
+        });
+      } else {
+        // OWNER가 아니면 workspaces Recoil 상태에서 기본값 읽기
+        setWsName(currentWorkspace?.name ?? '');
+        setWsDescription(currentWorkspace?.description ?? '');
+      }
     }).catch(err => {
       console.error('Failed to load membership:', err);
     });
