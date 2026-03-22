@@ -15,6 +15,8 @@ import {
   User,
   Send,
   Loader2,
+  Clock,
+  HardDrive,
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useIsDark } from '@/App';
@@ -335,10 +337,21 @@ export const ProblemSolutions = () => {
                 )}
                 {activeVersion && <span className="ml-2"><StatusBadge status={activeVersion.status} /></span>}
                 {activeVersion && activeVersion.time && (
-                  <span className="text-text-faint ml-1">{activeVersion.time}</span>
+                  <span className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded-md bg-surface-subtle border border-border-subtle/50 text-text-muted">
+                    <Clock className="w-3 h-3 text-indigo-400" />
+                    {activeVersion.time} ms
+                  </span>
                 )}
                 {activeVersion && activeVersion.memory && (
-                  <span className="text-text-faint">{activeVersion.memory}</span>
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-subtle border border-border-subtle/50 text-text-muted">
+                    <HardDrive className="w-3 h-3 text-emerald-400" />
+                    {(() => {
+                      const kb = parseFloat(activeVersion.memory);
+                      return !isNaN(kb) && kb >= 1024
+                        ? `${(kb / 1024).toFixed(1)} MB`
+                        : `${activeVersion.memory} KB`;
+                    })()}
+                  </span>
                 )}
               </>
             )}
@@ -376,7 +389,7 @@ export const ProblemSolutions = () => {
             <Editor
               height="100%"
               theme={isDark ? 'vs-dark' : 'light'}
-              language={activeSolution ? (LANG_MONACO[activeSolution.programmingLanguage] ?? 'plaintext') : 'plaintext'}
+              language={LANG_MONACO[activeVersion.programmingLanguage ?? activeSolution?.programmingLanguage ?? ''] ?? 'plaintext'}
               value={activeVersion.code ?? ''}
               options={{
                 minimap: { enabled: false },
