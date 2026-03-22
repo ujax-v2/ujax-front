@@ -196,6 +196,9 @@ export const WsMembersTab = () => {
                       <div className="text-sm font-medium text-text-secondary">
                         {member.nickname ?? t('settings.members.noNickname')}
                       </div>
+                      {member.email && (
+                        <div className="text-xs text-text-faint mt-0.5">{member.email}</div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
