@@ -22,37 +22,48 @@ export function getAccessToken(): string | null {
   return getAuth()?.accessToken || null;
 }
 
+let refreshPromise: Promise<string | null> | null = null;
+
 async function refreshAccessToken(): Promise<string | null> {
-  const auth = getAuth();
-  if (!auth?.refreshToken) return null;
+  // 이미 진행 중인 refresh가 있으면 같은 Promise를 공유 (race condition 방지)
+  if (refreshPromise) return refreshPromise;
 
-  try {
-    const res = await fetch('/api/v1/auth/refresh', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken: auth.refreshToken }),
-    });
+  refreshPromise = (async () => {
+    const auth = getAuth();
+    if (!auth?.refreshToken) return null;
 
-    if (!res.ok) {
-      localStorage.removeItem('auth');
+    try {
+      const res = await fetch('/api/v1/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: auth.refreshToken }),
+      });
+
+      if (!res.ok) {
+        localStorage.removeItem('auth');
+        return null;
+      }
+
+      const { data } = await res.json();
+      const stored = JSON.parse(localStorage.getItem('auth') || '{}');
+      localStorage.setItem('auth', JSON.stringify({
+        ...stored,
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+      }));
+
+      // Extension에 갱신된 토큰 전달 (ujaxBridge.js가 수신)
+      window.postMessage({ type: 'ujaxTokenRefreshed', token: data.accessToken }, '*');
+
+      return data.accessToken;
+    } catch {
       return null;
+    } finally {
+      refreshPromise = null;
     }
+  })();
 
-    const { data } = await res.json();
-    const stored = JSON.parse(localStorage.getItem('auth') || '{}');
-    localStorage.setItem('auth', JSON.stringify({
-      ...stored,
-      accessToken: data.accessToken,
-      refreshToken: data.refreshToken,
-    }));
-
-    // Extension에 갱신된 토큰 전달 (ujaxBridge.js가 수신)
-    window.postMessage({ type: 'ujaxTokenRefreshed', token: data.accessToken }, '*');
-
-    return data.accessToken;
-  } catch {
-    return null;
-  }
+  return refreshPromise;
 }
 
 export async function authFetch(url: string, options: RequestInit = {}) {
