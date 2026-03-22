@@ -17,6 +17,7 @@ import {
   Loader2,
   Clock,
   HardDrive,
+  Trash2,
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useIsDark } from '@/App';
@@ -27,6 +28,7 @@ import {
   getSolutionVersions,
   getSolutionComments,
   createSolutionComment,
+  deleteSolutionComment,
   likeSolution,
   unlikeSolution,
 } from '@/api/solution';
@@ -195,6 +197,27 @@ export const ProblemSolutions = () => {
       alert(parseApiError(err));
     } finally {
       setCommentSubmitting(false);
+    }
+  };
+
+  const handleCommentDelete = async (commentId: number) => {
+    if (!wsId || !boxId || !problemId || !activeWorkspaceMemberId || !activeVersion) return;
+    try {
+      await deleteSolutionComment(wsId, boxId, problemId, activeWorkspaceMemberId, activeVersion.submissionId, commentId);
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+      setVersionResult((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          content: prev.content.map((v) =>
+            v.submissionId === activeVersion.submissionId
+              ? { ...v, commentCount: v.commentCount - 1 }
+              : v,
+          ),
+        };
+      });
+    } catch (err) {
+      alert(parseApiError(err));
     }
   };
 
@@ -428,11 +451,21 @@ export const ProblemSolutions = () => {
               <div className="text-text-faint text-sm">아직 댓글이 없습니다.</div>
             ) : (
               comments.map((c) => (
-                <div key={c.id} className="flex gap-3 text-sm">
+                <div key={c.id} className="flex gap-3 text-sm group">
                   <div className="font-bold text-text-secondary shrink-0">{c.authorName}</div>
                   <div className="text-text-muted flex-1">{c.content}</div>
-                  <div className="text-text-faint text-xs shrink-0">
-                    {new Date(c.createdAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-text-faint text-xs">
+                      {new Date(c.createdAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    {c.isMyComment && (
+                      <button
+                        onClick={() => handleCommentDelete(c.id)}
+                        className="opacity-0 group-hover:opacity-100 text-text-faint hover:text-red-400 transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))
