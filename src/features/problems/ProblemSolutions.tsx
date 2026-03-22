@@ -34,6 +34,16 @@ import {
 } from '@/api/solution';
 import type { components } from '@ujax/api-spec/types';
 import type { SolutionSummary, SolutionVersion, SolutionComment } from '@/api/solution';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type SolutionVersionPageData = components['schemas']['ApiResponse-SolutionVersionList']['data'];
 
@@ -93,6 +103,7 @@ export const ProblemSolutions = () => {
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteCommentId, setDeleteCommentId] = useState<number | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
 
   const activeSolution = summaries.find((s) => s.workspaceMemberId === activeWorkspaceMemberId) ?? null;
@@ -200,11 +211,11 @@ export const ProblemSolutions = () => {
     }
   };
 
-  const handleCommentDelete = async (commentId: number) => {
-    if (!wsId || !boxId || !problemId || !activeWorkspaceMemberId || !activeVersion) return;
+  const handleCommentDelete = async () => {
+    if (!wsId || !boxId || !problemId || !activeWorkspaceMemberId || !activeVersion || deleteCommentId === null) return;
     try {
-      await deleteSolutionComment(wsId, boxId, problemId, activeWorkspaceMemberId, activeVersion.submissionId, commentId);
-      setComments((prev) => prev.filter((c) => c.id !== commentId));
+      await deleteSolutionComment(wsId, boxId, problemId, activeWorkspaceMemberId, activeVersion.submissionId, deleteCommentId);
+      setComments((prev) => prev.filter((c) => c.id !== deleteCommentId));
       setVersionResult((prev) => {
         if (!prev) return prev;
         return {
@@ -218,10 +229,32 @@ export const ProblemSolutions = () => {
       });
     } catch (err) {
       alert(parseApiError(err));
+    } finally {
+      setDeleteCommentId(null);
     }
   };
 
   return (
+    <>
+    <AlertDialog open={deleteCommentId !== null} onOpenChange={(open) => { if (!open) setDeleteCommentId(null); }}>
+      <AlertDialogContent className="bg-surface border-border-default">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-text-primary">댓글 삭제</AlertDialogTitle>
+          <AlertDialogDescription className="text-text-muted">
+            댓글을 삭제하시겠습니까? 삭제한 댓글은 복구할 수 없습니다.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="bg-transparent border-border-default text-text-secondary hover:bg-hover-bg">취소</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleCommentDelete}
+            className="bg-red-600 hover:bg-red-700 text-white border-none"
+          >
+            삭제
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     <div className="flex h-full bg-page">
       {/* ── Sidebar ── */}
       <div className="w-80 bg-page border-r border-border-subtle flex flex-col">
@@ -460,9 +493,7 @@ export const ProblemSolutions = () => {
                     </span>
                     {c.isMyComment && (
                       <button
-                        onClick={() => {
-                          if (window.confirm('댓글을 삭제하시겠습니까?')) handleCommentDelete(c.id);
-                        }}
+                        onClick={() => setDeleteCommentId(c.id)}
                         className="text-text-faint hover:text-red-400 transition-colors"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -497,5 +528,6 @@ export const ProblemSolutions = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
