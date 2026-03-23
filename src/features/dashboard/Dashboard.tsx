@@ -26,6 +26,18 @@ function formatDate(isoStr: string) {
   return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`;
 }
 
+function getTierColor(tier: string | null | undefined) {
+  if (!tier) return 'text-text-faint bg-surface-subtle border-border-subtle';
+  const tl = tier.toLowerCase();
+  if (tl.includes('gold')) return 'text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+  if (tl.includes('silver')) return 'text-text-secondary bg-surface-subtle border-border-subtle';
+  if (tl.includes('bronze')) return 'text-amber-700 dark:text-amber-500 bg-amber-500/10 border-amber-500/20';
+  if (tl.includes('platinum')) return 'text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/20';
+  if (tl.includes('diamond')) return 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20';
+  if (tl.includes('ruby')) return 'text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/20';
+  return 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+}
+
 export const Dashboard = () => {
   const { navigate, toWs } = useWorkspaceNavigate();
   const t = useT();
@@ -184,13 +196,13 @@ export const Dashboard = () => {
               ) : (
                 <>
                   {deadlines.slice(0, 3).map(problem => (
-                    <Card key={problem.workspaceProblemId} className="bg-surface-raised border-border-default p-4 flex flex-col justify-between cursor-pointer flex-1 hover:border-border-subtle transition-colors">
+                    <Card key={problem.workspaceProblemId} className="bg-surface-raised border-border-default p-4 flex flex-col justify-between cursor-pointer flex-1 hover:border-border-subtle transition-colors" onClick={() => toWs(`ide/${problem.problemNumber}`)}>
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="text-base font-bold text-text-secondary truncate">{problem.title}</h3>
                         <div className="flex gap-1 shrink-0">
                           <span className="px-2 py-0.5 text-xs font-medium bg-surface-subtle text-text-secondary rounded border border-border-subtle">{problem.problemNumber}</span>
                           {problem.tier && (
-                            <span className="px-2 py-0.5 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded border border-emerald-200 dark:border-emerald-800/50">{problem.tier}</span>
+                            <span className={`px-2 py-0.5 text-xs font-medium rounded border ${getTierColor(problem.tier)}`}>{problem.tier}</span>
                           )}
                         </div>
                       </div>
@@ -250,7 +262,7 @@ export const Dashboard = () => {
                       <div className="flex gap-1 shrink-0">
                         <span className="px-2 py-0.5 text-xs font-medium bg-surface-subtle text-text-secondary rounded border border-border-subtle">{summary.hotProblem.problemNumber}</span>
                         {summary.hotProblem.tier && (
-                          <span className="px-2 py-0.5 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded border border-emerald-200 dark:border-emerald-800/50">{summary.hotProblem.tier}</span>
+                          <span className={`px-2 py-0.5 text-xs font-medium rounded border ${getTierColor(summary.hotProblem.tier)}`}>{summary.hotProblem.tier}</span>
                         )}
                       </div>
                     </div>

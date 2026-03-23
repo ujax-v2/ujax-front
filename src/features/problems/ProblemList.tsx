@@ -561,12 +561,14 @@ export const ProblemList = () => {
                 </button>
                 <h1 className="text-3xl font-extrabold text-text-primary tracking-tight">{currentBox.title}</h1>
               </div>
-              <Button
-                className="bg-emerald-600 border border-emerald-500 text-white font-bold hover:bg-emerald-700 shrink-0 shadow-sm transition-all"
-                onClick={() => toWs('problems/new')}
-              >
-                <Plus className="w-4 h-4 mr-1" /> {t('problems.importProblems')}
-              </Button>
+              {canManage && (
+                <Button
+                  className="bg-emerald-600 border border-emerald-500 text-white font-bold hover:bg-emerald-700 shrink-0 shadow-sm transition-all"
+                  onClick={() => toWs('problems/new')}
+                >
+                  <Plus className="w-4 h-4 mr-1" /> {t('problems.importProblems')}
+                </Button>
+              )}
             </div>
             {currentBox.description && (
               <p className="text-base text-text-muted font-medium leading-relaxed max-w-3xl mt-4">{currentBox.description}</p>
