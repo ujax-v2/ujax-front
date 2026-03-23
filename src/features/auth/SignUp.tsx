@@ -17,6 +17,8 @@ export const SignUp = () => {
   });
   const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [passwordImeHint, setPasswordImeHint] = useState(false);
+  const imeHintTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -30,11 +32,34 @@ export const SignUp = () => {
     return '';
   };
 
+  const filterKorean = (value: string) => value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
+
+  const showImeHint = (raw: string, filtered: string) => {
+    if (filtered !== raw) {
+      if (imeHintTimer.current) clearTimeout(imeHintTimer.current);
+      setPasswordImeHint(true);
+      imeHintTimer.current = setTimeout(() => setPasswordImeHint(false), 2000);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    if (name === 'password') {
+      const filtered = filterKorean(value);
+      showImeHint(value, filtered);
+      value = filtered;
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
     const error = validate(name, value);
     setErrors(prev => ({ ...prev, [name]: error }));
+  };
+
+  const handlePasswordCompositionEnd = (e: React.CompositionEvent<HTMLInputElement>) => {
+    const raw = e.currentTarget.value;
+    const filtered = filterKorean(raw);
+    showImeHint(raw, filtered);
+    setFormData(prev => ({ ...prev, password: filtered }));
+    setErrors(prev => ({ ...prev, password: validate('password', filtered) }));
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -108,10 +133,14 @@ export const SignUp = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                onCompositionEnd={handlePasswordCompositionEnd}
                 className={`w-full bg-input-bg border ${errors.password ? 'border-red-500' : 'border-border-default'} rounded-lg py-2.5 pl-10 pr-4 text-sm text-text-secondary focus:outline-none focus:border-emerald-500 transition-colors`}
                 placeholder="••••••••"
               />
             </div>
+            {passwordImeHint && (
+              <p className="text-xs text-amber-500 mt-1">한/영 키를 눌러 영문 모드로 전환해주세요</p>
+            )}
 
             {/* Password Validation Feedback Area */}
             <div className="grid grid-cols-2 gap-2 mt-2">
