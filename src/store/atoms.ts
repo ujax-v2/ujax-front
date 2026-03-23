@@ -149,7 +149,16 @@ const authStorageEffect: AtomEffect<UserState> = ({ setSelf, onSet }) => {
       if (isReset || !newValue.isLoggedIn) {
         localStorage.removeItem('auth');
       } else {
-        localStorage.setItem('auth', JSON.stringify(newValue));
+        // refreshAccessToken()이 localStorage를 직접 업데이트할 수 있으므로,
+        // 현재 localStorage의 토큰이 더 최신일 수 있다 → 덮어쓰지 않고 보존
+        let accessToken = newValue.accessToken;
+        let refreshToken = newValue.refreshToken;
+        try {
+          const existing = JSON.parse(localStorage.getItem('auth') || '{}');
+          if (existing.accessToken) accessToken = existing.accessToken;
+          if (existing.refreshToken) refreshToken = existing.refreshToken;
+        } catch { /* ignore */ }
+        localStorage.setItem('auth', JSON.stringify({ ...newValue, accessToken, refreshToken }));
       }
     } catch { /* ignore */ }
   });

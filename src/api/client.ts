@@ -47,17 +47,24 @@ async function refreshAccessToken(): Promise<string | null> {
           return currentAuth.accessToken;
         }
         localStorage.removeItem('auth');
+        // 앱에 세션 만료를 알려 즉시 /login으로 이동하게 함
+        window.dispatchEvent(new CustomEvent('ujaxAuthExpired'));
         return null;
       }
 
       const { data } = await res.json();
       const stored = JSON.parse(localStorage.getItem('auth') || '{}');
-      localStorage.setItem('auth', JSON.stringify({
+      const updated = {
         ...stored,
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
-      }));
+      };
+      localStorage.setItem('auth', JSON.stringify(updated));
 
+      // Recoil userState의 토큰도 동기화 (stale 토큰이 localStorage를 덮어쓰는 것 방지)
+      window.dispatchEvent(new CustomEvent('ujaxTokenUpdated', {
+        detail: { accessToken: data.accessToken, refreshToken: data.refreshToken },
+      }));
       // Extension에 갱신된 토큰 전달 (ujaxBridge.js가 수신)
       window.postMessage({ type: 'ujaxTokenRefreshed', token: data.accessToken }, '*');
 
