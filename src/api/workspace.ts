@@ -31,6 +31,9 @@ export type JoinRequestResponse = ApiJoinRequestResponse['data'];
 type ApiMyJoinRequestStatus = components['schemas']['ApiResponse-WorkspaceMyJoinRequestStatusResponse'];
 export type MyJoinRequestStatusResponse = ApiMyJoinRequestStatus['data'];
 
+type ApiDashboard = components['schemas']['ApiResponse-WorkspaceDashboardResponse'];
+export type WorkspaceDashboardResponse = ApiDashboard['data'];
+
 // ──── 워크스페이스 CRUD ────
 
 export async function getWorkspaces(): Promise<WorkspaceMyListResponse> {
@@ -88,6 +91,13 @@ export async function getWorkspaceImagePresignedUrl(workspaceId: number, fileSiz
     body: JSON.stringify({ fileSize, contentType }),
   });
   return res.data as { presignedUrl: string; imageUrl: string };
+}
+
+// ──── 대시보드 ────
+
+export async function getWorkspaceDashboard(workspaceId: number): Promise<WorkspaceDashboardResponse> {
+  const res = await authFetch(`/api/v1/workspaces/${workspaceId}/dashboard`);
+  return res.data;
 }
 
 // ──── 설정 ────

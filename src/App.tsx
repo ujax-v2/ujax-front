@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRecoilState, useRecoilValue, RecoilRoot } from 'recoil';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, Workspace, themeState, ThemeMode, languageState } from './store/atoms';
+import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, Workspace, themeState, ThemeMode, languageState, GUEST_USER } from './store/atoms';
 import { Sidebar } from './components/layout/Sidebar';
 import { getWorkspaces, getWorkspaceSettings } from './api/workspace';
 import { Dashboard } from './features/dashboard/Dashboard';
@@ -30,7 +30,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import 'dayjs/locale/ko';
 import 'dayjs/locale/en';
 import { LangSync, useT } from './i18n';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 
 const darkTheme = createTheme({
   palette: {
@@ -283,9 +283,43 @@ function RedirectToWorkspace({ page }: { page: string }) {
 
 function AppContent() {
   const [isSidebarOpen, setSidebarOpen] = useRecoilState(sidebarOpenState);
-  const user = useRecoilValue(userState);
-  const workspaces = useRecoilValue(workspacesState);
+  const [user, setUser] = useRecoilState(userState);
+  const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
+  const setCurrentWsId = useRecoilState(currentWorkspaceState)[1];
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // client.ts에서 발생하는 인증 이벤트 처리
+  React.useEffect(() => {
+    // 토큰 갱신 성공 시 Recoil userState 동기화 (stale 토큰이 localStorage를 덮어쓰는 버그 방지)
+    const onTokenUpdated = (e: Event) => {
+      const { accessToken, refreshToken } = (e as CustomEvent).detail;
+      setUser(prev => prev.isLoggedIn ? { ...prev, accessToken, refreshToken } : prev);
+    };
+
+    // 세션 만료(리프레시 실패) 시 즉시 로그아웃 처리
+    // 동일 탭 내에서 여러 번 발생하지 않도록 guard
+    let expiredHandled = false;
+    const onAuthExpired = () => {
+      if (expiredHandled) return;
+      expiredHandled = true;
+      setUser(GUEST_USER);
+      setWorkspaces([]);
+      setCurrentWsId(0);
+      toast.error('세션이 만료되었습니다. 다시 로그인해주세요.', {
+        duration: 4000,
+        position: 'top-center',
+      });
+      navigate('/login');
+    };
+
+    window.addEventListener('ujaxTokenUpdated', onTokenUpdated);
+    window.addEventListener('ujaxAuthExpired', onAuthExpired);
+    return () => {
+      window.removeEventListener('ujaxTokenUpdated', onTokenUpdated);
+      window.removeEventListener('ujaxAuthExpired', onAuthExpired);
+    };
+  }, [navigate, setUser, setWorkspaces, setCurrentWsId]);
 
   // 사이드바를 숨겨야 하는 페이지: 인증, IDE, 홈, 풀이 보기(solutions)
   const isFullScreen = ['/login', '/signup', '/oauth/callback', '/'].includes(location.pathname)

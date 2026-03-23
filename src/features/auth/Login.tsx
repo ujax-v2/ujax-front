@@ -21,6 +21,34 @@ export const Login = ({ oauthError: oauthErrorProp, onClearError }: LoginProps) 
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [passwordImeHint, setPasswordImeHint] = useState(false);
+  const imeHintTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const filterKorean = (value: string) => value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
+
+  const showImeHint = (raw: string, filtered: string) => {
+    if (filtered !== raw) {
+      if (imeHintTimer.current) clearTimeout(imeHintTimer.current);
+      setPasswordImeHint(true);
+      imeHintTimer.current = setTimeout(() => setPasswordImeHint(false), 2000);
+    }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const filtered = filterKorean(raw);
+    showImeHint(raw, filtered);
+    setPassword(filtered);
+    clearOauthError();
+  };
+
+  // compositionEnd: 일부 브라우저에서 onChange가 조합 완료 후 한 번만 울리는 케이스 보완
+  const handlePasswordCompositionEnd = (e: React.CompositionEvent<HTMLInputElement>) => {
+    const raw = e.currentTarget.value;
+    const filtered = filterKorean(raw);
+    showImeHint(raw, filtered);
+    setPassword(filtered);
+  };
 
   const oauthError = oauthErrorProp || searchParams.get('oauthError') || '';
 
@@ -77,11 +105,15 @@ export const Login = ({ oauthError: oauthErrorProp, onClearError }: LoginProps) 
               <input
                 type="password"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); clearOauthError(); }}
+                onChange={handlePasswordChange}
+                onCompositionEnd={handlePasswordCompositionEnd}
                 className="w-full bg-input-bg border border-border-default rounded-lg py-2.5 pl-10 pr-4 text-sm text-text-secondary focus:outline-none focus:border-emerald-500 transition-colors"
                 placeholder="••••••••"
               />
             </div>
+            {passwordImeHint && (
+              <p className="text-xs text-amber-500 mt-1">한/영 키를 눌러 영문 모드로 전환해주세요</p>
+            )}
           </div>
 
           {(error || oauthError) && (

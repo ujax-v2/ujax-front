@@ -102,6 +102,17 @@ export const LABEL_TO_BOARD_TYPE: Record<string, BoardType> = {
   'data': 'DATA',
 };
 
+// ──── 이미지 업로드 ────
+
+export async function getBoardImagePresignedUrl(wsId: number, fileSize: number, contentType: string) {
+  const res = await authFetch(`/api/v1/workspaces/${wsId}/boards/image/presigned-url`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fileSize, contentType }),
+  });
+  return res.data as { presignedUrl: string; imageUrl: string };
+}
+
 // ──── 게시물 CRUD ────
 
 function boardBase(wsId: number) {

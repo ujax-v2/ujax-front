@@ -56,10 +56,18 @@ export function useAuth() {
     return userData;
   };
 
-  const logout = async (refreshToken?: string) => {
+  const logout = async (_refreshToken?: string) => {
+    // Recoil userState의 refreshToken은 silent refresh 이후 stale할 수 있으므로
+    // 항상 localStorage에서 최신 refreshToken을 직접 읽어 사용한다.
+    let currentRefreshToken: string | undefined;
     try {
-      if (refreshToken) {
-        await logoutApi(refreshToken);
+      const stored = JSON.parse(localStorage.getItem('auth') || '{}');
+      currentRefreshToken = stored.refreshToken || undefined;
+    } catch { /* ignore */ }
+
+    try {
+      if (currentRefreshToken) {
+        await logoutApi(currentRefreshToken);
       }
     } catch {
       // logout API 실패해도 로컬 상태는 초기화
