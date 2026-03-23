@@ -3,9 +3,12 @@ import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState } from '@/store/atoms';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { Button, Card } from '@/components/ui/Base';
-import { X, Trophy, Activity, CheckCircle2, UserCircle, Pin } from 'lucide-react';
+import { X, Trophy, Activity, CheckCircle2, UserCircle, Pin, Loader2 } from 'lucide-react';
 import { useT } from '@/i18n';
 import { getWorkspaceDashboard, WorkspaceDashboardResponse } from '@/api/workspace';
+import { getBoardDetail } from '@/api/board';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 function formatDeadline(deadline: string) {
   const d = new Date(deadline);
@@ -31,6 +34,27 @@ export const Dashboard = () => {
   const setCreateWorkspaceOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
 
   const [selectedNotice, setSelectedNotice] = useState<WorkspaceDashboardResponse['recentNotices'][0] | null>(null);
+  const [noticeContent, setNoticeContent] = useState<string | null>(null);
+  const [noticeContentLoading, setNoticeContentLoading] = useState(false);
+
+  const handleNoticeClick = async (notice: WorkspaceDashboardResponse['recentNotices'][0]) => {
+    setSelectedNotice(notice);
+    setNoticeContent(null);
+    setNoticeContentLoading(true);
+    try {
+      const detail = await getBoardDetail(currentWorkspaceId, notice.boardId);
+      setNoticeContent(detail.content);
+    } catch {
+      setNoticeContent(null);
+    } finally {
+      setNoticeContentLoading(false);
+    }
+  };
+
+  const handleCloseNotice = () => {
+    setSelectedNotice(null);
+    setNoticeContent(null);
+  };
   const [activeRankingTab, setActiveRankingTab] = useState<'monthlySolved' | 'streak' | 'deadlineRate'>('monthlySolved');
   const [dashboard, setDashboard] = useState<WorkspaceDashboardResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -105,25 +129,38 @@ export const Dashboard = () => {
             </div>
             <div className="flex flex-col gap-2.5 flex-1 w-full relative">
               {loading ? (
-                <div className="flex-1 flex items-center justify-center text-text-faint text-sm">불러오는 중...</div>
-              ) : notices.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center text-text-faint text-sm">등록된 공지가 없습니다.</div>
-              ) : notices.map(notice => (
-                <Card
-                  key={notice.boardId}
-                  className="bg-surface-raised border-border-default p-4 cursor-pointer hover:border-border-subtle transition-colors flex flex-col justify-between flex-1"
-                  onClick={() => setSelectedNotice(notice)}
-                >
-                  <div className="flex items-start gap-2 mb-3">
-                    {notice.pinned && <Pin className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />}
-                    <h3 className="text-base font-bold text-text-secondary truncate">{notice.title}</h3>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-text-faint">
-                    <span className="text-text-muted font-medium">{notice.authorNickname}</span>
-                    <span>{formatDate(notice.createdAt)}</span>
-                  </div>
-                </Card>
-              ))}
+                Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i} className="bg-surface-raised border-border-default p-4 flex-1 animate-pulse">
+                    <div className="h-4 bg-surface-subtle rounded w-3/4 mb-3" />
+                    <div className="h-3 bg-surface-subtle rounded w-1/2" />
+                  </Card>
+                ))
+              ) : (
+                <>
+                  {notices.slice(0, 3).map(notice => (
+                    <Card
+                      key={notice.boardId}
+                      className="bg-surface-raised border-border-default p-4 cursor-pointer hover:border-border-subtle transition-colors flex flex-col justify-between flex-1"
+                      onClick={() => handleNoticeClick(notice)}
+                    >
+                      <div className="flex items-center gap-1.5 mb-3">
+                        {notice.pinned && <Pin className="w-3.5 h-3.5 text-indigo-500 shrink-0" />}
+                        <h3 className="text-base font-bold text-text-secondary truncate">{notice.title}</h3>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-text-faint">
+                        <span className="text-text-muted font-medium">{notice.authorNickname}</span>
+                        <span>{formatDate(notice.createdAt)}</span>
+                      </div>
+                    </Card>
+                  ))}
+                  {notices.length === 0 && (
+                    <div className="flex-1 flex items-center justify-center text-text-faint text-sm">등록된 공지가 없습니다.</div>
+                  )}
+                  {Array.from({ length: Math.max(0, 3 - (notices.length === 0 ? 1 : notices.length)) }).map((_, i) => (
+                    <div key={`spacer-${i}`} className="flex-1" />
+                  ))}
+                </>
+              )}
             </div>
           </section>
 
@@ -138,30 +175,43 @@ export const Dashboard = () => {
             </div>
             <div className="flex flex-col gap-2.5 flex-1 w-full relative">
               {loading ? (
-                <div className="flex-1 flex items-center justify-center text-text-faint text-sm">불러오는 중...</div>
-              ) : deadlines.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center text-text-faint text-sm">임박한 마감 문제가 없습니다.</div>
-              ) : deadlines.slice(0, 3).map(problem => (
-                <Card key={problem.workspaceProblemId} className="bg-surface-raised border-border-default p-4 flex flex-col justify-between cursor-pointer flex-1 hover:border-border-subtle transition-colors">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-base font-bold text-text-secondary truncate">{problem.title}</h3>
-                    <div className="flex gap-1 shrink-0">
-                      <span className="px-2 py-0.5 text-xs font-medium bg-surface-subtle text-text-secondary rounded border border-border-subtle">{problem.problemNumber}</span>
-                      {problem.tier && (
-                        <span className="px-2 py-0.5 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded border border-emerald-200 dark:border-emerald-800/50">{problem.tier}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-text-faint">
-                    <div className="flex gap-1 overflow-hidden">
-                      {(problem.algorithmTags as string[]).slice(0, 2).map(tag => (
-                        <span key={tag}>#{tag}</span>
-                      ))}
-                    </div>
-                    <span className="shrink-0 font-medium text-emerald-600 dark:text-emerald-400">{formatDeadline(problem.deadline)}</span>
-                  </div>
-                </Card>
-              ))}
+                Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i} className="bg-surface-raised border-border-default p-4 flex-1 animate-pulse">
+                    <div className="h-4 bg-surface-subtle rounded w-2/3 mb-3" />
+                    <div className="h-3 bg-surface-subtle rounded w-1/3" />
+                  </Card>
+                ))
+              ) : (
+                <>
+                  {deadlines.slice(0, 3).map(problem => (
+                    <Card key={problem.workspaceProblemId} className="bg-surface-raised border-border-default p-4 flex flex-col justify-between cursor-pointer flex-1 hover:border-border-subtle transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-base font-bold text-text-secondary truncate">{problem.title}</h3>
+                        <div className="flex gap-1 shrink-0">
+                          <span className="px-2 py-0.5 text-xs font-medium bg-surface-subtle text-text-secondary rounded border border-border-subtle">{problem.problemNumber}</span>
+                          {problem.tier && (
+                            <span className="px-2 py-0.5 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded border border-emerald-200 dark:border-emerald-800/50">{problem.tier}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-text-faint">
+                        <div className="flex gap-1 overflow-hidden">
+                          {(problem.algorithmTags as string[]).slice(0, 2).map(tag => (
+                            <span key={tag}>#{tag}</span>
+                          ))}
+                        </div>
+                        <span className="shrink-0 font-medium text-emerald-600 dark:text-emerald-400">{formatDeadline(problem.deadline)}</span>
+                      </div>
+                    </Card>
+                  ))}
+                  {deadlines.length === 0 && (
+                    <div className="flex-1 flex items-center justify-center text-text-faint text-sm">임박한 마감 문제가 없습니다.</div>
+                  )}
+                  {Array.from({ length: Math.max(0, 3 - (deadlines.length === 0 ? 1 : deadlines.length)) }).map((_, i) => (
+                    <div key={`spacer-${i}`} className="flex-1" />
+                  ))}
+                </>
+              )}
             </div>
           </section>
 
@@ -303,18 +353,24 @@ export const Dashboard = () => {
 
       {/* 공지 상세 모달 */}
       {selectedNotice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-surface-raised border border-border-subtle rounded-xl w-full max-w-lg shadow-2xl relative animate-in fade-in zoom-in duration-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={handleCloseNotice}
+        >
+          <div
+            className="bg-surface-raised border border-border-subtle rounded-xl w-full max-w-2xl shadow-2xl relative animate-in fade-in zoom-in duration-200 flex flex-col max-h-[80vh]"
+            onClick={e => e.stopPropagation()}
+          >
             <button
-              onClick={() => setSelectedNotice(null)}
-              className="absolute top-4 right-4 text-text-faint hover:text-text-primary transition-colors"
+              onClick={handleCloseNotice}
+              className="absolute top-4 right-4 text-text-faint hover:text-text-primary transition-colors z-10"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="p-6 border-b border-border-default">
-              <div className="flex items-center gap-2 pr-8">
+            <div className="p-6 border-b border-border-default shrink-0">
+              <div className="flex items-center gap-1.5 pr-8">
                 {selectedNotice.pinned && <Pin className="w-4 h-4 text-indigo-500 shrink-0" />}
-                <h3 className="text-xl font-bold text-text-primary">{selectedNotice.title}</h3>
+                <h3 className="text-xl font-bold text-text-primary leading-tight">{selectedNotice.title}</h3>
               </div>
               <div className="flex items-center gap-2 mt-3 text-sm text-text-muted">
                 <span>{formatDate(selectedNotice.createdAt)}</span>
@@ -322,11 +378,34 @@ export const Dashboard = () => {
                 <span>{t('dashboard.author')} {selectedNotice.authorNickname}</span>
               </div>
             </div>
-            <div className="p-6 text-text-secondary leading-relaxed text-sm min-h-[100px]">
-              <p className="text-text-faint text-xs">게시글 상세 내용을 보려면 커뮤니티 페이지를 이용해 주세요.</p>
+            <div className="p-6 overflow-y-auto flex-1">
+              {noticeContentLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-5 h-5 animate-spin text-text-faint" />
+                </div>
+              ) : noticeContent ? (
+                <div className="prose dark:prose-invert max-w-none
+                  prose-headings:text-text-primary prose-headings:font-bold
+                  prose-p:text-[15px] prose-p:text-text-secondary prose-p:leading-[1.8] prose-p:my-3
+                  prose-a:text-indigo-500 prose-a:no-underline hover:prose-a:underline
+                  prose-strong:text-text-primary
+                  prose-code:text-emerald-600 dark:prose-code:text-emerald-300 prose-code:bg-surface-subtle/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[13px] prose-code:before:content-none prose-code:after:content-none
+                  prose-pre:bg-page-deep prose-pre:border prose-pre:border-border-subtle/50 prose-pre:rounded-xl
+                  prose-blockquote:border-l-indigo-500/40 prose-blockquote:bg-indigo-500/5 prose-blockquote:rounded-r-lg prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:text-text-muted prose-blockquote:not-italic
+                  prose-ul:my-3 prose-ol:my-3
+                  prose-li:text-[15px] prose-li:text-text-secondary prose-li:leading-[1.8]
+                  prose-hr:border-border-subtle/50
+                  prose-img:rounded-xl">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{noticeContent}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-text-faint text-sm">내용을 불러올 수 없습니다.</p>
+              )}
+            </div>
+            <div className="px-6 pb-4 shrink-0 flex justify-end">
               <button
-                onClick={() => { setSelectedNotice(null); toWs('community'); }}
-                className="mt-3 text-indigo-500 text-sm hover:underline font-medium"
+                onClick={() => { handleCloseNotice(); toWs('community'); }}
+                className="text-indigo-500 text-sm hover:underline font-medium"
               >
                 커뮤니티에서 보기 →
               </button>

@@ -40,6 +40,12 @@ async function refreshAccessToken(): Promise<string | null> {
       });
 
       if (!res.ok) {
+        // 다른 탭이 먼저 갱신해서 refreshToken이 이미 교체됐는지 확인
+        const currentAuth = getAuth();
+        if (currentAuth?.refreshToken && currentAuth.refreshToken !== auth.refreshToken) {
+          // 다른 탭이 갱신 완료 → 새 accessToken 사용
+          return currentAuth.accessToken;
+        }
         localStorage.removeItem('auth');
         return null;
       }

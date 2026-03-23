@@ -3,7 +3,7 @@ import { Card, Button } from '@/components/ui/Base';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { useRecoilValue } from 'recoil';
 import { currentWorkspaceState } from '@/store/atoms';
-import { createBoard, LABEL_TO_BOARD_TYPE } from '@/api/board';
+import { createBoard, LABEL_TO_BOARD_TYPE, getBoardImagePresignedUrl } from '@/api/board';
 import type { MemberRole } from '@/api/board';
 import { getMyMembership } from '@/api/workspace';
 import ReactMarkdown from 'react-markdown';
@@ -59,6 +59,7 @@ export const PostCreate = () => {
   const [pinned, setPinned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [imageUploading, setImageUploading] = useState(false);
   const [myRole, setMyRole] = useState<MemberRole>('MEMBER');
 
   // 내 역할 조회 → OWNER만 공지 태그 노출
@@ -84,7 +85,59 @@ export const PostCreate = () => {
   const IMAGE_URL_RE = /^https?:\/\/\S+\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?\S*)?$/i;
   const GENERAL_URL_RE = /^https?:\/\/\S+$/i;
 
-  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+  const insertAtCursor = (textarea: HTMLTextAreaElement, text: string) => {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const newContent = content.substring(0, start) + text + content.substring(end);
+    setContent(newContent);
+    const cursorPos = start + text.length;
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(cursorPos, cursorPos);
+    });
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const textarea = textareaRef.current!;
+
+    // 이미지 파일(스크린샷 포함) 붙여넣기 처리
+    const imageItem = Array.from(e.clipboardData.items).find(
+      item => item.kind === 'file' && item.type.startsWith('image/')
+    );
+    if (imageItem) {
+      e.preventDefault();
+      const file = imageItem.getAsFile();
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        setError('이미지 크기는 5MB를 초과할 수 없습니다.');
+        return;
+      }
+      const placeholder = '![이미지 업로드 중...]()';
+      const start = textarea.selectionStart;
+      insertAtCursor(textarea, placeholder);
+      setImageUploading(true);
+      try {
+        const { presignedUrl, imageUrl } = await getBoardImagePresignedUrl(wsId, file.size, file.type);
+        await fetch(presignedUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type },
+          body: file,
+        });
+        setContent(prev => prev.replace(placeholder, `![이미지](${imageUrl})`));
+        requestAnimationFrame(() => {
+          textarea.focus();
+          const pos = start + `![이미지](${imageUrl})`.length;
+          textarea.setSelectionRange(pos, pos);
+        });
+      } catch {
+        setContent(prev => prev.replace(placeholder, ''));
+        setError('이미지 업로드에 실패했습니다.');
+      } finally {
+        setImageUploading(false);
+      }
+      return;
+    }
+
     const pasted = e.clipboardData.getData('text/plain').trim();
     if (!pasted) return;
 
@@ -368,7 +421,13 @@ export const PostCreate = () => {
             )}
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-3 pt-4 border-t border-border-default">
+            <div className="flex justify-end items-center gap-3 pt-4 border-t border-border-default">
+              {imageUploading && (
+                <span className="flex items-center gap-1.5 text-xs text-text-faint">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  이미지 업로드 중...
+                </span>
+              )}
               <Button
                 type="button"
                 variant="outline"
@@ -379,7 +438,7 @@ export const PostCreate = () => {
               </Button>
               <Button
                 type="submit"
-                disabled={submitting || charOver}
+                disabled={submitting || charOver || imageUploading}
                 className="bg-emerald-600 hover:bg-emerald-700 font-bold px-6 gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? (
