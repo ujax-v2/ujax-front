@@ -314,7 +314,7 @@ export const ProblemSolutions = () => {
                       <span className={isActive ? 'text-emerald-500' : ''}>{sol.memberName}</span>
                     </div>
                     <span className="text-[10px] text-text-faint">
-                      {new Date(sol.updatedAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {new Date(sol.updatedAt.endsWith('Z') ? sol.updatedAt : sol.updatedAt + 'Z').toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
 
@@ -354,7 +354,7 @@ export const ProblemSolutions = () => {
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
-                    {new Date(activeSolution.updatedAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    {new Date(activeSolution.updatedAt.endsWith('Z') ? activeSolution.updatedAt : activeSolution.updatedAt + 'Z').toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </span>
                   <StatusBadge status={activeSolution.latestStatus} />
                 </div>
@@ -388,7 +388,7 @@ export const ProblemSolutions = () => {
                 <span className="font-medium text-text-secondary">제출 기록 (Version {displayVersionNum} / {totalVersions})</span>
                 {activeVersion && (
                   <span className="text-text-faint">
-                    {new Date(activeVersion.createdAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    {new Date(activeVersion.createdAt.endsWith('Z') ? activeVersion.createdAt : activeVersion.createdAt + 'Z').toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </span>
                 )}
                 {activeVersion && <StatusBadge status={activeVersion.status} />}
@@ -489,7 +489,7 @@ export const ProblemSolutions = () => {
                   <div className="text-text-muted flex-1">{c.content}</div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-text-faint text-xs">
-                      {new Date(c.createdAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {new Date(c.createdAt.endsWith('Z') ? c.createdAt : c.createdAt + 'Z').toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </span>
                     {c.isMyComment && (
                       <button

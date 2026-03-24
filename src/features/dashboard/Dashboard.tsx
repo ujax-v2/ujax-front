@@ -11,7 +11,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 function formatDeadline(deadline: string) {
-  const d = new Date(deadline);
+  const d = new Date(deadline.endsWith('Z') ? deadline : deadline + 'Z');
   const now = new Date();
   const diffMs = d.getTime() - now.getTime();
   const diffH = Math.floor(diffMs / (1000 * 60 * 60));
@@ -22,7 +22,7 @@ function formatDeadline(deadline: string) {
 }
 
 function formatDate(isoStr: string) {
-  const d = new Date(isoStr);
+  const d = new Date(isoStr.endsWith('Z') ? isoStr : isoStr + 'Z');
   return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`;
 }
 
