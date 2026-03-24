@@ -24,7 +24,7 @@ type MemberRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'MEMBER';
 
 function relativeTime(dateStr: string, t: (key: string, vars?: Record<string, string | number>) => string): string {
   const now = Date.now();
-  const then = new Date(dateStr).getTime();
+  const then = new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z').getTime();
   const diff = now - then;
 
   const seconds = Math.floor(diff / 1000);
@@ -664,7 +664,7 @@ export const ProblemList = () => {
                           )}
                         </div>
                         <div className="text-text-muted text-xs">
-                          {p.deadline ? new Date(p.deadline).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US') : '-'}
+                          {p.deadline ? new Date(p.deadline.endsWith('Z') ? p.deadline : p.deadline + 'Z').toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US') : '-'}
                         </div>
                         {/* 액션 메뉴 */}
                         <div className="text-center">
