@@ -153,7 +153,9 @@ export const PostDetail = () => {
 
   const isAuthor = myMemberId !== null && post?.author?.workspaceMemberId === myMemberId;
   const canManage = myRole === 'OWNER' || myRole === 'ADMIN';
-  const canDelete = isAuthor || canManage;
+  const isNotice = post?.type === 'NOTICE';
+  const canEdit = isNotice ? myRole === 'OWNER' : isAuthor;
+  const canDelete = isNotice ? myRole === 'OWNER' : (isAuthor || canManage);
   const canPin = myRole === 'OWNER' && post?.type === 'NOTICE';
 
   const getTagBadge = (type: string) => {
@@ -231,7 +233,7 @@ export const PostDetail = () => {
                       {post.pinned ? <><PinOff className="w-3.5 h-3.5" /> {t('post.detail.unpin')}</> : <><Pin className="w-3.5 h-3.5" /> {t('post.detail.pinnedPost')}</>}
                     </button>
                   )}
-                  {isAuthor && (
+                  {canEdit && (
                     <button
                       onClick={() => navigate(`/ws/${wsId}/community/${numericBoardId}/edit`, { state: { post } })}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-text-muted hover:text-text-secondary hover:bg-surface-subtle transition-colors"
@@ -239,12 +241,14 @@ export const PostDetail = () => {
                       <Edit3 className="w-3.5 h-3.5" /> {t('post.detail.edit')}
                     </button>
                   )}
-                  <button
-                    onClick={handlePostDelete}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> {t('post.detail.delete')}
-                  </button>
+                  {canDelete && (
+                    <button
+                      onClick={handlePostDelete}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> {t('post.detail.delete')}
+                    </button>
+                  )}
                 </div>
               )}
             </div>
