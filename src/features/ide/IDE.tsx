@@ -527,8 +527,8 @@ export const IDE = () => {
                               value={selectedCase.input}
                               onChange={(e) => updateTestCase(selectedCase.id, 'input', e.target.value)}
                               readOnly={!selectedCase.isCustom}
-                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none min-h-[60px] ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
-                              rows={3}
+                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
+                              rows={Math.max(3, selectedCase.input.split('\n').length)}
                               placeholder="입력값을 입력하세요..."
                             />
                           </div>
@@ -538,8 +538,8 @@ export const IDE = () => {
                               value={selectedCase.expected}
                               onChange={(e) => updateTestCase(selectedCase.id, 'expected', e.target.value)}
                               readOnly={!selectedCase.isCustom}
-                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none min-h-[60px] ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
-                              rows={3}
+                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
+                              rows={Math.max(3, selectedCase.expected.split('\n').length)}
                               placeholder="기대 출력값을 입력하세요..."
                             />
                           </div>
