@@ -620,8 +620,8 @@ export const ProblemList = () => {
           </div>
         ) : (
           <>
-          <Card className="bg-surface-raised border-border-default overflow-hidden shadow-md">
-            <div className="overflow-x-auto">
+          <Card className="bg-surface-raised border-border-default shadow-md">
+            <div className="overflow-x-auto rounded-xl">
               <div className="min-w-[700px]">
                 <div className="grid grid-cols-[80px_1fr_100px_120px_80px] gap-4 p-4 border-b border-border-default bg-page text-sm font-bold text-text-muted">
                   <div className="text-center">{t('problems.number')}</div>
@@ -669,40 +669,37 @@ export const ProblemList = () => {
                         <div className="text-text-muted text-xs">
                           {p.deadline ? new Date(p.deadline.endsWith('Z') ? p.deadline : p.deadline + 'Z').toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US') : '-'}
                         </div>
-                        {/* 액션 메뉴 */}
-                        <div className="text-center">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                className="text-text-faint hover:text-text-secondary hover:bg-hover-bg rounded-lg transition-colors p-2"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <MoreVertical className="w-4 h-4" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                              {canManage && (
-                                <>
-                                  <DropdownMenuItem onSelect={() => openEditProblemModal(p)}>
-                                    <Pencil className="w-4 h-4 mr-2" />
-                                    {t('common.edit')}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    variant="destructive"
-                                    disabled={deletingProblemId === p.id}
-                                    onSelect={() => setDeleteConfirm({ type: 'problem', id: p.id })}
-                                  >
-                                    {deletingProblemId === p.id ? (
-                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    ) : (
-                                      <Trash2 className="w-4 h-4 mr-2" />
-                                    )}
-                                    {t('common.delete')}
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                        {/* 액션 메뉴: 관리자 이상만 표시 */}
+                        <div className="text-center" onClick={(e) => e.stopPropagation()}>
+                          {canManage && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  className="text-text-faint hover:text-text-secondary hover:bg-hover-bg rounded-lg transition-colors p-2"
+                                >
+                                  <MoreVertical className="w-4 h-4" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => openEditProblemModal(p)}>
+                                  <Pencil className="w-4 h-4 mr-2" />
+                                  {t('common.edit')}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  disabled={deletingProblemId === p.id}
+                                  onSelect={() => setDeleteConfirm({ type: 'problem', id: p.id })}
+                                >
+                                  {deletingProblemId === p.id ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                  )}
+                                  {t('common.delete')}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </div>
                       </div>
                     );
