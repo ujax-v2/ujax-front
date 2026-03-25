@@ -225,10 +225,8 @@ export const IDE = () => {
   }, [problemId]);
 
   useEffect(() => {
-    if (code.includes('Hello, World!') || code.trim() === '') {
-      setCode(CODE_TEMPLATES[language] || '');
-    }
-  }, []);
+    setCode(CODE_TEMPLATES[language] || CODE_TEMPLATES['javascript']);
+  }, [problemId]);
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const lang = LANGUAGE_OPTIONS.find(l => l.value === e.target.value);

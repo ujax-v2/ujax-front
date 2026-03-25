@@ -70,6 +70,11 @@ export const ProblemList = () => {
   const [editing, setEditing] = useState(false);
   const [editError, setEditError] = useState('');
 
+  // 워크스페이스가 바뀌면 현재 문제집 선택 초기화
+  useEffect(() => {
+    setCurrentBox(null);
+  }, [currentWsId]);
+
   // 문제집 목록 + 권한 조회
   const fetchBoxes = useCallback(async () => {
     if (!currentWsId) return;
