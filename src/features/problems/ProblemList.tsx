@@ -623,12 +623,12 @@ export const ProblemList = () => {
           <Card className="bg-surface-raised border-border-default shadow-md">
             <div className="overflow-x-auto rounded-xl">
               <div className="min-w-[700px]">
-                <div className="grid grid-cols-[80px_1fr_100px_120px_80px] gap-4 p-4 border-b border-border-default bg-page text-sm font-bold text-text-muted">
+                <div className={`grid ${canManage ? 'grid-cols-[80px_1fr_100px_120px_80px]' : 'grid-cols-[80px_1fr_100px_120px]'} gap-4 p-4 border-b border-border-default bg-page text-sm font-bold text-text-muted`}>
                   <div className="text-center">{t('problems.number')}</div>
                   <div>{t('problems.title')}</div>
                   <div>{t('problems.tier')}</div>
                   <div>{t('problems.deadline')}</div>
-                  <div></div>
+                  {canManage && <div></div>}
                 </div>
 
                 <div className="divide-y divide-border-default">
@@ -651,7 +651,7 @@ export const ProblemList = () => {
                           }));
                           navigate(`/ws/${currentWsId}/ide/${p.problemNumber}`);
                         }}
-                        className="grid grid-cols-[80px_1fr_100px_120px_80px] gap-4 p-4 items-center hover:bg-hover-bg transition-colors cursor-pointer group"
+                        className={`grid ${canManage ? 'grid-cols-[80px_1fr_100px_120px_80px]' : 'grid-cols-[80px_1fr_100px_120px]'} gap-4 p-4 items-center hover:bg-hover-bg transition-colors cursor-pointer group`}
                       >
                         <div className="text-center text-emerald-600 dark:text-emerald-400 font-mono text-sm font-bold">{p.problemNumber}</div>
                         <div className="flex items-center gap-3">
