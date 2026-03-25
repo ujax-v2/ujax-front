@@ -30,6 +30,7 @@ export const ProblemRegistration = () => {
   const [flowStatus, setFlowStatus] = useState<FlowStatus>('idle');
   const [problem, setProblem] = useState<ProblemResponse | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [registerError, setRegisterError] = useState('');
 
   // 크롤링 완료 시 → 문제 데이터만 조회 (등록은 버튼 클릭 시)
   useEffect(() => {
@@ -110,17 +111,8 @@ export const ProblemRegistration = () => {
       return;
     }
 
-    if (deadline && reminderEnabled) {
-      const scheduledAt = deadline.subtract(reminderHours, 'hour');
-      if (scheduledAt.isBefore(dayjs().add(1, 'minute'))) {
-        setFlowStatus('error');
-        setErrorMsg('알림 시간이 현재 시간보다 이전입니다. 마감일을 더 늦게 설정하거나 알림 시간을 줄여주세요.');
-        return;
-      }
-    }
-
     setFlowStatus('registering');
-    setErrorMsg('');
+    setRegisterError('');
 
     try {
       await createWorkspaceProblem(currentWsId, currentBox.id, {
@@ -132,9 +124,8 @@ export const ProblemRegistration = () => {
       });
       setFlowStatus('done');
     } catch (err: any) {
-      const detail = parseApiError(err);
-      setFlowStatus('error');
-      setErrorMsg(detail);
+      setFlowStatus('found');
+      setRegisterError(parseApiError(err));
     }
   };
 
@@ -311,6 +302,14 @@ export const ProblemRegistration = () => {
               </div>
             </div>
           </div>
+
+          {/* 등록 에러 */}
+          {registerError && (
+            <div className="flex items-center gap-2 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              {registerError}
+            </div>
+          )}
 
           {/* 하단 버튼 */}
           <div className="flex gap-3 pt-4">
