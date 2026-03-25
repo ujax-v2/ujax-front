@@ -173,6 +173,13 @@ export const ProblemList = () => {
 
   const handleEditProblem = async () => {
     if (!currentWsId || !currentBox || !editProblemTarget) return;
+    if (editDeadline && editReminderEnabled) {
+      const scheduledAt = editDeadline.subtract(editReminderHours, 'hour');
+      if (scheduledAt.isBefore(dayjs().add(1, 'minute'))) {
+        setEditProblemError('알림 시간이 현재 시간보다 이전입니다. 마감일을 더 늦게 설정하거나 알림 시간을 줄여주세요.');
+        return;
+      }
+    }
     setEditingProblem(true);
     setEditProblemError('');
     try {

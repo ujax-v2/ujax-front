@@ -110,6 +110,15 @@ export const ProblemRegistration = () => {
       return;
     }
 
+    if (deadline && reminderEnabled) {
+      const scheduledAt = deadline.subtract(reminderHours, 'hour');
+      if (scheduledAt.isBefore(dayjs().add(1, 'minute'))) {
+        setFlowStatus('error');
+        setErrorMsg('알림 시간이 현재 시간보다 이전입니다. 마감일을 더 늦게 설정하거나 알림 시간을 줄여주세요.');
+        return;
+      }
+    }
+
     setFlowStatus('registering');
     setErrorMsg('');
 
