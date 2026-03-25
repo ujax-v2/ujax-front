@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
 import { currentWorkspaceState } from '@/store/atoms';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
@@ -43,14 +43,17 @@ export const PostDetail = () => {
   const { toWs, navigate } = useWorkspaceNavigate();
   const t = useT();
 
-  const [post, setPost] = useState<BoardDetailResponse | null>(null);
+  const location = useLocation();
+  const passedPost = (location.state as { post?: BoardDetailResponse } | null)?.post;
+
+  const [post, setPost] = useState<BoardDetailResponse | null>(passedPost ?? null);
   const [comments, setComments] = useState<CommentResponse[]>([]);
   const [commentPage, setCommentPage] = useState(0);
   const [commentTotalPages, setCommentTotalPages] = useState(0);
   const [newComment, setNewComment] = useState('');
   const [myRole, setMyRole] = useState<MemberRole>('MEMBER');
   const [myMemberId, setMyMemberId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!passedPost);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -60,12 +63,12 @@ export const PostDetail = () => {
     if (!wsId || !numericBoardId) return;
     let cancelled = false;
     (async () => {
-      setLoading(true);
+      if (!passedPost) setLoading(true);
       try {
-        const [detail, membership] = await Promise.all([
-          getBoardDetail(wsId, numericBoardId),
-          getMyMembership(wsId),
-        ]);
+        // state로 게시글 데이터가 전달된 경우 getBoardDetail 생략 (조회수 증가 방지)
+        const [detail, membership] = passedPost
+          ? [passedPost, await getMyMembership(wsId)]
+          : await Promise.all([getBoardDetail(wsId, numericBoardId), getMyMembership(wsId)]);
         if (cancelled) return;
         setPost(detail);
         if (membership.role) setMyRole(membership.role as MemberRole);

@@ -53,11 +53,10 @@ const TOOLBAR_ACTIONS = [
 
 export const PostEdit = () => {
   const { boardId } = useParams<{ boardId: string }>();
-  const { toWs } = useWorkspaceNavigate();
+  const { toWs, navigate, currentWsId: wsId } = useWorkspaceNavigate();
   const location = useLocation();
   const passedPost = (location.state as { post?: BoardDetailResponse } | null)?.post;
   const t = useT();
-  const wsId = useRecoilValue(currentWorkspaceState);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -203,13 +202,14 @@ export const PostEdit = () => {
 
     try {
       const boardType = LABEL_TO_BOARD_TYPE[selectedTag];
-      await updateBoard(wsId, numericBoardId, {
+      const updated = await updateBoard(wsId, numericBoardId, {
         type: boardType,
         title: title.trim(),
         content: content.trim(),
         ...(boardType === 'NOTICE' ? { pinned } : {}),
       });
-      toWs(`community/${numericBoardId}`);
+      // 수정 후 PostDetail로 이동 시 최신 데이터를 state로 전달 → getBoardDetail 재호출 방지
+      navigate(`/ws/${wsId}/community/${numericBoardId}`, { state: { post: updated } });
     } catch (err: any) {
       setError(parseApiError(err, t('common.error')));
     } finally {
