@@ -70,11 +70,6 @@ export const ProblemList = () => {
   const [editing, setEditing] = useState(false);
   const [editError, setEditError] = useState('');
 
-  // 워크스페이스가 바뀌면 현재 문제집 선택 초기화
-  useEffect(() => {
-    setCurrentBox(null);
-  }, [currentWsId]);
-
   // 문제집 목록 + 권한 조회
   const fetchBoxes = useCallback(async () => {
     if (!currentWsId) return;
@@ -119,7 +114,10 @@ export const ProblemList = () => {
       const data = await getWorkspaceProblems(currentWsId, currentBox.id, problemPage);
       setProblems(data.content);
       setProblemTotalPages(data.page?.totalPages ?? 0);
-    } catch { /* ignore */ }
+    } catch {
+      // 현재 워크스페이스에 존재하지 않는 박스(ex. 다른 계정 로컬스토리지 잔류)면 초기화
+      setCurrentBox(null);
+    }
     finally { setProblemsLoading(false); }
   }, [currentWsId, currentBox, problemPage]);
 
