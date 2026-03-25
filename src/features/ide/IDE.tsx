@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button, Badge } from '@/components/ui/Base';
-import { Play, Pause, RotateCcw, Settings, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, Plus, Code2, Clock, HardDrive, X } from 'lucide-react';
+import { Play, Pause, RotateCcw, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, Plus, Code2, Clock, HardDrive, X } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { useParams } from 'react-router-dom';
@@ -342,7 +342,6 @@ export const IDE = () => {
           <Button variant="ghost" onClick={() => setCode(CODE_TEMPLATES[language])}>
             <RotateCcw className="w-4 h-4" />
           </Button>
-          <Button variant="secondary"><Settings className="w-4 h-4" /></Button>
         </div>
       </div>
 
