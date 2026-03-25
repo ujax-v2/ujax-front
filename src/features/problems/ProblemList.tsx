@@ -626,8 +626,8 @@ export const ProblemList = () => {
                 <div className={`grid ${canManage ? 'grid-cols-[80px_1fr_100px_120px_80px]' : 'grid-cols-[80px_1fr_100px_120px]'} gap-4 p-4 border-b border-border-default bg-page text-sm font-bold text-text-muted`}>
                   <div className="text-center">{t('problems.number')}</div>
                   <div>{t('problems.title')}</div>
-                  <div>{t('problems.tier')}</div>
-                  <div>{t('problems.deadline')}</div>
+                  <div className="text-center">{t('problems.tier')}</div>
+                  <div className="text-center">{t('problems.deadline')}</div>
                   {canManage && <div></div>}
                 </div>
 
@@ -657,7 +657,7 @@ export const ProblemList = () => {
                         <div className="flex items-center gap-3">
                           <span className="text-text-secondary font-bold group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{p.title}</span>
                         </div>
-                        <div>
+                        <div className="text-center">
                           {p.tier ? (
                             <span className={`px-2 py-1 rounded text-xs font-extrabold border shadow-sm ${getTierColor(p.tier)}`}>
                               {p.tier}
@@ -666,7 +666,7 @@ export const ProblemList = () => {
                             <span className="text-text-faint text-xs">-</span>
                           )}
                         </div>
-                        <div className="text-text-muted text-xs">
+                        <div className="text-center text-text-muted text-xs">
                           {p.deadline ? new Date(p.deadline.endsWith('Z') ? p.deadline : p.deadline + 'Z').toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US') : '-'}
                         </div>
                         {/* 액션 메뉴: 관리자 이상만 표시 */}
