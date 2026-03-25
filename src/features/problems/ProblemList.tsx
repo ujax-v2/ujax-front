@@ -151,11 +151,13 @@ export const ProblemList = () => {
   );
   const [refreshing, setRefreshing] = useState(false);
 
+  const toUtcDayjs = (iso: string) => dayjs(iso.endsWith('Z') ? iso : iso + 'Z');
+
   const openEditProblemModal = (p: WorkspaceProblemListData['content'][number]) => {
     setEditProblemTarget({ id: p.id, problemNumber: p.problemNumber, title: p.title });
-    setEditDeadline(p.deadline ? dayjs(p.deadline) : null);
+    setEditDeadline(p.deadline ? toUtcDayjs(p.deadline) : null);
     if (p.deadline && p.scheduledAt) {
-      const diff = dayjs(p.deadline).diff(dayjs(p.scheduledAt), 'hour');
+      const diff = toUtcDayjs(p.deadline).diff(toUtcDayjs(p.scheduledAt), 'hour');
       const validHours = [1, 2, 3, 6, 12, 24];
       setEditReminderEnabled(true);
       setEditReminderHours(validHours.includes(diff) ? diff : 1);
