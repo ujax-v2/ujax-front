@@ -409,13 +409,13 @@ export const IDE = () => {
                     <div className="space-y-3">
                       {problem.samples.map((s) => (
                         <div key={s.id} className="grid grid-cols-2 gap-3">
-                          <div className="bg-input-bg/80 border border-border-default rounded-lg p-3">
+                          <div className="bg-input-bg/80 border border-border-default rounded-lg p-3 overflow-x-auto custom-scrollbar">
                             <h4 className="text-xs font-bold text-text-faint mb-2 uppercase tracking-wider">예제 입력 {s.sampleIndex}</h4>
-                            <pre className="text-sm font-mono text-text-secondary whitespace-pre-wrap leading-relaxed">{s.input || ''}</pre>
+                            <pre className="text-sm font-mono text-text-secondary whitespace-pre leading-relaxed">{s.input || ''}</pre>
                           </div>
-                          <div className="bg-input-bg/80 border border-border-default rounded-lg p-3">
+                          <div className="bg-input-bg/80 border border-border-default rounded-lg p-3 overflow-x-auto custom-scrollbar">
                             <h4 className="text-xs font-bold text-text-faint mb-2 uppercase tracking-wider">예제 출력 {s.sampleIndex}</h4>
-                            <pre className="text-sm font-mono text-text-secondary whitespace-pre-wrap leading-relaxed">{s.output || ''}</pre>
+                            <pre className="text-sm font-mono text-text-secondary whitespace-pre leading-relaxed">{s.output || ''}</pre>
                           </div>
                         </div>
                       ))}
