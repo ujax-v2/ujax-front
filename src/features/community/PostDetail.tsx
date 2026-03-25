@@ -40,7 +40,7 @@ import {
 export const PostDetail = () => {
   const { boardId } = useParams<{ boardId: string }>();
   const wsId = useRecoilValue(currentWorkspaceState);
-  const { toWs } = useWorkspaceNavigate();
+  const { toWs, navigate } = useWorkspaceNavigate();
   const t = useT();
 
   const [post, setPost] = useState<BoardDetailResponse | null>(null);
@@ -230,7 +230,7 @@ export const PostDetail = () => {
                   )}
                   {isAuthor && (
                     <button
-                      onClick={() => toWs(`community/${numericBoardId}/edit`)}
+                      onClick={() => navigate(`/ws/${wsId}/community/${numericBoardId}/edit`, { state: { post } })}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-text-muted hover:text-text-secondary hover:bg-surface-subtle transition-colors"
                     >
                       <Edit3 className="w-3.5 h-3.5" /> {t('post.detail.edit')}
