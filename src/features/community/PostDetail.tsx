@@ -186,7 +186,7 @@ export const PostDetail = () => {
   if (error || !post) {
     return (
       <div className="flex-1 p-8 bg-page h-full">
-        <div className="max-w-4xl mx-auto text-center py-20">
+        <div className="max-w-6xl mx-auto text-center py-20">
           <p className="text-text-muted text-lg mb-4">{error || t('post.detail.notFound')}</p>
           <Button variant="outline" onClick={() => toWs('community')} className="border-border-subtle text-text-secondary">
             <ArrowLeft className="w-4 h-4 mr-2" /> {t('post.detail.backToList')}
@@ -198,7 +198,7 @@ export const PostDetail = () => {
 
   return (
     <div className="flex-1 p-8 overflow-y-auto bg-page h-full">
-      <div className="max-w-4xl mx-auto space-y-5">
+      <div className="max-w-6xl mx-auto space-y-5">
 
         {/* Back */}
         <button
