@@ -763,6 +763,7 @@ export const ProblemList = () => {
                 onChange={(v) => setEditDeadline(v)}
                 ampm={false}
                 format={t('problems.dateFormat')}
+                minDateTime={dayjs()}
                 slotProps={{
                   textField: { fullWidth: true, size: 'small' },
                 }}
