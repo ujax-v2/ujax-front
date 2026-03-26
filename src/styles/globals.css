@@ -231,6 +231,18 @@
   }
 }
 
+/* prose 내 <pre> 블록의 공백/줄바꿈 보존 (ASCII 아트 등 깨짐 방지) */
+.prose pre {
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* 커스텀 스크롤바 — OS 자동 숨김 유지 + 색상만 지정 */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.35) transparent;
+}
+
 html {
   font-size: var(--font-size);
 }

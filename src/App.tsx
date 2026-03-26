@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRecoilState, useRecoilValue, RecoilRoot } from 'recoil';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, Workspace, themeState, ThemeMode, languageState, GUEST_USER } from './store/atoms';
+import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, currentProblemBoxState, Workspace, themeState, ThemeMode, languageState, GUEST_USER } from './store/atoms';
 import { Sidebar } from './components/layout/Sidebar';
 import { getWorkspaces, getWorkspaceSettings } from './api/workspace';
 import { Dashboard } from './features/dashboard/Dashboard';
@@ -184,7 +184,7 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
           id: w.id,
           name: w.name,
           description: w.description ?? null,
-          imageUrl: (w as any).imageUrl ?? null,
+          imageUrl: w.imageUrl ?? null,
         })) as Workspace[];
         setWorkspaces(items);
       } catch (err) {
@@ -202,7 +202,7 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
     getWorkspaceSettings(numericWsId)
       .then(data => {
         setWorkspaces(prev => prev.map(w => w.id === numericWsId
-          ? { ...w, mmWebhookUrl: data.mmWebhookUrl ?? null }
+          ? { ...w, mmWebhookUrl: data.hookUrl ?? null, imageUrl: data.imageUrl ?? null }
           : w
         ));
       })
@@ -286,6 +286,7 @@ function AppContent() {
   const [user, setUser] = useRecoilState(userState);
   const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
   const setCurrentWsId = useRecoilState(currentWorkspaceState)[1];
+  const setCurrentProblemBox = useRecoilState(currentProblemBoxState)[1];
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -306,6 +307,7 @@ function AppContent() {
       setUser(GUEST_USER);
       setWorkspaces([]);
       setCurrentWsId(0);
+      setCurrentProblemBox(null);
       toast.error('세션이 만료되었습니다. 다시 로그인해주세요.', {
         duration: 4000,
         position: 'top-center',
@@ -319,7 +321,7 @@ function AppContent() {
       window.removeEventListener('ujaxTokenUpdated', onTokenUpdated);
       window.removeEventListener('ujaxAuthExpired', onAuthExpired);
     };
-  }, [navigate, setUser, setWorkspaces, setCurrentWsId]);
+  }, [navigate, setUser, setWorkspaces, setCurrentWsId, setCurrentProblemBox]);
 
   // 사이드바를 숨겨야 하는 페이지: 인증, IDE, 홈, 풀이 보기(solutions)
   const isFullScreen = ['/login', '/signup', '/oauth/callback', '/'].includes(location.pathname)

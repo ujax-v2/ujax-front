@@ -21,7 +21,7 @@ import {
 import { PageNav } from '@/components/ui/PageNav';
 import { useT } from '@/i18n';
 
-type TagLabel = 'all' | 'free' | 'question' | 'data';
+type TagLabel = 'all' | 'free' | 'notice' | 'question' | 'data';
 
 export const Community = () => {
   const { toWs } = useWorkspaceNavigate();
@@ -37,7 +37,7 @@ export const Community = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const filterTags: TagLabel[] = ['all', 'free', 'question', 'data'];
+  const filterTags: TagLabel[] = ['all', 'notice', 'free', 'question', 'data'];
 
   const fetchPosts = useCallback(async (p: number, tag: TagLabel, keyword: string) => {
     if (!wsId) return;

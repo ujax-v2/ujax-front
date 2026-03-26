@@ -51,6 +51,7 @@ export const Home = () => {
                     id: w.id,
                     name: w.name,
                     description: w.description ?? null,
+                    imageUrl: w.imageUrl ?? null,
                 })) as Workspace[];
                 setWorkspaces(items);
             } catch (err) {

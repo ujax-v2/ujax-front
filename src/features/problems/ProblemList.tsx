@@ -114,7 +114,10 @@ export const ProblemList = () => {
       const data = await getWorkspaceProblems(currentWsId, currentBox.id, problemPage);
       setProblems(data.content);
       setProblemTotalPages(data.page?.totalPages ?? 0);
-    } catch { /* ignore */ }
+    } catch {
+      // 현재 워크스페이스에 존재하지 않는 박스(ex. 다른 계정 로컬스토리지 잔류)면 초기화
+      setCurrentBox(null);
+    }
     finally { setProblemsLoading(false); }
   }, [currentWsId, currentBox, problemPage]);
 
@@ -148,11 +151,13 @@ export const ProblemList = () => {
   );
   const [refreshing, setRefreshing] = useState(false);
 
+  const toUtcDayjs = (iso: string) => dayjs(iso.endsWith('Z') ? iso : iso + 'Z');
+
   const openEditProblemModal = (p: WorkspaceProblemListData['content'][number]) => {
     setEditProblemTarget({ id: p.id, problemNumber: p.problemNumber, title: p.title });
-    setEditDeadline(p.deadline ? dayjs(p.deadline) : null);
+    setEditDeadline(p.deadline ? toUtcDayjs(p.deadline) : null);
     if (p.deadline && p.scheduledAt) {
-      const diff = dayjs(p.deadline).diff(dayjs(p.scheduledAt), 'hour');
+      const diff = toUtcDayjs(p.deadline).diff(toUtcDayjs(p.scheduledAt), 'hour');
       const validHours = [1, 2, 3, 6, 12, 24];
       setEditReminderEnabled(true);
       setEditReminderHours(validHours.includes(diff) ? diff : 1);
@@ -617,15 +622,15 @@ export const ProblemList = () => {
           </div>
         ) : (
           <>
-          <Card className="bg-surface-raised border-border-default overflow-hidden shadow-md">
-            <div className="overflow-x-auto">
+          <Card className="bg-surface-raised border-border-default shadow-md">
+            <div className="overflow-x-auto rounded-xl">
               <div className="min-w-[700px]">
-                <div className="grid grid-cols-[80px_1fr_100px_120px_80px] gap-4 p-4 border-b border-border-default bg-page text-sm font-bold text-text-muted">
+                <div className={`grid ${canManage ? 'grid-cols-[80px_1fr_100px_120px_80px]' : 'grid-cols-[80px_1fr_100px_120px]'} gap-4 p-4 border-b border-border-default bg-page text-sm font-bold text-text-muted`}>
                   <div className="text-center">{t('problems.number')}</div>
                   <div>{t('problems.title')}</div>
-                  <div>{t('problems.tier')}</div>
-                  <div>{t('problems.deadline')}</div>
-                  <div></div>
+                  <div className="text-center">{t('problems.tier')}</div>
+                  <div className="text-center">{t('problems.deadline')}</div>
+                  {canManage && <div></div>}
                 </div>
 
                 <div className="divide-y divide-border-default">
@@ -648,13 +653,13 @@ export const ProblemList = () => {
                           }));
                           navigate(`/ws/${currentWsId}/ide/${p.problemNumber}`);
                         }}
-                        className="grid grid-cols-[80px_1fr_100px_120px_80px] gap-4 p-4 items-center hover:bg-hover-bg transition-colors cursor-pointer group"
+                        className={`grid ${canManage ? 'grid-cols-[80px_1fr_100px_120px_80px]' : 'grid-cols-[80px_1fr_100px_120px]'} gap-4 p-4 items-center hover:bg-hover-bg transition-colors cursor-pointer group`}
                       >
                         <div className="text-center text-emerald-600 dark:text-emerald-400 font-mono text-sm font-bold">{p.problemNumber}</div>
                         <div className="flex items-center gap-3">
                           <span className="text-text-secondary font-bold group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{p.title}</span>
                         </div>
-                        <div>
+                        <div className="text-center">
                           {p.tier ? (
                             <span className={`px-2 py-1 rounded text-xs font-extrabold border shadow-sm ${getTierColor(p.tier)}`}>
                               {p.tier}
@@ -663,43 +668,40 @@ export const ProblemList = () => {
                             <span className="text-text-faint text-xs">-</span>
                           )}
                         </div>
-                        <div className="text-text-muted text-xs">
+                        <div className="text-center text-text-muted text-xs">
                           {p.deadline ? new Date(p.deadline.endsWith('Z') ? p.deadline : p.deadline + 'Z').toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US') : '-'}
                         </div>
-                        {/* 액션 메뉴 */}
-                        <div className="text-center">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                className="text-text-faint hover:text-text-secondary hover:bg-hover-bg rounded-lg transition-colors p-2"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <MoreVertical className="w-4 h-4" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                              {canManage && (
-                                <>
-                                  <DropdownMenuItem onSelect={() => openEditProblemModal(p)}>
-                                    <Pencil className="w-4 h-4 mr-2" />
-                                    {t('common.edit')}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    variant="destructive"
-                                    disabled={deletingProblemId === p.id}
-                                    onSelect={() => setDeleteConfirm({ type: 'problem', id: p.id })}
-                                  >
-                                    {deletingProblemId === p.id ? (
-                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    ) : (
-                                      <Trash2 className="w-4 h-4 mr-2" />
-                                    )}
-                                    {t('common.delete')}
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                        {/* 액션 메뉴: 관리자 이상만 표시 */}
+                        <div className="text-center" onClick={(e) => e.stopPropagation()}>
+                          {canManage && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  className="text-text-faint hover:text-text-secondary hover:bg-hover-bg rounded-lg transition-colors p-2"
+                                >
+                                  <MoreVertical className="w-4 h-4" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => openEditProblemModal(p)}>
+                                  <Pencil className="w-4 h-4 mr-2" />
+                                  {t('common.edit')}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  disabled={deletingProblemId === p.id}
+                                  onSelect={() => setDeleteConfirm({ type: 'problem', id: p.id })}
+                                >
+                                  {deletingProblemId === p.id ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                  )}
+                                  {t('common.delete')}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </div>
                       </div>
                     );
@@ -758,6 +760,7 @@ export const ProblemList = () => {
                 onChange={(v) => setEditDeadline(v)}
                 ampm={false}
                 format={t('problems.dateFormat')}
+                minDateTime={dayjs()}
                 slotProps={{
                   textField: { fullWidth: true, size: 'small' },
                 }}

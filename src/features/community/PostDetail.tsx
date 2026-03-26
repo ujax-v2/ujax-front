@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
 import { currentWorkspaceState } from '@/store/atoms';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
@@ -40,17 +40,20 @@ import {
 export const PostDetail = () => {
   const { boardId } = useParams<{ boardId: string }>();
   const wsId = useRecoilValue(currentWorkspaceState);
-  const { toWs } = useWorkspaceNavigate();
+  const { toWs, navigate } = useWorkspaceNavigate();
   const t = useT();
 
-  const [post, setPost] = useState<BoardDetailResponse | null>(null);
+  const location = useLocation();
+  const passedPost = (location.state as { post?: BoardDetailResponse } | null)?.post;
+
+  const [post, setPost] = useState<BoardDetailResponse | null>(passedPost ?? null);
   const [comments, setComments] = useState<CommentResponse[]>([]);
   const [commentPage, setCommentPage] = useState(0);
   const [commentTotalPages, setCommentTotalPages] = useState(0);
   const [newComment, setNewComment] = useState('');
   const [myRole, setMyRole] = useState<MemberRole>('MEMBER');
   const [myMemberId, setMyMemberId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!passedPost);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -60,12 +63,12 @@ export const PostDetail = () => {
     if (!wsId || !numericBoardId) return;
     let cancelled = false;
     (async () => {
-      setLoading(true);
+      if (!passedPost) setLoading(true);
       try {
-        const [detail, membership] = await Promise.all([
-          getBoardDetail(wsId, numericBoardId),
-          getMyMembership(wsId),
-        ]);
+        // state로 게시글 데이터가 전달된 경우 getBoardDetail 생략 (조회수 증가 방지)
+        const [detail, membership] = passedPost
+          ? [passedPost, await getMyMembership(wsId)]
+          : await Promise.all([getBoardDetail(wsId, numericBoardId), getMyMembership(wsId)]);
         if (cancelled) return;
         setPost(detail);
         if (membership.role) setMyRole(membership.role as MemberRole);
@@ -150,7 +153,9 @@ export const PostDetail = () => {
 
   const isAuthor = myMemberId !== null && post?.author?.workspaceMemberId === myMemberId;
   const canManage = myRole === 'OWNER' || myRole === 'ADMIN';
-  const canDelete = isAuthor || canManage;
+  const isNotice = post?.type === 'NOTICE';
+  const canEdit = isNotice ? myRole === 'OWNER' : isAuthor;
+  const canDelete = isNotice ? myRole === 'OWNER' : (isAuthor || canManage);
   const canPin = myRole === 'OWNER' && post?.type === 'NOTICE';
 
   const getTagBadge = (type: string) => {
@@ -181,7 +186,7 @@ export const PostDetail = () => {
   if (error || !post) {
     return (
       <div className="flex-1 p-8 bg-page h-full">
-        <div className="max-w-4xl mx-auto text-center py-20">
+        <div className="max-w-6xl mx-auto text-center py-20">
           <p className="text-text-muted text-lg mb-4">{error || t('post.detail.notFound')}</p>
           <Button variant="outline" onClick={() => toWs('community')} className="border-border-subtle text-text-secondary">
             <ArrowLeft className="w-4 h-4 mr-2" /> {t('post.detail.backToList')}
@@ -193,7 +198,7 @@ export const PostDetail = () => {
 
   return (
     <div className="flex-1 p-8 overflow-y-auto bg-page h-full">
-      <div className="max-w-4xl mx-auto space-y-5">
+      <div className="max-w-6xl mx-auto space-y-5">
 
         {/* Back */}
         <button
@@ -228,20 +233,22 @@ export const PostDetail = () => {
                       {post.pinned ? <><PinOff className="w-3.5 h-3.5" /> {t('post.detail.unpin')}</> : <><Pin className="w-3.5 h-3.5" /> {t('post.detail.pinnedPost')}</>}
                     </button>
                   )}
-                  {isAuthor && (
+                  {canEdit && (
                     <button
-                      onClick={() => toWs(`community/${numericBoardId}/edit`)}
+                      onClick={() => navigate(`/ws/${wsId}/community/${numericBoardId}/edit`, { state: { post } })}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-text-muted hover:text-text-secondary hover:bg-surface-subtle transition-colors"
                     >
                       <Edit3 className="w-3.5 h-3.5" /> {t('post.detail.edit')}
                     </button>
                   )}
-                  <button
-                    onClick={handlePostDelete}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> {t('post.detail.delete')}
-                  </button>
+                  {canDelete && (
+                    <button
+                      onClick={handlePostDelete}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> {t('post.detail.delete')}
+                    </button>
+                  )}
                 </div>
               )}
             </div>

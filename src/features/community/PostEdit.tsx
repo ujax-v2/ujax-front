@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
+import type { BoardDetailResponse } from '@/api/board';
 import { Card, Button } from '@/components/ui/Base';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
 import { useRecoilValue } from 'recoil';
@@ -52,9 +53,10 @@ const TOOLBAR_ACTIONS = [
 
 export const PostEdit = () => {
   const { boardId } = useParams<{ boardId: string }>();
-  const { toWs } = useWorkspaceNavigate();
+  const { toWs, navigate, currentWsId: wsId } = useWorkspaceNavigate();
+  const location = useLocation();
+  const passedPost = (location.state as { post?: BoardDetailResponse } | null)?.post;
   const t = useT();
-  const wsId = useRecoilValue(currentWorkspaceState);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -69,6 +71,16 @@ export const PostEdit = () => {
   const numericBoardId = Number(boardId);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
+  const applyDetail = (detail: BoardDetailResponse) => {
+    setTitle(detail.title ?? '');
+    setContent(detail.content ?? '');
+    if (detail.type) {
+      const typeToTag: Record<string, string> = { FREE: 'free', QNA: 'question', DATA: 'data', NOTICE: 'notice' };
+      setSelectedTag(typeToTag[detail.type] ?? 'free');
+    }
+    setPinned(detail.pinned ?? false);
+  };
+
   // 기존 게시물 데이터 + 내 역할 로드
   useEffect(() => {
     if (!wsId || !numericBoardId) return;
@@ -76,19 +88,13 @@ export const PostEdit = () => {
 
     (async () => {
       try {
-        const [detail, membership] = await Promise.all([
-          getBoardDetail(wsId, numericBoardId),
-          getMyMembership(wsId),
-        ]);
+        // PostDetail에서 넘어온 state가 있으면 getBoardDetail 호출 생략 (조회수 증가 방지)
+        const [detail, membership] = passedPost
+          ? [passedPost, await getMyMembership(wsId)]
+          : await Promise.all([getBoardDetail(wsId, numericBoardId), getMyMembership(wsId)]);
         if (cancelled) return;
 
-        setTitle(detail.title ?? '');
-        setContent(detail.content ?? '');
-        if (detail.type) {
-          const typeToTag: Record<string, string> = { FREE: 'free', QNA: 'question', DATA: 'data', NOTICE: 'notice' };
-          setSelectedTag(typeToTag[detail.type] ?? 'free');
-        }
-        setPinned(detail.pinned ?? false);
+        applyDetail(detail);
         if (membership.role) setMyRole(membership.role as MemberRole);
       } catch {
         if (!cancelled) setError(t('post.detail.loadFailed'));
@@ -196,13 +202,14 @@ export const PostEdit = () => {
 
     try {
       const boardType = LABEL_TO_BOARD_TYPE[selectedTag];
-      await updateBoard(wsId, numericBoardId, {
+      const updated = await updateBoard(wsId, numericBoardId, {
         type: boardType,
         title: title.trim(),
         content: content.trim(),
         ...(boardType === 'NOTICE' ? { pinned } : {}),
       });
-      toWs(`community/${numericBoardId}`);
+      // 수정 후 PostDetail로 이동 시 최신 데이터를 state로 전달 → getBoardDetail 재호출 방지
+      navigate(`/ws/${wsId}/community/${numericBoardId}`, { state: { post: updated } });
     } catch (err: any) {
       setError(parseApiError(err, t('common.error')));
     } finally {

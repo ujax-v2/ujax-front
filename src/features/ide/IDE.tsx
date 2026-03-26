@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button, Badge } from '@/components/ui/Base';
-import { Play, Pause, RotateCcw, Settings, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, Plus, Code2, Clock, HardDrive, X } from 'lucide-react';
+import { Play, Pause, RotateCcw, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, Plus, Code2, Clock, HardDrive, X, ExternalLink } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { useParams } from 'react-router-dom';
@@ -225,10 +225,8 @@ export const IDE = () => {
   }, [problemId]);
 
   useEffect(() => {
-    if (code.includes('Hello, World!') || code.trim() === '') {
-      setCode(CODE_TEMPLATES[language] || '');
-    }
-  }, []);
+    setCode(CODE_TEMPLATES[language] || CODE_TEMPLATES['javascript']);
+  }, [problemId]);
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const lang = LANGUAGE_OPTIONS.find(l => l.value === e.target.value);
@@ -344,7 +342,6 @@ export const IDE = () => {
           <Button variant="ghost" onClick={() => setCode(CODE_TEMPLATES[language])}>
             <RotateCcw className="w-4 h-4" />
           </Button>
-          <Button variant="secondary"><Settings className="w-4 h-4" /></Button>
         </div>
       </div>
 
@@ -412,18 +409,29 @@ export const IDE = () => {
                     <div className="space-y-3">
                       {problem.samples.map((s) => (
                         <div key={s.id} className="grid grid-cols-2 gap-3">
-                          <div className="bg-input-bg/80 border border-border-default rounded-lg p-3">
+                          <div className="bg-input-bg/80 border border-border-default rounded-lg p-3 overflow-x-auto custom-scrollbar">
                             <h4 className="text-xs font-bold text-text-faint mb-2 uppercase tracking-wider">예제 입력 {s.sampleIndex}</h4>
-                            <pre className="text-sm font-mono text-text-secondary whitespace-pre-wrap leading-relaxed">{s.input || ''}</pre>
+                            <pre className="text-sm font-mono text-text-secondary whitespace-pre leading-relaxed">{s.input || ''}</pre>
                           </div>
-                          <div className="bg-input-bg/80 border border-border-default rounded-lg p-3">
+                          <div className="bg-input-bg/80 border border-border-default rounded-lg p-3 overflow-x-auto custom-scrollbar">
                             <h4 className="text-xs font-bold text-text-faint mb-2 uppercase tracking-wider">예제 출력 {s.sampleIndex}</h4>
-                            <pre className="text-sm font-mono text-text-secondary whitespace-pre-wrap leading-relaxed">{s.output || ''}</pre>
+                            <pre className="text-sm font-mono text-text-secondary whitespace-pre leading-relaxed">{s.output || ''}</pre>
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
+
+                  {/* 백준 바로가기 */}
+                  <a
+                    href={`https://www.acmicpc.net/problem/${problem.problemNumber}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 w-fit px-4 py-2 rounded-lg border border-border-default bg-surface-subtle hover:bg-hover-bg hover:border-emerald-500/50 text-text-muted hover:text-emerald-400 text-sm font-medium transition-all"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    백준 문제 바로가기
+                  </a>
 
                 </>
               ) : (
@@ -530,8 +538,8 @@ export const IDE = () => {
                               value={selectedCase.input}
                               onChange={(e) => updateTestCase(selectedCase.id, 'input', e.target.value)}
                               readOnly={!selectedCase.isCustom}
-                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none min-h-[60px] ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
-                              rows={3}
+                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
+                              rows={Math.max(3, selectedCase.input.split('\n').length)}
                               placeholder="입력값을 입력하세요..."
                             />
                           </div>
@@ -541,8 +549,8 @@ export const IDE = () => {
                               value={selectedCase.expected}
                               onChange={(e) => updateTestCase(selectedCase.id, 'expected', e.target.value)}
                               readOnly={!selectedCase.isCustom}
-                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none min-h-[60px] ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
-                              rows={3}
+                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
+                              rows={Math.max(3, selectedCase.expected.split('\n').length)}
                               placeholder="기대 출력값을 입력하세요..."
                             />
                           </div>
