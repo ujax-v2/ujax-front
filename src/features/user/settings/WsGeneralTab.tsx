@@ -76,7 +76,7 @@ export const WsGeneralTab = () => {
           setWsPreviewUrl('');
           setWsPendingFile(null);
           setWsImageRemoved(false);
-          setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, mmWebhookUrl: settings.hookUrl ?? null } : w));
+          setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, mmWebhookUrl: settings.hookUrl ?? null, imageUrl: settings.imageUrl ?? null } : w));
         }).catch(err => {
           console.error('Failed to load workspace settings:', err);
         });
@@ -169,13 +169,13 @@ export const WsGeneralTab = () => {
       setWsOriginalName(updated.name ?? '');
       setWsOriginalDescription(updated.description ?? '');
       setWsOriginalMmWebhookUrl(wsMmWebhookUrl);
-      setWsImageUrl((updated as any).imageUrl ?? '');
-      setWsOriginalImageUrl((updated as any).imageUrl ?? '');
+      setWsImageUrl(updated.imageUrl ?? '');
+      setWsOriginalImageUrl(updated.imageUrl ?? '');
       setWsPreviewUrl('');
       setWsPendingFile(null);
       setWsImageRemoved(false);
       if (wsFileInputRef.current) wsFileInputRef.current.value = '';
-      setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, name: updated.name ?? w.name, description: updated.description ?? null, imageUrl: (updated as any).imageUrl ?? null, mmWebhookUrl: wsMmWebhookUrl || null } : w));
+      setWorkspaces(prev => prev.map(w => w.id === currentWorkspaceId ? { ...w, name: updated.name ?? w.name, description: updated.description ?? null, imageUrl: updated.imageUrl ?? null, mmWebhookUrl: wsMmWebhookUrl || null } : w));
       setWsSaveResult('success');
     } catch (err: any) {
       setWsSaveResult('error');
