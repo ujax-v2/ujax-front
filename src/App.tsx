@@ -202,7 +202,7 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
     getWorkspaceSettings(numericWsId)
       .then(data => {
         setWorkspaces(prev => prev.map(w => w.id === numericWsId
-          ? { ...w, mmWebhookUrl: data.mmWebhookUrl ?? null }
+          ? { ...w, mmWebhookUrl: data.hookUrl ?? null, imageUrl: data.imageUrl ?? null }
           : w
         ));
       })

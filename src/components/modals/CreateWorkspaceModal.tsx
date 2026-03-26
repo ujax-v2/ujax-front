@@ -38,6 +38,7 @@ export const CreateWorkspaceModal = () => {
         id: res.id!,
         name: res.name!,
         description: res.description ?? null,
+        imageUrl: res.imageUrl ?? null,
       };
       setWorkspaces([...workspaces, newWorkspace]);
       setCurrentWorkspaceId(newWorkspace.id);
