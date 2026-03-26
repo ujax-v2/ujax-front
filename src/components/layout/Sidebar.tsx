@@ -8,7 +8,9 @@ import {
   userState,
   settingsTabState,
   isCreateWorkspaceModalOpenState,
-  myWorkspaceRoleState
+  myWorkspaceRoleState,
+  currentProblemBoxState,
+  problemContextState,
 } from '@/store/atoms';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -40,6 +42,8 @@ export const Sidebar = () => {
   const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
   const [currentWorkspaceId, setCurrentWorkspaceId] = useRecoilState(currentWorkspaceState);
   const setIsCreateWorkspaceModalOpen = useSetRecoilState(isCreateWorkspaceModalOpenState);
+  const setCurrentProblemBox = useSetRecoilState(currentProblemBoxState);
+  const setProblemContext = useSetRecoilState(problemContextState);
   const [user] = useRecoilState(userState);
   const { logout } = useAuth();
   const myWorkspaceRole = useRecoilValue(myWorkspaceRoleState);
@@ -96,8 +100,10 @@ export const Sidebar = () => {
     setIsCreateWorkspaceModalOpen(true);
   };
 
-  // 워크스페이스 전환 시 → 새 WS의 대시보드로 이동
+  // 워크스페이스 전환 시 → 워크스페이스 전용 상태 초기화 후 새 WS 대시보드로 이동
   const handleSwitchWorkspace = (id: number) => {
+    setCurrentProblemBox(null);
+    setProblemContext({});
     setCurrentWorkspaceId(id);
     setIsWorkspaceMenuOpen(false);
     navigate(`/ws/${id}/dashboard`);
