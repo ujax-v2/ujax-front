@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button, Badge } from '@/components/ui/Base';
-import { Play, Pause, RotateCcw, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, Plus, Code2, Clock, HardDrive, X } from 'lucide-react';
+import { Play, Pause, RotateCcw, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, Plus, Code2, Clock, HardDrive, X, ExternalLink } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { useParams } from 'react-router-dom';
@@ -421,6 +421,17 @@ export const IDE = () => {
                       ))}
                     </div>
                   )}
+
+                  {/* 백준 바로가기 */}
+                  <a
+                    href={`https://www.acmicpc.net/problem/${problem.problemNumber}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 w-fit px-4 py-2 rounded-lg border border-border-default bg-surface-subtle hover:bg-hover-bg hover:border-emerald-500/50 text-text-muted hover:text-emerald-400 text-sm font-medium transition-all"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    백준 문제 바로가기
+                  </a>
 
                 </>
               ) : (
