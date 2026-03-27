@@ -12,6 +12,7 @@ import { getMyMembership } from '@/api/workspace';
 import { parseApiError } from '@/utils/error';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 import {
   PenSquare,
   ArrowLeft,
@@ -377,7 +378,8 @@ export const PostEdit = () => {
                       prose-a:text-emerald-600 dark:prose-a:text-emerald-400 prose-a:no-underline hover:prose-a:underline
                       prose-strong:text-text-primary prose-strong:font-bold
                       prose-code:text-emerald-600 dark:prose-code:text-emerald-300 prose-code:bg-surface-subtle/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-[13px] prose-code:before:content-none prose-code:after:content-none
-                      prose-pre:bg-page-deep prose-pre:border prose-pre:border-border-subtle/50 prose-pre:rounded-xl prose-pre:my-4
+                      prose-pre:bg-transparent prose-pre:p-0 prose-pre:border-0 prose-pre:rounded-xl prose-pre:my-4
+                      [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit [&_pre_code]:rounded-none
                       prose-blockquote:border-l-emerald-500/40 prose-blockquote:bg-emerald-500/5 prose-blockquote:rounded-r-lg prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:text-text-muted prose-blockquote:not-italic
                       prose-ul:my-3 prose-ol:my-3
                       prose-li:text-[15px] prose-li:text-text-secondary prose-li:leading-[1.8] prose-li:my-0.5
@@ -385,7 +387,7 @@ export const PostEdit = () => {
                       prose-img:rounded-xl
                       prose-th:text-text-secondary prose-td:text-text-muted
                     ">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>{content}</ReactMarkdown>
                     </div>
                   ) : (
                     <p className="text-text-faint text-sm">미리볼 내용이 없습니다. 작성 탭에서 마크다운을 입력해주세요.</p>
