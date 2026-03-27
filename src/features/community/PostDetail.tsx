@@ -22,6 +22,8 @@ import type { BoardDetailResponse, CommentResponse, MemberRole } from '@/api/boa
 import { getMyMembership } from '@/api/workspace';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github-dark-dimmed.css';
 import {
   ArrowLeft,
   ThumbsUp,
@@ -290,7 +292,8 @@ export const PostDetail = () => {
               prose-strong:text-text-primary prose-strong:font-bold
               prose-em:text-text-secondary
               prose-code:text-emerald-600 dark:prose-code:text-emerald-300 prose-code:bg-surface-subtle/80 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-[13px] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
-              prose-pre:bg-page-deep prose-pre:border prose-pre:border-border-subtle/50 prose-pre:rounded-xl prose-pre:my-4
+              prose-pre:bg-transparent prose-pre:p-0 prose-pre:border-0 prose-pre:rounded-xl prose-pre:my-4
+              [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit [&_pre_code]:rounded-none
               prose-blockquote:border-l-emerald-500/40 prose-blockquote:bg-emerald-500/5 prose-blockquote:rounded-r-lg prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:text-text-muted prose-blockquote:not-italic
               prose-ul:my-3 prose-ol:my-3
               prose-li:text-[15px] prose-li:text-text-secondary prose-li:leading-[1.8] prose-li:my-0.5
@@ -300,7 +303,10 @@ export const PostDetail = () => {
               prose-th:text-text-secondary prose-th:bg-surface-subtle/50 prose-th:px-3 prose-th:py-2
               prose-td:text-text-muted prose-td:px-3 prose-td:py-2 prose-td:border-border-subtle/50
             ">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content ?? ''}</ReactMarkdown>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeHighlight]}
+              >{post.content ?? ''}</ReactMarkdown>
             </div>
           </div>
 
