@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button, Badge } from '@/components/ui/Base';
-import { Play, Pause, RotateCcw, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, Plus, Code2, Clock, HardDrive, X, ExternalLink } from 'lucide-react';
+import { Play, Pause, RotateCcw, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, Plus, Code2, Clock, HardDrive, X, ExternalLink, Pencil } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { useParams } from 'react-router-dom';
@@ -79,8 +79,7 @@ public class Main {
 const POLL_INTERVAL = 1500;
 const MAX_POLL_ATTEMPTS = 160;
 
-const Stopwatch = ({ problemId }: { problemId: string }) => {
-  const storageKey = `timer_${problemId}`;
+const Stopwatch = ({ storageKey }: { storageKey: string }) => {
 
   const loadState = (): { startedAt: number | null; elapsed: number } => {
     try {
@@ -122,6 +121,12 @@ const Stopwatch = ({ problemId }: { problemId: string }) => {
     });
   };
 
+  const reset = () => {
+    const next = { startedAt: null, elapsed: 0 };
+    localStorage.setItem(storageKey, JSON.stringify(next));
+    setTimerState(next);
+  };
+
   const isRunning = timerState.startedAt !== null;
 
   const fmt = (s: number) => {
@@ -137,6 +142,9 @@ const Stopwatch = ({ problemId }: { problemId: string }) => {
       <span>{fmt(displayTime)}</span>
       <button onClick={toggle} className="hover:text-text-primary">
         {isRunning ? <Pause className="w-3.5 h-3.5" fill="currentColor" /> : <Play className="w-3.5 h-3.5" fill="currentColor" />}
+      </button>
+      <button onClick={reset} className="hover:text-text-primary">
+        <RotateCcw className="w-3 h-3" />
       </button>
     </div>
   );
@@ -168,6 +176,12 @@ export const IDE = () => {
   const [showExecuteModal, setShowExecuteModal] = useState(false);
   const [executeModalStatus, setExecuteModalStatus] = useState<'idle' | 'executing' | 'done'>('idle');
 
+  // Custom test case edit modal
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCaseId, setEditingCaseId] = useState<string | null>(null);
+  const [editInput, setEditInput] = useState('');
+  const [editExpected, setEditExpected] = useState('');
+
   // Hooks
   const {
     testCases,
@@ -184,7 +198,7 @@ export const IDE = () => {
     confirmAddTestCase,
     updateTestCase,
     deleteTestCase,
-  } = useTestCaseManagement();
+  } = useTestCaseManagement(`custom_${currentWsId}_${ctx?.problemBoxId ?? 0}_${problemId ?? ''}`);
 
   const { submitStatus, submitResult, showSubmitModal, handleSubmit, closeSubmitModal } = useSubmitLogic(problem);
 
@@ -328,7 +342,7 @@ export const IDE = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Stopwatch problemId={problemId || ''} />
+          <Stopwatch storageKey={`timer_${currentWsId}_${ctx?.problemBoxId ?? 0}_${problemId ?? ''}`} />
           <div className="h-5 w-px bg-surface-subtle" />
           <select
             value={language}
@@ -364,22 +378,29 @@ export const IDE = () => {
               ) : problem ? (
                 <>
                   {/* 제한 정보 */}
-                  {(problem.timeLimit || problem.memoryLimit) && (
-                    <div className="flex gap-3">
-                      {problem.timeLimit && (
-                        <div className="flex items-center gap-2 text-sm text-text-muted bg-surface-subtle/60 rounded-md px-3 py-2 border border-border-subtle/50">
-                          <Clock className="w-3.5 h-3.5 text-indigo-700 dark:text-indigo-500" />
-                          <span>{problem.timeLimit}</span>
-                        </div>
-                      )}
-                      {problem.memoryLimit && (
-                        <div className="flex items-center gap-2 text-sm text-text-muted bg-surface-subtle/60 rounded-md px-3 py-2 border border-border-subtle/50">
-                          <HardDrive className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                          <span>{problem.memoryLimit}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {problem.timeLimit && (
+                      <div className="flex items-center gap-2 text-sm text-text-muted bg-surface-subtle/60 rounded-md px-3 py-2 border border-border-subtle/50">
+                        <Clock className="w-3.5 h-3.5 text-indigo-700 dark:text-indigo-500" />
+                        <span>{problem.timeLimit}</span>
+                      </div>
+                    )}
+                    {problem.memoryLimit && (
+                      <div className="flex items-center gap-2 text-sm text-text-muted bg-surface-subtle/60 rounded-md px-3 py-2 border border-border-subtle/50">
+                        <HardDrive className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span>{problem.memoryLimit}</span>
+                      </div>
+                    )}
+                    <a
+                      href={`https://www.acmicpc.net/problem/${problem.problemNumber}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-md border border-border-subtle/50 bg-surface-subtle/60 hover:bg-hover-bg hover:border-emerald-500/50 text-text-muted hover:text-emerald-400 text-sm transition-all"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      백준 바로가기
+                    </a>
+                  </div>
 
                   {problem.description && (
                     <section>
@@ -421,17 +442,6 @@ export const IDE = () => {
                       ))}
                     </div>
                   )}
-
-                  {/* 백준 바로가기 */}
-                  <a
-                    href={`https://www.acmicpc.net/problem/${problem.problemNumber}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 w-fit px-4 py-2 rounded-lg border border-border-default bg-surface-subtle hover:bg-hover-bg hover:border-emerald-500/50 text-text-muted hover:text-emerald-400 text-sm font-medium transition-all"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    백준 문제 바로가기
-                  </a>
 
                 </>
               ) : (
@@ -502,9 +512,7 @@ export const IDE = () => {
                       {/* Case number tabs */}
                       <div className="flex items-center gap-1 px-3 py-2 border-b border-border-default bg-surface-subtle/50 overflow-x-auto shrink-0">
                         {testCases.map((tc, idx) => {
-                          const label = tc.isCustom
-                            ? `사용자 ${testCases.filter((t, i) => t.isCustom && i <= idx).length}`
-                            : `예제 ${idx + 1}`;
+                          const label = `예제 ${idx + 1}`;
                           return (
                             <button
                               key={tc.id}
@@ -513,10 +521,22 @@ export const IDE = () => {
                             >
                               {label}
                               {tc.isCustom && (
-                                <X
-                                  className="w-3 h-3 ml-0.5 opacity-60 hover:opacity-100"
-                                  onClick={(e) => { e.stopPropagation(); deleteTestCase(tc.id); }}
-                                />
+                                <>
+                                  <Pencil
+                                    className="w-3 h-3 ml-0.5 opacity-60 hover:opacity-100"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingCaseId(tc.id);
+                                      setEditInput(tc.input);
+                                      setEditExpected(tc.expected);
+                                      setShowEditModal(true);
+                                    }}
+                                  />
+                                  <X
+                                    className="w-3 h-3 ml-0.5 opacity-60 hover:opacity-100"
+                                    onClick={(e) => { e.stopPropagation(); deleteTestCase(tc.id); }}
+                                  />
+                                </>
                               )}
                             </button>
                           );
@@ -529,29 +549,25 @@ export const IDE = () => {
                         </button>
                       </div>
 
-                      {/* Selected case viewer / editor */}
+                      {/* Selected case viewer */}
                       {selectedCase ? (
                         <div className="flex-1 p-3 space-y-3 overflow-y-auto">
                           <div>
                             <label className="text-[10px] font-bold text-text-faint uppercase tracking-wider mb-1 block">입력</label>
                             <textarea
                               value={selectedCase.input}
-                              onChange={(e) => updateTestCase(selectedCase.id, 'input', e.target.value)}
-                              readOnly={!selectedCase.isCustom}
-                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
+                              readOnly
+                              className="w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none opacity-70 cursor-default"
                               rows={Math.max(3, selectedCase.input.split('\n').length)}
-                              placeholder="입력값을 입력하세요..."
                             />
                           </div>
                           <div>
                             <label className="text-[10px] font-bold text-text-faint uppercase tracking-wider mb-1 block">기대 출력</label>
                             <textarea
                               value={selectedCase.expected}
-                              onChange={(e) => updateTestCase(selectedCase.id, 'expected', e.target.value)}
-                              readOnly={!selectedCase.isCustom}
-                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
+                              readOnly
+                              className="w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none opacity-70 cursor-default"
                               rows={Math.max(3, selectedCase.expected.split('\n').length)}
-                              placeholder="기대 출력값을 입력하세요..."
                             />
                           </div>
                         </div>
@@ -710,6 +726,23 @@ export const IDE = () => {
         onExpectedChange={setModalExpected}
         onClose={() => setShowAddModal(false)}
         onConfirm={confirmAddTestCase}
+      />
+      <IDEAddTestCaseModal
+        show={showEditModal}
+        input={editInput}
+        expected={editExpected}
+        onInputChange={setEditInput}
+        onExpectedChange={setEditExpected}
+        onClose={() => setShowEditModal(false)}
+        onConfirm={() => {
+          if (editingCaseId) {
+            updateTestCase(editingCaseId, 'input', editInput);
+            updateTestCase(editingCaseId, 'expected', editExpected);
+          }
+          setShowEditModal(false);
+        }}
+        title="테스트 케이스 수정"
+        confirmLabel="저장"
       />
     </div>
   );
