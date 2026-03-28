@@ -364,22 +364,29 @@ export const IDE = () => {
               ) : problem ? (
                 <>
                   {/* 제한 정보 */}
-                  {(problem.timeLimit || problem.memoryLimit) && (
-                    <div className="flex gap-3">
-                      {problem.timeLimit && (
-                        <div className="flex items-center gap-2 text-sm text-text-muted bg-surface-subtle/60 rounded-md px-3 py-2 border border-border-subtle/50">
-                          <Clock className="w-3.5 h-3.5 text-indigo-700 dark:text-indigo-500" />
-                          <span>{problem.timeLimit}</span>
-                        </div>
-                      )}
-                      {problem.memoryLimit && (
-                        <div className="flex items-center gap-2 text-sm text-text-muted bg-surface-subtle/60 rounded-md px-3 py-2 border border-border-subtle/50">
-                          <HardDrive className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                          <span>{problem.memoryLimit}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {problem.timeLimit && (
+                      <div className="flex items-center gap-2 text-sm text-text-muted bg-surface-subtle/60 rounded-md px-3 py-2 border border-border-subtle/50">
+                        <Clock className="w-3.5 h-3.5 text-indigo-700 dark:text-indigo-500" />
+                        <span>{problem.timeLimit}</span>
+                      </div>
+                    )}
+                    {problem.memoryLimit && (
+                      <div className="flex items-center gap-2 text-sm text-text-muted bg-surface-subtle/60 rounded-md px-3 py-2 border border-border-subtle/50">
+                        <HardDrive className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span>{problem.memoryLimit}</span>
+                      </div>
+                    )}
+                    <a
+                      href={`https://www.acmicpc.net/problem/${problem.problemNumber}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-md border border-border-subtle/50 bg-surface-subtle/60 hover:bg-hover-bg hover:border-emerald-500/50 text-text-muted hover:text-emerald-400 text-sm transition-all"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      백준 바로가기
+                    </a>
+                  </div>
 
                   {problem.description && (
                     <section>
@@ -421,17 +428,6 @@ export const IDE = () => {
                       ))}
                     </div>
                   )}
-
-                  {/* 백준 바로가기 */}
-                  <a
-                    href={`https://www.acmicpc.net/problem/${problem.problemNumber}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 w-fit px-4 py-2 rounded-lg border border-border-default bg-surface-subtle hover:bg-hover-bg hover:border-emerald-500/50 text-text-muted hover:text-emerald-400 text-sm font-medium transition-all"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    백준 문제 바로가기
-                  </a>
 
                 </>
               ) : (
