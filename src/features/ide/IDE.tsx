@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button, Badge } from '@/components/ui/Base';
-import { Play, Pause, RotateCcw, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, Plus, Code2, Clock, HardDrive, X, ExternalLink } from 'lucide-react';
+import { Play, Pause, RotateCcw, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Timer, Plus, Code2, Clock, HardDrive, X, ExternalLink, Pencil } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { useParams } from 'react-router-dom';
@@ -175,6 +175,12 @@ export const IDE = () => {
   // Execute modal
   const [showExecuteModal, setShowExecuteModal] = useState(false);
   const [executeModalStatus, setExecuteModalStatus] = useState<'idle' | 'executing' | 'done'>('idle');
+
+  // Custom test case edit modal
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCaseId, setEditingCaseId] = useState<string | null>(null);
+  const [editInput, setEditInput] = useState('');
+  const [editExpected, setEditExpected] = useState('');
 
   // Hooks
   const {
@@ -506,9 +512,7 @@ export const IDE = () => {
                       {/* Case number tabs */}
                       <div className="flex items-center gap-1 px-3 py-2 border-b border-border-default bg-surface-subtle/50 overflow-x-auto shrink-0">
                         {testCases.map((tc, idx) => {
-                          const label = tc.isCustom
-                            ? `사용자 ${testCases.filter((t, i) => t.isCustom && i <= idx).length}`
-                            : `예제 ${idx + 1}`;
+                          const label = `예제 ${idx + 1}`;
                           return (
                             <button
                               key={tc.id}
@@ -517,10 +521,22 @@ export const IDE = () => {
                             >
                               {label}
                               {tc.isCustom && (
-                                <X
-                                  className="w-3 h-3 ml-0.5 opacity-60 hover:opacity-100"
-                                  onClick={(e) => { e.stopPropagation(); deleteTestCase(tc.id); }}
-                                />
+                                <>
+                                  <Pencil
+                                    className="w-3 h-3 ml-0.5 opacity-60 hover:opacity-100"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingCaseId(tc.id);
+                                      setEditInput(tc.input);
+                                      setEditExpected(tc.expected);
+                                      setShowEditModal(true);
+                                    }}
+                                  />
+                                  <X
+                                    className="w-3 h-3 ml-0.5 opacity-60 hover:opacity-100"
+                                    onClick={(e) => { e.stopPropagation(); deleteTestCase(tc.id); }}
+                                  />
+                                </>
                               )}
                             </button>
                           );
@@ -533,29 +549,25 @@ export const IDE = () => {
                         </button>
                       </div>
 
-                      {/* Selected case viewer / editor */}
+                      {/* Selected case viewer */}
                       {selectedCase ? (
                         <div className="flex-1 p-3 space-y-3 overflow-y-auto">
                           <div>
                             <label className="text-[10px] font-bold text-text-faint uppercase tracking-wider mb-1 block">입력</label>
                             <textarea
                               value={selectedCase.input}
-                              onChange={(e) => updateTestCase(selectedCase.id, 'input', e.target.value)}
-                              readOnly={!selectedCase.isCustom}
-                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
+                              readOnly
+                              className="w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none opacity-70 cursor-default"
                               rows={Math.max(3, selectedCase.input.split('\n').length)}
-                              placeholder="입력값을 입력하세요..."
                             />
                           </div>
                           <div>
                             <label className="text-[10px] font-bold text-text-faint uppercase tracking-wider mb-1 block">기대 출력</label>
                             <textarea
                               value={selectedCase.expected}
-                              onChange={(e) => updateTestCase(selectedCase.id, 'expected', e.target.value)}
-                              readOnly={!selectedCase.isCustom}
-                              className={`w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none ${selectedCase.isCustom ? 'focus:border-emerald-500' : 'opacity-70 cursor-default'}`}
+                              readOnly
+                              className="w-full bg-input-bg border border-border-default rounded-md p-2.5 text-sm font-mono text-text-secondary resize-none focus:outline-none opacity-70 cursor-default"
                               rows={Math.max(3, selectedCase.expected.split('\n').length)}
-                              placeholder="기대 출력값을 입력하세요..."
                             />
                           </div>
                         </div>
@@ -714,6 +726,23 @@ export const IDE = () => {
         onExpectedChange={setModalExpected}
         onClose={() => setShowAddModal(false)}
         onConfirm={confirmAddTestCase}
+      />
+      <IDEAddTestCaseModal
+        show={showEditModal}
+        input={editInput}
+        expected={editExpected}
+        onInputChange={setEditInput}
+        onExpectedChange={setEditExpected}
+        onClose={() => setShowEditModal(false)}
+        onConfirm={() => {
+          if (editingCaseId) {
+            updateTestCase(editingCaseId, 'input', editInput);
+            updateTestCase(editingCaseId, 'expected', editExpected);
+          }
+          setShowEditModal(false);
+        }}
+        title="테스트 케이스 수정"
+        confirmLabel="저장"
       />
     </div>
   );

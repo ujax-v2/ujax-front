@@ -10,6 +10,8 @@ interface IDEAddTestCaseModalProps {
   onExpectedChange: (v: string) => void;
   onClose: () => void;
   onConfirm: () => void;
+  title?: string;
+  confirmLabel?: string;
 }
 
 export function IDEAddTestCaseModal({
@@ -20,6 +22,8 @@ export function IDEAddTestCaseModal({
   onExpectedChange,
   onClose,
   onConfirm,
+  title = '테스트 케이스 추가',
+  confirmLabel = '추가',
 }: IDEAddTestCaseModalProps) {
   if (!show) return null;
 
@@ -27,7 +31,7 @@ export function IDEAddTestCaseModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div className="bg-surface border border-border-default rounded-xl shadow-xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-default">
-          <h3 className="font-bold text-text-primary text-sm">테스트 케이스 추가</h3>
+          <h3 className="font-bold text-text-primary text-sm">{title}</h3>
           <button onClick={onClose} className="text-text-faint hover:text-text-primary">
             <X className="w-4 h-4" />
           </button>
@@ -57,7 +61,7 @@ export function IDEAddTestCaseModal({
         </div>
         <div className="flex justify-end gap-2 px-5 py-4 border-t border-border-default">
           <Button variant="secondary" onClick={onClose} className="text-sm px-4 py-2">취소</Button>
-          <Button variant="primary" onClick={onConfirm} className="text-sm px-4 py-2">추가</Button>
+          <Button variant="primary" onClick={onConfirm} className="text-sm px-4 py-2">{confirmLabel}</Button>
         </div>
       </div>
     </div>
