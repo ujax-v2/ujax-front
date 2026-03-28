@@ -79,8 +79,7 @@ public class Main {
 const POLL_INTERVAL = 1500;
 const MAX_POLL_ATTEMPTS = 160;
 
-const Stopwatch = ({ problemId }: { problemId: string }) => {
-  const storageKey = `timer_${problemId}`;
+const Stopwatch = ({ storageKey }: { storageKey: string }) => {
 
   const loadState = (): { startedAt: number | null; elapsed: number } => {
     try {
@@ -122,6 +121,12 @@ const Stopwatch = ({ problemId }: { problemId: string }) => {
     });
   };
 
+  const reset = () => {
+    const next = { startedAt: null, elapsed: 0 };
+    localStorage.setItem(storageKey, JSON.stringify(next));
+    setTimerState(next);
+  };
+
   const isRunning = timerState.startedAt !== null;
 
   const fmt = (s: number) => {
@@ -137,6 +142,9 @@ const Stopwatch = ({ problemId }: { problemId: string }) => {
       <span>{fmt(displayTime)}</span>
       <button onClick={toggle} className="hover:text-text-primary">
         {isRunning ? <Pause className="w-3.5 h-3.5" fill="currentColor" /> : <Play className="w-3.5 h-3.5" fill="currentColor" />}
+      </button>
+      <button onClick={reset} className="hover:text-text-primary">
+        <RotateCcw className="w-3 h-3" />
       </button>
     </div>
   );
@@ -328,7 +336,7 @@ export const IDE = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Stopwatch problemId={problemId || ''} />
+          <Stopwatch storageKey={`timer_${currentWsId}_${ctx?.problemBoxId ?? 0}_${problemId ?? ''}`} />
           <div className="h-5 w-px bg-surface-subtle" />
           <select
             value={language}
