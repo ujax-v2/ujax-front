@@ -198,7 +198,7 @@ export const IDE = () => {
     confirmAddTestCase,
     updateTestCase,
     deleteTestCase,
-  } = useTestCaseManagement();
+  } = useTestCaseManagement(`custom_${currentWsId}_${ctx?.problemBoxId ?? 0}_${problemId ?? ''}`);
 
   const { submitStatus, submitResult, showSubmitModal, handleSubmit, closeSubmitModal } = useSubmitLogic(problem);
 
