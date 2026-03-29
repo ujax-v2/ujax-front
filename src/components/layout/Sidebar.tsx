@@ -104,6 +104,7 @@ export const Sidebar = () => {
   const handleSwitchWorkspace = (id: number) => {
     setCurrentProblemBox(null);
     setProblemContext({});
+    setMyWorkspaceRole('MEMBER');
     setCurrentWorkspaceId(id);
     setIsWorkspaceMenuOpen(false);
     navigate(`/ws/${id}/dashboard`);

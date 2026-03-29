@@ -71,9 +71,12 @@ export const Home = () => {
         );
     }
 
-    // 로그인 유저 + 기존 WS 있으면 → 최근 WS 대시보드로 자동 이동
+    // 로그인 유저 + 기존 WS 있으면 → 마지막 사용 WS 대시보드로 자동 이동
     if (user.isLoggedIn && workspaces.length > 0) {
-        const targetWsId = currentWsId || workspaces[0].id;
+        const lastId = parseInt(localStorage.getItem('lastWorkspaceId') || '0', 10);
+        const validLastId = lastId && workspaces.some(w => w.id === lastId) ? lastId : null;
+        const targetWsId = validLastId || currentWsId || workspaces[0].id;
+        if (validLastId) localStorage.removeItem('lastWorkspaceId');
         return <Navigate to={`/ws/${targetWsId}/dashboard`} replace />;
     }
 
