@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRecoilState, useRecoilValue, RecoilRoot } from 'recoil';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, currentProblemBoxState, Workspace, themeState, ThemeMode, languageState, GUEST_USER } from './store/atoms';
+import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, currentProblemBoxState, myWorkspaceRoleState, Workspace, themeState, ThemeMode, languageState, GUEST_USER } from './store/atoms';
 import { Sidebar } from './components/layout/Sidebar';
 import { getWorkspaces, getWorkspaceSettings } from './api/workspace';
 import { Dashboard } from './features/dashboard/Dashboard';
@@ -287,6 +287,7 @@ function AppContent() {
   const [workspaces, setWorkspaces] = useRecoilState(workspacesState);
   const setCurrentWsId = useRecoilState(currentWorkspaceState)[1];
   const setCurrentProblemBox = useRecoilState(currentProblemBoxState)[1];
+  const setMyWorkspaceRole = useRecoilState(myWorkspaceRoleState)[1];
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -310,6 +311,7 @@ function AppContent() {
       setWorkspaces([]);
       setCurrentWsId(0);
       setCurrentProblemBox(null);
+      setMyWorkspaceRole('MEMBER');
       toast.error('세션이 만료되었습니다. 다시 로그인해주세요.', {
         duration: 4000,
         position: 'top-center',
@@ -323,7 +325,7 @@ function AppContent() {
       window.removeEventListener('ujaxTokenUpdated', onTokenUpdated);
       window.removeEventListener('ujaxAuthExpired', onAuthExpired);
     };
-  }, [navigate, setUser, setWorkspaces, setCurrentWsId, setCurrentProblemBox]);
+  }, [navigate, setUser, setWorkspaces, setCurrentWsId, setCurrentProblemBox, setMyWorkspaceRole]);
 
   // 사이드바를 숨겨야 하는 페이지: 인증, IDE, 홈, 풀이 보기(solutions)
   const isFullScreen = ['/login', '/signup', '/oauth/callback', '/'].includes(location.pathname)

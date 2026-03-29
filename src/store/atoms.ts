@@ -43,11 +43,34 @@ export interface ProblemBox {
 }
 
 
-// Problem Box State
+// Problem Box State — 워크스페이스 ID와 함께 저장해 stale 데이터 방지
+const problemBoxStorageEffect: AtomEffect<ProblemBox | null> = ({ setSelf, onSet }) => {
+  try {
+    const saved = localStorage.getItem('currentProblemBox');
+    if (saved) {
+      const { wsId, box } = JSON.parse(saved);
+      const currentWsId = parseInt(localStorage.getItem('currentWorkspaceId') || '0', 10);
+      if (wsId && wsId === currentWsId) setSelf(box);
+      // wsId 불일치 → stale 데이터, default(null) 유지
+    }
+  } catch { /* ignore */ }
+
+  onSet((newValue, _, isReset) => {
+    try {
+      if (isReset || newValue === null) {
+        localStorage.removeItem('currentProblemBox');
+      } else {
+        const currentWsId = parseInt(localStorage.getItem('currentWorkspaceId') || '0', 10);
+        localStorage.setItem('currentProblemBox', JSON.stringify({ wsId: currentWsId, box: newValue }));
+      }
+    } catch { /* ignore */ }
+  });
+};
+
 export const currentProblemBoxState = atom<ProblemBox | null>({
   key: 'currentProblemBoxState',
-  default: null, // null이면 문제집 목록 표시, 값이 있으면 해당 문제집 내부 표시
-  effects: [localStorageEffect('currentProblemBox')],
+  default: null,
+  effects: [problemBoxStorageEffect],
 });
 
 // IDE State
@@ -213,6 +236,7 @@ export const workspacesState = atom<Workspace[]>({
 export const myWorkspaceRoleState = atom<string>({
   key: 'myWorkspaceRoleState',
   default: 'MEMBER',
+  effects: [localStorageEffect('myWorkspaceRole')],
 });
 
 export const settingsTabState = atom({
