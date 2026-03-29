@@ -22,6 +22,7 @@ export const Login = ({ oauthError: oauthErrorProp, onClearError }: LoginProps) 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [passwordImeHint, setPasswordImeHint] = useState(false);
+  const [capsLock, setCapsLock] = useState(false);
   const imeHintTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const filterKorean = (value: string) => value.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, '');
@@ -107,10 +108,15 @@ export const Login = ({ oauthError: oauthErrorProp, onClearError }: LoginProps) 
                 value={password}
                 onChange={handlePasswordChange}
                 onCompositionEnd={handlePasswordCompositionEnd}
+                onKeyDown={(e) => setCapsLock(e.getModifierState('CapsLock'))}
+                onBlur={() => setCapsLock(false)}
                 className="w-full bg-input-bg border border-border-default rounded-lg py-2.5 pl-10 pr-4 text-sm text-text-secondary focus:outline-none focus:border-emerald-500 transition-colors"
                 placeholder="••••••••"
               />
             </div>
+            {capsLock && (
+              <p className="text-xs text-amber-500 mt-1">⇪ Caps Lock이 켜져 있습니다</p>
+            )}
             {passwordImeHint && (
               <p className="text-xs text-amber-500 mt-1">한/영 키를 눌러 영문 모드로 전환해주세요</p>
             )}
