@@ -304,6 +304,8 @@ function AppContent() {
     const onAuthExpired = () => {
       if (expiredHandled) return;
       expiredHandled = true;
+      const storedId = parseInt(localStorage.getItem('currentWorkspaceId') || '0', 10);
+      if (storedId) localStorage.setItem('lastWorkspaceId', String(storedId));
       setUser(GUEST_USER);
       setWorkspaces([]);
       setCurrentWsId(0);

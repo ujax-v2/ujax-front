@@ -1,4 +1,4 @@
-import { useSetRecoilState } from 'recoil';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 import { userState, workspacesState, currentWorkspaceState, currentProblemBoxState, GUEST_USER, UserState } from '@/store/atoms';
 import { logoutApi } from '@/api/auth';
@@ -13,6 +13,7 @@ import { getMe } from '@/api/user';
 export function useAuth() {
   const setUser = useSetRecoilState(userState);
   const setWorkspaces = useSetRecoilState(workspacesState);
+  const currentWsId = useRecoilValue(currentWorkspaceState);
   const setCurrentWsId = useSetRecoilState(currentWorkspaceState);
   const setCurrentProblemBox = useSetRecoilState(currentProblemBoxState);
   const navigate = useNavigate();
@@ -73,6 +74,7 @@ export function useAuth() {
     } catch {
       // logout API 실패해도 로컬 상태는 초기화
     }
+    if (currentWsId) localStorage.setItem('lastWorkspaceId', String(currentWsId));
     setUser(GUEST_USER);
     setWorkspaces([]);
     setCurrentWsId(0);
