@@ -392,6 +392,7 @@ export const en: Record<string, string> = {
   'settings.members.inviteEmailPlaceholder': 'example@email.com',
   'settings.members.inviting': 'Inviting...',
   'settings.members.inviteButton': 'Invite',
+  'settings.members.inviteFailed': 'Failed to send the invitation.',
   'settings.members.inviteSuccess': 'Invitation sent.',
   'settings.members.noNickname': '(no nickname)',
   'settings.members.noMembers': 'No members.',
