@@ -187,11 +187,15 @@ export const WsMembersTab = () => {
               return (
                 <div key={member.workspaceMemberId} className={`flex items-center justify-between py-3 px-4 transition-colors ${isMe ? 'bg-emerald-500/5 hover:bg-emerald-500/10' : 'bg-surface-overlay hover:bg-hover-bg'}`}>
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-surface-subtle flex items-center justify-center">
-                      <span className="text-sm font-bold text-text-muted">
-                        {(member.nickname ?? '?').charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+                    {member.image ? (
+                      <img src={member.image} alt={member.nickname ?? ''} className="w-9 h-9 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-surface-subtle flex items-center justify-center">
+                        <span className="text-sm font-bold text-text-muted">
+                          {(member.nickname ?? '?').charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                     <div className="text-sm font-medium text-text-secondary">
                       {member.nickname ?? t('settings.members.noNickname')}
                       {member.email && (
