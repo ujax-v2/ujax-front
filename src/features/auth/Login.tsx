@@ -153,7 +153,7 @@ export const Login = ({ oauthError: oauthErrorProp, onClearError }: LoginProps) 
 
         <div className="mt-6 text-center text-sm text-text-muted">
           {t('auth.noAccount')}{' '}
-          <button onClick={() => navigate('/signup')} className="text-emerald-500 hover:text-emerald-400 font-medium">
+          <button onClick={() => navigate('/signup/terms')} className="text-emerald-500 hover:text-emerald-400 font-medium">
             {t('auth.signup')}
           </button>
         </div>

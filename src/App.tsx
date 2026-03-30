@@ -16,6 +16,8 @@ import { PostDetail } from './features/community/PostDetail';
 import { PostEdit } from './features/community/PostEdit';
 import { Login } from './features/auth/Login';
 import { SignUp } from './features/auth/SignUp';
+import { SignUpTerms } from './features/auth/SignUpTerms';
+import { SignUpVerify } from './features/auth/SignUpVerify';
 import { OAuthCallback } from './features/auth/OAuthCallback';
 import { ProblemSolutions } from './features/problems/ProblemSolutions';
 import { ChallengeList } from './features/challenges/ChallengeList';
@@ -328,7 +330,7 @@ function AppContent() {
   }, [navigate, setUser, setWorkspaces, setCurrentWsId, setCurrentProblemBox, setMyWorkspaceRole]);
 
   // 사이드바를 숨겨야 하는 페이지: 인증, IDE, 홈, 풀이 보기(solutions)
-  const isFullScreen = ['/login', '/signup', '/oauth/callback', '/'].includes(location.pathname)
+  const isFullScreen = ['/login', '/signup', '/signup/terms', '/signup/verify', '/oauth/callback', '/'].includes(location.pathname)
     || location.pathname.includes('/ide')
     || location.pathname.includes('/solutions');
   // 워크스페이스가 없으면 사이드바 숨김 (컨텍스트 없으므로)
@@ -353,7 +355,9 @@ function AppContent() {
         <Routes>
           {/* 공개 라우트 */}
           <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+          <Route path="/signup/terms" element={<PublicOnlyRoute><SignUpTerms /></PublicOnlyRoute>} />
           <Route path="/signup" element={<PublicOnlyRoute><SignUp /></PublicOnlyRoute>} />
+          <Route path="/signup/verify" element={<PublicOnlyRoute><SignUpVerify /></PublicOnlyRoute>} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
 
           {/* 홈 (비로그인/로그인 모두 접근 가능) */}

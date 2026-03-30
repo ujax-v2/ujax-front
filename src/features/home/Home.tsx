@@ -146,7 +146,7 @@ export const Home = () => {
                                 <Button variant="ghost" className="text-text-muted hover:text-text-primary" onClick={() => navigate('/login')}>
                                     {t('auth.login')}
                                 </Button>
-                                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => navigate('/signup')}>
+                                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => navigate('/signup/terms')}>
                                     {t('auth.signup')}
                                 </Button>
                             </>
