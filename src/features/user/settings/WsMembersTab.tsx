@@ -7,7 +7,7 @@ import { getWorkspaceMembers, getMyMembership, inviteMember, updateMemberRole, r
 import type { WorkspaceMemberResponse, WorkspaceMemberPageResponse } from '@/api/workspace';
 
 type MemberItem = WorkspaceMemberPageResponse['content'][number];
-import { parseApiError } from '@/utils/error';
+import { isMailSendFailure, parseApiError, parseApiProblem } from '@/utils/error';
 import { UserPlus, AlertTriangle, MoreHorizontal } from 'lucide-react';
 import { PageNav } from '@/components/ui/PageNav';
 import { useT } from '@/i18n';
@@ -73,6 +73,14 @@ export const WsMembersTab = () => {
     loadMembers(0);
   }, [currentWorkspaceId, loadMembers]);
 
+  const getInviteErrorMessage = (err: unknown) => {
+    const problem = parseApiProblem(err);
+    if (isMailSendFailure(problem)) {
+      return t('common.mailSendFailed');
+    }
+    return parseApiError(err, t('settings.members.inviteFailed'));
+  };
+
   const handleInvite = async () => {
     if (!currentWorkspaceId || !inviteEmail.trim()) return;
     setInviting(true);
@@ -84,8 +92,8 @@ export const WsMembersTab = () => {
       setInviteEmail('');
       await loadMembers(currentPage);
       setTimeout(() => { setShowInviteModal(false); setInviteSuccess(false); }, 1200);
-    } catch (err: any) {
-      setInviteError(parseApiError(err, '초대에 실패했습니다.'));
+    } catch (err) {
+      setInviteError(getInviteErrorMessage(err));
     } finally {
       setInviting(false);
     }
@@ -299,7 +307,7 @@ export const WsMembersTab = () => {
                 type="email"
                 value={inviteEmail}
                 onChange={e => setInviteEmail(e.target.value)}
-                placeholder="example@email.com"
+                placeholder={t('settings.members.inviteEmailPlaceholder')}
                 className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
                 autoFocus
                 onKeyDown={e => e.key === 'Enter' && inviteEmail.trim() && handleInvite()}

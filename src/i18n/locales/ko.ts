@@ -392,6 +392,7 @@ export const ko: Record<string, string> = {
   'settings.members.inviteEmailPlaceholder': 'example@email.com',
   'settings.members.inviting': '초대 중...',
   'settings.members.inviteButton': '초대하기',
+  'settings.members.inviteFailed': '초대에 실패했습니다.',
   'settings.members.inviteSuccess': '초대가 완료되었습니다.',
   'settings.members.noNickname': '(닉네임 없음)',
   'settings.members.noMembers': '멤버가 없습니다.',
