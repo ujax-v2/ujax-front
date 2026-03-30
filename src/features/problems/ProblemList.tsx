@@ -94,6 +94,19 @@ export const ProblemList = () => {
     fetchBoxes();
   }, [fetchBoxes]);
 
+  // 문제 검색
+  const [searchInput, setSearchInput] = useState('');
+  const [keyword, setKeyword] = useState('');
+
+  // 디바운스: 입력 후 400ms 뒤 keyword 반영
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setKeyword(searchInput.trim());
+      setProblemPage(0);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   // 문제집 내부 문제 목록
   const [problems, setProblems] = useState<WorkspaceProblemListData['content']>([]);
   const [problemsLoading, setProblemsLoading] = useState(false);
@@ -111,7 +124,7 @@ export const ProblemList = () => {
     if (!currentWsId || !currentBox) return;
     setProblemsLoading(true);
     try {
-      const data = await getWorkspaceProblems(currentWsId, currentBox.id, problemPage);
+      const data = await getWorkspaceProblems(currentWsId, currentBox.id, problemPage, 10, keyword || undefined);
       setProblems(data.content);
       setProblemTotalPages(data.page?.totalPages ?? 0);
     } catch {
@@ -119,10 +132,15 @@ export const ProblemList = () => {
       setCurrentBox(null);
     }
     finally { setProblemsLoading(false); }
-  }, [currentWsId, currentBox, problemPage]);
+  }, [currentWsId, currentBox, problemPage, keyword]);
 
   useEffect(() => {
-    if (currentBox) fetchProblems();
+    if (currentBox) {
+      fetchProblems();
+    } else {
+      setSearchInput('');
+      setKeyword('');
+    }
   }, [currentBox, fetchProblems]);
 
   // Extension batch context: 문제 목록이 로드되면 extension에 전달
@@ -602,6 +620,8 @@ export const ProblemList = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-faint" />
             <input
               type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               placeholder={t('problems.searchProblems')}
               className="w-full h-12 bg-surface-raised border border-border-default rounded-xl pl-12 pr-4 text-text-secondary placeholder:text-text-faint focus:outline-none focus:border-emerald-500 transition-all shadow-sm"
             />

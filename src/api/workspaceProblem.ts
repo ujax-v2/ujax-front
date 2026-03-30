@@ -20,8 +20,11 @@ export async function getWorkspaceProblems(
   boxId: number,
   page = 0,
   size = 10,
+  keyword?: string,
 ): Promise<WorkspaceProblemListData> {
-  const res = await authFetch(`${base(wsId, boxId)}?page=${page}&size=${size}`);
+  const params = new URLSearchParams({ page: String(page), size: String(size) });
+  if (keyword) params.set('keyword', keyword);
+  const res = await authFetch(`${base(wsId, boxId)}?${params}`);
   return res.data;
 }
 
