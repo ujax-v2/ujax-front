@@ -83,6 +83,7 @@ console.log("Hello, World!");`,
 export const ideLanguageState = atom({
   key: 'ideLanguageState',
   default: 'javascript',
+  effects: [localStorageEffect('ideLanguage')],
 });
 
 // IDE 실행 결과 타입 정의

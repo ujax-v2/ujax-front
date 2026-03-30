@@ -51,7 +51,25 @@ const LANG_MONACO: Record<string, string> = {
   JAVA: 'java',
   PYTHON: 'python',
   CPP: 'cpp',
+  C: 'c',
   JAVASCRIPT: 'javascript',
+  CSHARP: 'csharp',
+  KOTLIN: 'kotlin',
+};
+
+const LANG_LABEL: Record<string, string> = {
+  JAVA: 'Java',
+  PYTHON: 'Python',
+  CPP: 'C++',
+  C: 'C',
+  JAVASCRIPT: 'JavaScript',
+  CSHARP: 'C#',
+  KOTLIN: 'Kotlin',
+  SWIFT: 'Swift',
+  GO: 'Go',
+  RUST: 'Rust',
+  RUBY: 'Ruby',
+  OTHER: '기타',
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -321,7 +339,7 @@ export const ProblemSolutions = () => {
                   <div className="flex items-center gap-2 mb-2">
                     <StatusBadge status={sol.latestStatus} />
                     <span className="px-1.5 py-0.5 rounded bg-surface-subtle text-[10px] font-medium text-text-faint">
-                      {sol.programmingLanguage}
+                      {LANG_LABEL[sol.programmingLanguage ?? ''] ?? sol.programmingLanguage}
                     </span>
                   </div>
 

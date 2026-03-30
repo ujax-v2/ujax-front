@@ -23,16 +23,22 @@ import { useTestCaseManagement } from './hooks/useTestCaseManagement';
 // Language ID mapping for Judge0
 const LANGUAGE_OPTIONS = [
   { id: 63, name: 'JavaScript (Node.js 12.14.0)', value: 'javascript', monaco: 'javascript' },
-  { id: 71, name: 'Python (3.8.1)', value: 'python', monaco: 'python' },
-  { id: 54, name: 'C++ (GCC 9.2.0)', value: 'cpp', monaco: 'cpp' },
-  { id: 62, name: 'Java (OpenJDK 13.0.1)', value: 'java', monaco: 'java' },
+  { id: 71, name: 'Python (3.8.1)',               value: 'python',     monaco: 'python' },
+  { id: 54, name: 'C++ (GCC 9.2.0)',              value: 'cpp',        monaco: 'cpp' },
+  { id: 50, name: 'C (GCC 9.2.0)',                value: 'c',          monaco: 'c' },
+  { id: 62, name: 'Java (OpenJDK 13.0.1)',        value: 'java',       monaco: 'java' },
+  { id: 51, name: 'C# (Mono 6.6.0.161)',          value: 'csharp',     monaco: 'csharp' },
+  { id: 78, name: 'Kotlin (1.3.70)',              value: 'kotlin',     monaco: 'kotlin' },
 ];
 
 const LANG_TO_BACKEND: Record<string, string> = {
   javascript: 'JAVASCRIPT',
-  python: 'PYTHON',
-  cpp: 'CPP',
-  java: 'JAVA',
+  python:     'PYTHON',
+  cpp:        'CPP',
+  c:          'C',
+  java:       'JAVA',
+  csharp:     'CSHARP',
+  kotlin:     'KOTLIN',
 };
 
 const CODE_TEMPLATES: Record<string, string> = {
@@ -64,6 +70,14 @@ int main() {
     cout << a + b << endl;
     return 0;
 }`,
+  c: `#include <stdio.h>
+
+int main() {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    printf("%d\\n", a + b);
+    return 0;
+}`,
   java: `import java.util.Scanner;
 
 public class Main {
@@ -73,6 +87,24 @@ public class Main {
         int b = sc.nextInt();
         System.out.println(a + b);
     }
+}`,
+  csharp: `using System;
+
+class Main {
+    static void Main(string[] args) {
+        string[] parts = Console.ReadLine().Split(' ');
+        int a = int.Parse(parts[0]);
+        int b = int.Parse(parts[1]);
+        Console.WriteLine(a + b);
+    }
+}`,
+  kotlin: `import java.util.Scanner
+
+fun main() {
+    val sc = Scanner(System.\`in\`)
+    val a = sc.nextInt()
+    val b = sc.nextInt()
+    println(a + b)
 }`
 };
 
