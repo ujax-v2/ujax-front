@@ -5,15 +5,14 @@ type ApiAuthToken = components['schemas']['ApiResponse-AuthTokenResponse'];
 export type AuthTokenResponse = ApiAuthToken['data'];
 export type SignupRequest = components['schemas']['SignupRequest'];
 export type LoginRequest = components['schemas']['LoginRequest'];
+export type SignupStartRequest = components['schemas']['SignupStartRequest'];
+export type SignupConfirmRequest = components['schemas']['SignupConfirmRequest'];
+export type SignupResendRequest = components['schemas']['SignupResendRequest'];
+export type EmailAvailabilityRequest = components['schemas']['EmailAvailabilityRequest'];
+export type SignupVerificationSession = components['schemas']['ApiResponse-SignupStartResponse']['data'];
 
 interface ApiAuthResponse {
   data: AuthTokenResponse;
-}
-
-export interface SignupVerificationSession {
-  requestToken: string;
-  email: string;
-  expiresAt: string;
 }
 
 interface ApiSignupVerificationSessionResponse {
