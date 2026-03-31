@@ -103,6 +103,9 @@ export async function authFetch(url: string, options: RequestInit = {}) {
     let body = '';
     try { body = await res.text(); } catch { /* ignore */ }
     console.error(`[authFetch] ${options.method || 'GET'} ${url} → ${res.status}`, body);
+    if (res.status === 403) {
+      window.dispatchEvent(new CustomEvent('ujaxForbidden'));
+    }
     throw new Error(`Request failed: ${res.status} ${body}`);
   }
 

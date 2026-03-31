@@ -30,8 +30,8 @@ export const Community = () => {
 
   const [posts, setPosts] = useState<BoardListItemResponse[]>([]);
   const [selectedTag, setSelectedTag] = useState<TagLabel>('all');
-  const [searchQuery, setSearchQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -62,6 +62,15 @@ export const Community = () => {
     }
   }, [wsId]);
 
+  // 디바운스: 입력 후 400ms 뒤 searchQuery 반영
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput.trim());
+      setPage(0);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   useEffect(() => {
     fetchPosts(page, selectedTag, searchQuery);
   }, [page, selectedTag, searchQuery, fetchPosts]);
@@ -69,15 +78,6 @@ export const Community = () => {
   const handleTagChange = (tag: TagLabel) => {
     setSelectedTag(tag);
     setPage(0);
-  };
-
-  const handleSearch = () => {
-    setSearchQuery(searchInput);
-    setPage(0);
-  };
-
-  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSearch();
   };
 
   const getTagBadge = (type: BoardType | undefined, pinned: boolean | undefined) => {
@@ -138,7 +138,6 @@ export const Community = () => {
               placeholder={t('community.searchPosts')}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
               className="w-full bg-input-bg border border-border-subtle rounded-lg py-1.5 pl-9 pr-4 text-sm text-text-secondary focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-text-faint"
             />
           </div>
