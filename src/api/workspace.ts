@@ -34,6 +34,9 @@ export type MyJoinRequestStatusResponse = ApiMyJoinRequestStatus['data'];
 type ApiDashboard = components['schemas']['ApiResponse-WorkspaceDashboardResponse'];
 export type WorkspaceDashboardResponse = ApiDashboard['data'];
 
+type ApiPresignedUrl = components['schemas']['ApiResponse-PresignedUrlResponse'];
+export type PresignedUrlResponse = ApiPresignedUrl['data'];
+
 // ──── 워크스페이스 CRUD ────
 
 export async function getWorkspaces(): Promise<WorkspaceMyListResponse> {
@@ -90,7 +93,7 @@ export async function getWorkspaceImagePresignedUrl(workspaceId: number, fileSiz
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ fileSize, contentType }),
   });
-  return res.data as { presignedUrl: string; imageUrl: string };
+  return res.data as PresignedUrlResponse;
 }
 
 // ──── 대시보드 ────

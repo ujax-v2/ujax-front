@@ -1,90 +1,30 @@
 import type { components } from '@ujax/api-spec/types';
 import { authFetch } from './client';
 
-// ──── api-spec에서 가져올 수 있는 타입 ────
-
 export type CreateBoardRequest = components['schemas']['CreateBoardRequest'];
 export type UpdateBoardRequest = components['schemas']['UpdateBoardRequest'];
 export type PinBoardRequest = components['schemas']['PinBoardRequest'];
 export type CreateCommentRequest = components['schemas']['CreateCommentRequest'];
 
-// BoardLikeStatus는 api-spec에 data 필드가 상세하게 정의되어 있음
 type ApiBoardLikeStatus = components['schemas']['ApiResponse-BoardLikeStatus'];
 export type BoardLikeStatusResponse = ApiBoardLikeStatus['data'];
 
-// ──── 응답 data 내부 타입 (백엔드 subsectionWithPath 사용으로 api-spec에 미포함) ────
+type ApiPresignedUrl = components['schemas']['ApiResponse-PresignedUrlResponse'];
+export type PresignedUrlResponse = ApiPresignedUrl['data'];
 
-export type BoardType = 'FREE' | 'NOTICE' | 'QNA' | 'DATA';
+type ApiBoardList = components['schemas']['ApiResponse-BoardList'];
+type ApiBoardDetail = components['schemas']['ApiResponse-BoardDetail'];
+type ApiCommentList = components['schemas']['ApiResponse-CommentList'];
+type ApiComment = components['schemas']['ApiResponse-Comment'];
+
+export type BoardListResponse = ApiBoardList['data'];
+export type BoardListItemResponse = BoardListResponse['items'][number];
+export type BoardAuthorResponse = BoardListItemResponse['author'];
+export type BoardDetailResponse = ApiBoardDetail['data'];
+export type CommentListResponse = ApiCommentList['data'];
+export type CommentResponse = ApiComment['data'];
+export type BoardType = BoardListItemResponse['type'];
 export type MemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
-
-export interface BoardAuthorResponse {
-  workspaceMemberId: number;
-  nickname: string;
-}
-
-export interface BoardListItemResponse {
-  boardId: number;
-  workspaceId: number;
-  type: BoardType;
-  pinned: boolean;
-  title: string;
-  preview: string;
-  viewCount: number;
-  likeCount: number;
-  commentCount: number;
-  myLike: boolean;
-  author: BoardAuthorResponse;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface BoardDetailResponse {
-  boardId: number;
-  workspaceId: number;
-  type: BoardType;
-  pinned: boolean;
-  title: string;
-  content: string;
-  viewCount: number;
-  likeCount: number;
-  commentCount: number;
-  myLike: boolean;
-  author: BoardAuthorResponse;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface BoardListResponse {
-  items: BoardListItemResponse[];
-  page: {
-    page: number;
-    size: number;
-    totalElements: number;
-    totalPages: number;
-    first: boolean;
-    last: boolean;
-  };
-}
-
-export interface CommentResponse {
-  boardCommentId: number;
-  boardId: number;
-  content: string;
-  author: BoardAuthorResponse;
-  createdAt: string;
-}
-
-export interface CommentListResponse {
-  items: CommentResponse[];
-  page: {
-    page: number;
-    size: number;
-    totalElements: number;
-    totalPages: number;
-    first: boolean;
-    last: boolean;
-  };
-}
 
 // ──── 태그 라벨 매핑 ────
 
@@ -110,7 +50,7 @@ export async function getBoardImagePresignedUrl(wsId: number, fileSize: number, 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ fileSize, contentType }),
   });
-  return res.data as { presignedUrl: string; imageUrl: string };
+  return res.data as PresignedUrlResponse;
 }
 
 // ──── 게시물 CRUD ────
