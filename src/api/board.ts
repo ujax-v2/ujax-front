@@ -9,6 +9,9 @@ export type CreateCommentRequest = components['schemas']['CreateCommentRequest']
 type ApiBoardLikeStatus = components['schemas']['ApiResponse-BoardLikeStatus'];
 export type BoardLikeStatusResponse = ApiBoardLikeStatus['data'];
 
+type ApiPresignedUrl = components['schemas']['ApiResponse-PresignedUrlResponse'];
+export type PresignedUrlResponse = ApiPresignedUrl['data'];
+
 type ApiBoardList = components['schemas']['ApiResponse-BoardList'];
 type ApiBoardDetail = components['schemas']['ApiResponse-BoardDetail'];
 type ApiCommentList = components['schemas']['ApiResponse-CommentList'];
@@ -47,7 +50,7 @@ export async function getBoardImagePresignedUrl(wsId: number, fileSize: number, 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ fileSize, contentType }),
   });
-  return res.data as { presignedUrl: string; imageUrl: string };
+  return res.data as PresignedUrlResponse;
 }
 
 // ──── 게시물 CRUD ────
