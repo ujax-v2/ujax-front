@@ -19,11 +19,7 @@ interface ApiSignupVerificationSessionResponse {
   data: SignupVerificationSession;
 }
 
-interface ApiProblemResponse {
-  title?: string;
-  status?: number;
-  detail?: string;
-}
+type ApiProblemResponse = Partial<components['schemas']['ProblemDetail-Forbidden']>;
 
 class ApiTimeoutError extends Error {
   constructor(message: string) {
