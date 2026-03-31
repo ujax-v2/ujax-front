@@ -3,7 +3,7 @@ import { useRecoilState, useRecoilValue, RecoilRoot } from 'recoil';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, currentProblemBoxState, myWorkspaceRoleState, Workspace, themeState, ThemeMode, languageState, GUEST_USER } from './store/atoms';
 import { Sidebar } from './components/layout/Sidebar';
-import { getWorkspaces, getWorkspaceSettings } from './api/workspace';
+import { getWorkspaces } from './api/workspace';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { Home } from './features/home/Home';
 import { IDE } from './features/ide/IDE';
@@ -195,19 +195,6 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
     })();
     return () => { cancelled = true; };
   }, [workspaces.length, setWorkspaces]);
-
-  // 현재 워크스페이스 settings(mmWebhookUrl 포함) 로드
-  React.useEffect(() => {
-    if (!numericWsId) return;
-    getWorkspaceSettings(numericWsId)
-      .then(data => {
-        setWorkspaces(prev => prev.map(w => w.id === numericWsId
-          ? { ...w, mmWebhookUrl: data.hookUrl ?? null, imageUrl: data.imageUrl ?? null }
-          : w
-        ));
-      })
-      .catch(() => {});
-  }, [numericWsId]);
 
   const isMember = workspaces.some(w => w.id === numericWsId);
 

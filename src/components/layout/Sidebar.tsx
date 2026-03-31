@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRecoilState, useSetRecoilState, useRecoilValue } from 'recoil';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import {
@@ -64,12 +64,32 @@ export const Sidebar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
+  const fetchMyRole = useCallback(() => {
     if (!currentWorkspaceId) return;
     getMyMembership(currentWorkspaceId)
       .then(data => setMyWorkspaceRole(data.role ?? 'MEMBER'))
       .catch(() => setMyWorkspaceRole('MEMBER'));
-  }, [currentWorkspaceId]);
+  }, [currentWorkspaceId, setMyWorkspaceRole]);
+
+  // 워크스페이스 진입 시
+  useEffect(() => {
+    fetchMyRole();
+  }, [fetchMyRole]);
+
+  // 탭 복귀 시 (다른 사람이 권한 변경했을 수 있음)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') fetchMyRole();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [fetchMyRole]);
+
+  // 403 응답 시 즉각 반영 (차단당한 시점에 role 갱신)
+  useEffect(() => {
+    window.addEventListener('ujaxForbidden', fetchMyRole);
+    return () => window.removeEventListener('ujaxForbidden', fetchMyRole);
+  }, [fetchMyRole]);
 
   const handleLogout = () => logout(user.refreshToken);
 

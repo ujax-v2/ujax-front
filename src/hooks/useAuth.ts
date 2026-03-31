@@ -1,6 +1,6 @@
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
-import { userState, workspacesState, currentWorkspaceState, currentProblemBoxState, myWorkspaceRoleState, GUEST_USER, UserState } from '@/store/atoms';
+import { userState, workspacesState, currentWorkspaceState, currentProblemBoxState, myWorkspaceRoleState, problemContextState, GUEST_USER, UserState } from '@/store/atoms';
 import { logoutApi } from '@/api/auth';
 import { getMe } from '@/api/user';
 
@@ -17,6 +17,7 @@ export function useAuth() {
   const setCurrentWsId = useSetRecoilState(currentWorkspaceState);
   const setCurrentProblemBox = useSetRecoilState(currentProblemBoxState);
   const setMyWorkspaceRole = useSetRecoilState(myWorkspaceRoleState);
+  const setProblemContext = useSetRecoilState(problemContextState);
   const navigate = useNavigate();
 
   /**
@@ -81,6 +82,7 @@ export function useAuth() {
     setCurrentWsId(0);
     setCurrentProblemBox(null);
     setMyWorkspaceRole('MEMBER');
+    setProblemContext({});
     navigate('/login');
   };
 
