@@ -51,6 +51,7 @@ export const en: Record<string, string> = {
   'auth.passwordMinLength': '8+ characters',
   'auth.passwordNumber': 'Include a number',
   'auth.passwordLengthError': 'Password must be at least 8 characters.',
+  'auth.passwordNumberError': 'Password must contain at least one number.',
   'auth.passwordConfirmMismatchError': 'Passwords do not match.',
   'auth.signupButton': 'Sign up',
   'auth.checkDuplicate': 'Check',

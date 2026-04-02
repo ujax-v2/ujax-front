@@ -77,7 +77,9 @@ export const SignUp = () => {
 
   const validate = (name: string, value: string, nextFormData = formData) => {
     if (name === 'password') {
-      return value.length < 8 ? t('auth.passwordLengthError') : '';
+      if (value.length < 8) return t('auth.passwordLengthError');
+      if (!/[0-9]/.test(value)) return t('auth.passwordNumberError');
+      return '';
     }
     if (name === 'passwordConfirm') {
       return value !== nextFormData.password ? t('auth.passwordConfirmMismatchError') : '';
