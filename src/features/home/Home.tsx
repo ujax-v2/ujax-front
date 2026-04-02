@@ -109,8 +109,10 @@ export const Home = () => {
                                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                                     className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-hover-bg transition-colors"
                                 >
-                                    <div className="w-8 h-8 rounded-full bg-indigo-700 flex items-center justify-center text-white text-sm font-bold border border-indigo-600">
-                                        {user.name.charAt(0)}
+                                    <div className="w-8 h-8 rounded-full bg-indigo-700 flex items-center justify-center text-white text-sm font-bold border border-indigo-600 overflow-hidden">
+                                        {user.profileImageUrl
+                                          ? <img src={user.profileImageUrl} alt="" className="w-full h-full object-cover" />
+                                          : user.name.charAt(0)}
                                     </div>
                                     <span className="text-sm font-medium text-text-secondary hidden sm:block">{user.name}</span>
                                     <ChevronDown className={`w-3.5 h-3.5 text-text-muted transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`} />
