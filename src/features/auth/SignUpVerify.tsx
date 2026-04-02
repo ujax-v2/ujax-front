@@ -175,7 +175,9 @@ export const SignUpVerify = () => {
     }
 
     const updateRemainingSeconds = () => {
-      const expiresAtMs = new Date(expiresAt).getTime();
+      // 서버가 타임존 없이 반환하는 경우(e.g. "2026-03-30T10:30:00") UTC로 강제 파싱
+      const normalized = /Z$|[+-]\d{2}:\d{2}$/.test(expiresAt) ? expiresAt : `${expiresAt}Z`;
+      const expiresAtMs = new Date(normalized).getTime();
       const diff = Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000));
       setRemainingSeconds(diff);
     };
