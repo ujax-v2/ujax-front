@@ -230,6 +230,9 @@ export const SignUpVerify = () => {
     } catch (err) {
       console.error('Signup resend error', err);
       setResendCooldown(0);
+      setResendSuccess(false);
+      setSession(session);
+      saveSignupVerificationSession(session);
       setApiError(getKnownAuthMessage(err, t('auth.signupResendFailed')));
     } finally {
       setResending(false);
