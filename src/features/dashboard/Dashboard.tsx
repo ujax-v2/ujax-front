@@ -249,7 +249,7 @@ export const Dashboard = () => {
                   </>
                 )}
               </Card>
-              <Card className="bg-surface-raised border-border-default p-4 flex-1 flex flex-col justify-center shadow-md hover:border-border-subtle transition-colors cursor-pointer">
+              <Card className="bg-surface-raised border-border-default p-4 flex-1 flex flex-col justify-center shadow-md hover:border-border-subtle transition-colors cursor-pointer" onClick={() => summary?.hotProblem?.problemNumber && toWs(`ide/${summary.hotProblem.problemNumber}`)}>
                 <h3 className="text-base font-medium text-text-muted mb-1">{t('dashboard.hotProblem')}</h3>
                 {loading ? (
                   <div className="text-sm text-text-faint">불러오는 중...</div>
