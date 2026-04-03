@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, usePa
 import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, currentProblemBoxState, myWorkspaceRoleState, Workspace, themeState, ThemeMode, languageState, GUEST_USER } from './store/atoms';
 import { Sidebar } from './components/layout/Sidebar';
 import { getWorkspaces } from './api/workspace';
+import { getMe } from './api/user';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { Home } from './features/home/Home';
 import { IDE } from './features/ide/IDE';
@@ -279,6 +280,20 @@ function AppContent() {
   const setMyWorkspaceRole = useRecoilState(myWorkspaceRoleState)[1];
   const location = useLocation();
   const navigate = useNavigate();
+
+  // 앱 시작 시 로그인 상태면 서버에서 최신 유저 정보 동기화 (profileImageUrl 등 stale 방지)
+  React.useEffect(() => {
+    if (!user.isLoggedIn) return;
+    getMe().then(me => {
+      setUser(prev => prev.isLoggedIn ? {
+        ...prev,
+        name: me.name,
+        profileImageUrl: me.profileImageUrl ?? '',
+        baekjoonId: me.baekjoonId ?? '',
+      } : prev);
+    }).catch(() => { /* 실패 시 기존 캐시 유지 */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // client.ts에서 발생하는 인증 이벤트 처리
   React.useEffect(() => {
