@@ -243,6 +243,12 @@ export const IDE = () => {
   // Polling cancel ref
   const cancelledRef = useRef(false);
 
+  // 코드 자동 저장용 debounce ref
+  const saveCodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 문제별 코드+언어 저장 키 (타이머와 동일한 패턴)
+  const codeStorageKey = `ide_code_${currentWsId}_${ctx?.problemBoxId ?? 0}_${problemId ?? ''}`;
+
   useEffect(() => {
     return () => { cancelledRef.current = true; };
   }, []);
@@ -270,9 +276,36 @@ export const IDE = () => {
       .finally(() => setProblemLoading(false));
   }, [problemId]);
 
+  // 문제 변경 시 저장된 코드+언어 복원, 없으면 템플릿
   useEffect(() => {
+    if (!problemId) return;
+    try {
+      const saved = localStorage.getItem(codeStorageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.code) {
+          setLanguage(parsed.language || language);
+          setCode(parsed.code);
+          return;
+        }
+      }
+    } catch { /* ignore */ }
     setCode(CODE_TEMPLATES[language] || CODE_TEMPLATES['javascript']);
   }, [problemId]);
+
+  // 코드/언어 변경 시 debounce 저장 (1초)
+  useEffect(() => {
+    if (!problemId) return;
+    if (saveCodeTimerRef.current) clearTimeout(saveCodeTimerRef.current);
+    saveCodeTimerRef.current = setTimeout(() => {
+      try {
+        localStorage.setItem(codeStorageKey, JSON.stringify({ code, language }));
+      } catch { /* ignore */ }
+    }, 1000);
+    return () => {
+      if (saveCodeTimerRef.current) clearTimeout(saveCodeTimerRef.current);
+    };
+  }, [code, language, codeStorageKey]);
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const lang = LANGUAGE_OPTIONS.find(l => l.value === e.target.value);
