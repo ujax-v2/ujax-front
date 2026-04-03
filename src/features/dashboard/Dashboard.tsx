@@ -315,10 +315,10 @@ export const Dashboard = () => {
                 <div className="flex items-center justify-center py-8 text-text-faint text-sm">불러오는 중...</div>
               ) : (() => {
                 const list = activeRankingTab === 'monthlySolved'
-                  ? (rankings?.monthlySolved ?? []).map(r => ({ id: r.workspaceMemberId, name: r.nickname, value: `${r.solvedCount} 문제` }))
+                  ? (rankings?.monthlySolved ?? []).map(r => ({ id: r.workspaceMemberId, name: r.nickname, userImage: r.userImage, value: `${r.solvedCount} 문제` }))
                   : activeRankingTab === 'streak'
-                    ? (rankings?.streak ?? []).map(r => ({ id: r.workspaceMemberId, name: r.nickname, value: `${r.streakDays} 일` }))
-                    : (rankings?.deadlineRate ?? []).map(r => ({ id: r.workspaceMemberId, name: r.nickname, value: `${r.ratePercent} %` }));
+                    ? (rankings?.streak ?? []).map(r => ({ id: r.workspaceMemberId, name: r.nickname, userImage: r.userImage, value: `${r.streakDays} 일` }))
+                    : (rankings?.deadlineRate ?? []).map(r => ({ id: r.workspaceMemberId, name: r.nickname, userImage: r.userImage, value: `${r.ratePercent} %` }));
 
                 if (list.length === 0) {
                   return <div className="flex items-center justify-center py-8 text-text-faint text-sm">데이터가 없습니다.</div>;
@@ -337,8 +337,10 @@ export const Dashboard = () => {
                             {idx + 1}
                           </div>
                           <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-text-secondary ${idx === 0 ? 'bg-surface-subtle border-2 border-yellow-500/50' : 'bg-surface-subtle'}`}>
-                              {rank.name.charAt(0)}
+                            <div className={`w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold text-text-secondary ${idx === 0 ? 'bg-surface-subtle border-2 border-yellow-500/50' : 'bg-surface-subtle'}`}>
+                              {rank.userImage
+                                ? <img src={rank.userImage} alt="" className="w-full h-full object-cover" />
+                                : rank.name.charAt(0)}
                             </div>
                             <span className={`font-semibold tracking-tight ${idx === 0 ? 'text-text-primary text-base' : 'text-text-secondary text-[15px]'}`}>
                               {rank.name}
