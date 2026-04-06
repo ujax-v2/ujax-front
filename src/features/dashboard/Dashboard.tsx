@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState } from '@/store/atoms';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
@@ -73,7 +73,7 @@ export const Dashboard = () => {
 
   const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
 
-  useEffect(() => {
+  const fetchDashboard = useCallback(() => {
     if (!currentWorkspaceId) return;
     setLoading(true);
     getWorkspaceDashboard(currentWorkspaceId)
@@ -81,6 +81,15 @@ export const Dashboard = () => {
       .catch(err => console.error('Failed to load dashboard:', err))
       .finally(() => setLoading(false));
   }, [currentWorkspaceId]);
+
+  useEffect(() => {
+    fetchDashboard();
+  }, [fetchDashboard]);
+
+  useEffect(() => {
+    window.addEventListener('ujaxProblemAccepted', fetchDashboard);
+    return () => window.removeEventListener('ujaxProblemAccepted', fetchDashboard);
+  }, [fetchDashboard]);
 
   if (!currentWorkspace) {
     return (

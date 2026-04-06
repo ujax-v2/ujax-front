@@ -21,6 +21,7 @@ export function useSubmitLogic(problem: ProblemResponse | null) {
       if (isAccepted) {
         setSubmitStatus('accepted');
         setSubmitResult('맞았습니다!!');
+        window.dispatchEvent(new CustomEvent('ujaxProblemAccepted'));
       } else {
         setSubmitStatus('wrong');
         setSubmitResult(verdict);
