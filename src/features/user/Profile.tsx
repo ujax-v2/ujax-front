@@ -210,11 +210,20 @@ export const Profile = () => {
   const [profileData, setProfileData] = useState<WorkspaceMemberProfileResponse | null>(null);
   const [activityData, setActivityData] = useState<WorkspaceMemberProfileActivityResponse | null>(null);
 
-  useEffect(() => {
+  const fetchProfile = useCallback(() => {
     if (!currentWsId) return;
     getMyWorkspaceProfile(currentWsId).then(setProfileData).catch(() => {});
     getMyWorkspaceProfileActivity(currentWsId).then(setActivityData).catch(() => {});
   }, [currentWsId]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  useEffect(() => {
+    window.addEventListener('ujaxProblemAccepted', fetchProfile);
+    return () => window.removeEventListener('ujaxProblemAccepted', fetchProfile);
+  }, [fetchProfile]);
 
   const handleYearChange = useCallback((year: number | null) => {
     if (!currentWsId) return;
