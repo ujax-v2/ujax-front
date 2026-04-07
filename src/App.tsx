@@ -280,16 +280,18 @@ function AppContent() {
   const setMyWorkspaceRole = useRecoilState(myWorkspaceRoleState)[1];
   const location = useLocation();
   const navigate = useNavigate();
+  const normalizeBojId = (value?: string | null) => String(value ?? '').trim();
 
   // 앱 시작 시 로그인 상태면 서버에서 최신 유저 정보 동기화 (profileImageUrl 등 stale 방지)
   React.useEffect(() => {
     if (!user.isLoggedIn) return;
     getMe().then(me => {
+      const normalizedBojId = normalizeBojId(me.baekjoonId);
       setUser(prev => prev.isLoggedIn ? {
         ...prev,
         name: me.name,
         profileImageUrl: me.profileImageUrl ?? '',
-        baekjoonId: me.baekjoonId ?? '',
+        baekjoonId: normalizedBojId,
       } : prev);
     }).catch(() => { /* 실패 시 기존 캐시 유지 */ });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -330,6 +332,17 @@ function AppContent() {
       window.removeEventListener('ujaxAuthExpired', onAuthExpired);
     };
   }, [navigate, setUser, setWorkspaces, setCurrentWsId, setCurrentProblemBox, setMyWorkspaceRole]);
+
+  // 같은 탭에서 프로필(baekjoonId) 변경 시에도 extension으로 즉시 동기화
+  React.useEffect(() => {
+    if (!user.isLoggedIn || !user.accessToken) return;
+    const normalizedBojId = normalizeBojId(user.baekjoonId);
+    window.postMessage({
+      type: 'ujaxAuthChanged',
+      token: user.accessToken,
+      bojId: normalizedBojId || null,
+    }, '*');
+  }, [user.isLoggedIn, user.accessToken, user.baekjoonId]);
 
   // 사이드바를 숨겨야 하는 페이지: 인증, IDE, 홈, 풀이 보기(solutions)
   const isFullScreen = ['/login', '/signup', '/signup/terms', '/signup/verify', '/oauth/callback', '/'].includes(location.pathname)

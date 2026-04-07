@@ -315,6 +315,7 @@ export const ko: Record<string, string> = {
   'settings.profile.baekjoonId': '백준 아이디',
   'settings.profile.baekjoonPlaceholder': '백준 아이디를 입력하세요',
   'settings.profile.baekjoonDesc': 'solved.ac 티어 연동에 사용됩니다.',
+  'settings.profile.baekjoonWhitespaceError': '백준 아이디는 공백만 입력할 수 없습니다.',
   'settings.profile.fileTypeError': 'JPG, PNG, WEBP 형식만 지원합니다.',
   'settings.profile.fileSizeError': '파일 크기는 5MB 이하여야 합니다.',
   'settings.profile.dangerZone': '위험 구역',

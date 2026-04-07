@@ -315,6 +315,7 @@ export const en: Record<string, string> = {
   'settings.profile.baekjoonId': 'Baekjoon ID',
   'settings.profile.baekjoonPlaceholder': 'Enter your Baekjoon ID',
   'settings.profile.baekjoonDesc': 'Used for solved.ac tier integration.',
+  'settings.profile.baekjoonWhitespaceError': 'Baekjoon ID cannot be only whitespace.',
   'settings.profile.fileTypeError': 'Only JPG, PNG, WEBP formats are supported.',
   'settings.profile.fileSizeError': 'File size must be 5MB or less.',
   'settings.profile.dangerZone': 'Danger Zone',

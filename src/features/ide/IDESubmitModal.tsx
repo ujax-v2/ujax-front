@@ -18,6 +18,9 @@ export function IDESubmitModal({ show, status, result, problemNumber, onClose }:
   const problemLabel = problemNumber ? `${problemNumber}번 문제` : '';
 
   const isJudging = status === 'submitted';
+  const wrongMessage = result || '다시 시도해주세요.';
+  const isJudgeWrongVerdict = /(틀렸|wrong|오답|time limit|runtime|compile|메모리|시간 초과|런타임|컴파일)/i.test(wrongMessage);
+  const wrongTitle = isJudgeWrongVerdict ? '틀렸습니다' : '제출 확인 실패';
 
   return (
     <div
@@ -58,7 +61,8 @@ export function IDESubmitModal({ show, status, result, problemNumber, onClose }:
           <>
             <AlertCircle className="w-16 h-16 text-red-500" />
             <p className="text-base font-semibold text-text-secondary">{problemLabel}</p>
-            <p className="text-2xl font-bold text-red-500">{result || '틀렸습니다'}</p>
+            <p className="text-2xl font-bold text-red-500">{wrongTitle}</p>
+            <p className="mt-0.5 px-8 text-center text-sm leading-relaxed text-text-secondary">{wrongMessage}</p>
             <Button variant="primary" onClick={onClose} className="mt-2 text-sm px-6 py-2">확인</Button>
           </>
         )}

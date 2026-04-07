@@ -24,15 +24,17 @@ export const Settings = () => {
   const workspaces = useRecoilValue(workspacesState);
   const [user, setUser] = useRecoilState(userState);
   const t = useT();
+  const normalizeBojId = (value?: string | null) => String(value ?? '').trim();
 
   // 설정 진입 시 최신 프로필 데이터로 Recoil 동기화 (localStorage는 atom effect가 자동 처리)
   useEffect(() => {
     getMe().then(data => {
+      const normalizedBojId = normalizeBojId(data.baekjoonId);
       setUser(prev => ({
         ...prev,
         name: data.name,
         profileImageUrl: data.profileImageUrl ?? '',
-        baekjoonId: data.baekjoonId ?? '',
+        baekjoonId: normalizedBojId,
       }));
     }).catch(() => { /* ignore - ProfileTab will also fetch */ });
   }, [setUser]);
