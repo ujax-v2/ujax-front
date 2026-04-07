@@ -716,25 +716,20 @@ export const IDE = () => {
                           {selectedResult && (
                             <div className="rounded-xl border border-border-default bg-surface-subtle/30 p-4 space-y-3">
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <span className="px-2.5 py-1 rounded-md bg-surface border border-border-default text-xs font-bold text-text-secondary">
-                                    Case {selectedResultIndex + 1}
-                                  </span>
-                                  <span
-                                    className={`text-lg font-bold ${selectedResult.statusId <= 2
-                                      ? 'text-yellow-600 dark:text-yellow-400'
-                                      : selectedResult.isCorrect
-                                        ? 'text-emerald-600 dark:text-emerald-400'
-                                        : 'text-red-500'
-                                      }`}
-                                  >
-                                    {selectedResult.statusId <= 2
-                                      ? '채점 중...'
-                                      : selectedResult.isCorrect
-                                        ? '맞았습니다!'
-                                        : '틀렸습니다'}
-                                  </span>
-                                </div>
+                                <span
+                                  className={`text-lg font-bold ${selectedResult.statusId <= 2
+                                    ? 'text-yellow-600 dark:text-yellow-400'
+                                    : selectedResult.isCorrect
+                                      ? 'text-emerald-600 dark:text-emerald-400'
+                                      : 'text-red-500'
+                                    }`}
+                                >
+                                  {selectedResult.statusId <= 2
+                                    ? '채점 중...'
+                                    : selectedResult.isCorrect
+                                      ? '맞았습니다!'
+                                      : '틀렸습니다'}
+                                </span>
                               </div>
 
                               <div>
