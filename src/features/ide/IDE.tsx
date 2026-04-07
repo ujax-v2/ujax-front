@@ -5,7 +5,7 @@ import Editor from '@monaco-editor/react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { useParams } from 'react-router-dom';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
-import { ideCodeState, ideLanguageState, currentWorkspaceState, problemContextState } from '@/store/atoms';
+import { ideCodeState, ideLanguageState, currentWorkspaceState, problemContextState, userState } from '@/store/atoms';
 import type { IdeTestResult } from '@/store/atoms';
 import { getProblemByNumber } from '@/api/problem';
 import type { ProblemResponse } from '@/api/problem';
@@ -188,6 +188,7 @@ export const IDE = () => {
   const [code, setCode] = useRecoilState(ideCodeState);
   const [language, setLanguage] = useRecoilState(ideLanguageState);
   const currentWsId = useRecoilValue(currentWorkspaceState);
+  const user = useRecoilValue(userState);
   const problemCtxMap = useRecoilValue(problemContextState);
   const { toWs } = useWorkspaceNavigate();
   const { problemId } = useParams();
@@ -760,8 +761,8 @@ export const IDE = () => {
           </Button>
           <Button
             className="text-white text-sm px-5 py-2 font-semibold bg-emerald-600 hover:bg-emerald-700"
-            onClick={() => handleSubmit(code, language)}
-            disabled={!problem || submitStatus === 'submitted'}
+            onClick={() => handleSubmit(code, language, user.baekjoonId)}
+            disabled={!problem || submitStatus === 'submitted' || !user.baekjoonId?.trim()}
           >
             제출
           </Button>

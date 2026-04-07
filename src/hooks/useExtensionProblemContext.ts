@@ -1,15 +1,30 @@
 import { useEffect, useRef } from 'react';
 
+const CONTEXT_RETRY_DELAYS_MS = [0, 300, 1_200];
+
+function postProblemContext(problemNum: number, workspaceProblemId: number) {
+  window.postMessage(
+    { type: 'ujaxProblemContext', problemNum, workspaceProblemId },
+    '*',
+  );
+}
+
 export function useExtensionProblemContext(
   problemNum: number | null,
   workspaceProblemId: number | null,
 ) {
   useEffect(() => {
     if (!problemNum || !workspaceProblemId) return;
-    window.postMessage(
-      { type: 'ujaxProblemContext', problemNum, workspaceProblemId },
-      '*',
+
+    const timers = CONTEXT_RETRY_DELAYS_MS.map((delay) =>
+      window.setTimeout(() => {
+        postProblemContext(problemNum, workspaceProblemId);
+      }, delay),
     );
+
+    return () => {
+      timers.forEach((timerId) => window.clearTimeout(timerId));
+    };
   }, [problemNum, workspaceProblemId]);
 }
 
@@ -28,11 +43,18 @@ export function useExtensionBatchContext(
     if (key === prevKey.current) return;
     prevKey.current = key;
 
+    const timers: number[] = [];
     problems.forEach(p => {
-      window.postMessage(
-        { type: 'ujaxProblemContext', problemNum: p.problemNumber, workspaceProblemId: p.workspaceProblemId },
-        '*',
-      );
+      CONTEXT_RETRY_DELAYS_MS.forEach((delay) => {
+        const timerId = window.setTimeout(() => {
+          postProblemContext(p.problemNumber, p.workspaceProblemId);
+        }, delay);
+        timers.push(timerId);
+      });
     });
+
+    return () => {
+      timers.forEach((timerId) => window.clearTimeout(timerId));
+    };
   }, [problems]);
 }

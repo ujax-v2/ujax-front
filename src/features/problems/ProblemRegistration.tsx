@@ -38,13 +38,18 @@ export const ProblemRegistration = () => {
       resetCrawl();
       (async () => {
         const num = parseInt(problemNumber, 10);
-        const data = await findProblemByNumber(num);
-        if (data) {
-          setProblem(data);
-          setFlowStatus('found');
-        } else {
+        try {
+          const data = await findProblemByNumber(num);
+          if (data) {
+            setProblem(data);
+            setFlowStatus('found');
+            return;
+          }
           setFlowStatus('error');
           setErrorMsg('크롤링은 완료되었으나 문제 데이터를 찾을 수 없습니다.');
+        } catch (err: any) {
+          setFlowStatus('error');
+          setErrorMsg(parseApiError(err, '문제 조회 중 오류가 발생했습니다.'));
         }
       })();
     } else if (crawlStatus === 'error') {
@@ -59,10 +64,9 @@ export const ProblemRegistration = () => {
       resetCrawl();
     } else if (crawlStatus === 'timeout') {
       setFlowStatus('timeout');
-      setErrorMsg('확장 프로그램이 설치되어 있는지 확인해주세요.');
-      resetCrawl();
+      setErrorMsg('연결이 지연되고 있습니다. 잠시 후 자동 반영될 수 있으며, 계속 실패하면 새로고침 후 다시 시도해주세요.');
     }
-  }, [crawlStatus]);
+  }, [crawlStatus, crawlReason, problemNumber, resetCrawl]);
 
   // 문제 번호로 조회 (미리보기)
   const handleLookup = async () => {
