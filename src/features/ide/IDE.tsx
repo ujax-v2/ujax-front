@@ -14,8 +14,8 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/componen
 import { useIsDark } from '@/App';
 import { useExtensionProblemContext } from '@/hooks/useExtensionProblemContext';
 import { parseApiError } from '@/utils/error';
+import { sanitizeProblemHtml } from '@/utils/sanitizeHtml';
 import { IDESubmitModal } from './IDESubmitModal';
-import { IDEExecuteModal } from './IDEExecuteModal';
 import { IDEAddTestCaseModal } from './IDEAddTestCaseModal';
 import { useSubmitLogic } from './hooks/useSubmitLogic';
 import { useTestCaseManagement } from './hooks/useTestCaseManagement';
@@ -201,13 +201,10 @@ export const IDE = () => {
 
   const [isExecuting, setIsExecuting] = useState(false);
   const [testResults, setTestResults] = useState<IdeTestResult[]>([]);
+  const [selectedResultIndex, setSelectedResultIndex] = useState(0);
 
   // Bottom panel tab: 'cases' | 'results'
   const [bottomTab, setBottomTab] = useState<'cases' | 'results'>('cases');
-
-  // Execute modal
-  const [showExecuteModal, setShowExecuteModal] = useState(false);
-  const [executeModalStatus, setExecuteModalStatus] = useState<'idle' | 'executing' | 'done'>('idle');
 
   // Custom test case edit modal
   const [showEditModal, setShowEditModal] = useState(false);
@@ -308,6 +305,16 @@ export const IDE = () => {
     };
   }, [code, language, codeStorageKey]);
 
+  useEffect(() => {
+    if (testResults.length === 0) {
+      setSelectedResultIndex(0);
+      return;
+    }
+    if (selectedResultIndex >= testResults.length) {
+      setSelectedResultIndex(0);
+    }
+  }, [testResults.length, selectedResultIndex]);
+
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const lang = LANGUAGE_OPTIONS.find(l => l.value === e.target.value);
     if (lang) { setLanguage(lang.value); setCode(CODE_TEMPLATES[lang.value] || ''); }
@@ -360,8 +367,6 @@ export const IDE = () => {
     setErrorMsg('');
     setBottomTab('results');
     cancelledRef.current = false;
-    setExecuteModalStatus('executing');
-    setShowExecuteModal(true);
 
     try {
       const res = await createSubmission(currentWsId, problem.id, {
@@ -370,26 +375,23 @@ export const IDE = () => {
         testCases: testCases.map((tc) => ({ input: tc.input, expected: tc.expected })),
       });
       await pollResults(res!.submissionToken);
-      setExecuteModalStatus('done');
     } catch {
       setErrorMsg('실행에 실패했습니다. 다시 시도해주세요.');
-      setShowExecuteModal(false);
-      setExecuteModalStatus('idle');
     } finally {
       setIsExecuting(false);
     }
   };
 
-  const closeExecuteModal = () => {
-    setShowExecuteModal(false);
-    setExecuteModalStatus('idle');
-  };
-
   // ─── Derived state for results summary ───
   const passedCount = testResults.filter((r) => r.isCorrect).length;
   const totalCount = testResults.length;
+  const doneCount = testResults.filter((r) => r.statusId > 2).length;
   const allDone = testResults.length > 0 && testResults.every((r) => r.statusId > 2);
   const selectedCase = testCases.find((tc) => tc.id === selectedCaseId) || null;
+  const selectedResult = testResults[selectedResultIndex] || null;
+  const safeDescription = sanitizeProblemHtml(problem?.description);
+  const safeInputDescription = sanitizeProblemHtml(problem?.inputDescription);
+  const safeOutputDescription = sanitizeProblemHtml(problem?.outputDescription);
 
   return (
     <div className="flex h-full flex-col bg-page text-text-secondary">
@@ -468,27 +470,27 @@ export const IDE = () => {
                     </a>
                   </div>
 
-                  {problem.description && (
+                  {safeDescription && (
                     <section>
                       <h3 className="text-base font-bold text-text-primary mb-2">문제</h3>
                       <hr className="border-border-subtle mb-3" />
-                      <div className="text-text-secondary text-[15px] leading-[1.9] prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: problem.description }} />
+                      <div className="text-text-secondary text-[15px] leading-[1.9] prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: safeDescription }} />
                     </section>
                   )}
 
-                  {problem.inputDescription && (
+                  {safeInputDescription && (
                     <section>
                       <h3 className="text-base font-bold text-text-primary mb-2">입력</h3>
                       <hr className="border-border-subtle mb-3" />
-                      <div className="text-text-secondary text-[15px] leading-[1.9] prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: problem.inputDescription }} />
+                      <div className="text-text-secondary text-[15px] leading-[1.9] prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: safeInputDescription }} />
                     </section>
                   )}
 
-                  {problem.outputDescription && (
+                  {safeOutputDescription && (
                     <section>
                       <h3 className="text-base font-bold text-text-primary mb-2">출력</h3>
                       <hr className="border-border-subtle mb-3" />
-                      <div className="text-text-secondary text-[15px] leading-[1.9] prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: problem.outputDescription }} />
+                      <div className="text-text-secondary text-[15px] leading-[1.9] prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: safeOutputDescription }} />
                     </section>
                   )}
 
@@ -660,9 +662,9 @@ export const IDE = () => {
                           <p className="text-xs">실행 중...</p>
                         </div>
                       ) : testResults.length > 0 ? (
-                        <>
+                        <div className="space-y-4">
                           {/* Summary */}
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-between">
                             {allDone && passedCount === totalCount ? (
                               <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                                 <CheckCircle2 className="w-4 h-4" />
@@ -676,46 +678,91 @@ export const IDE = () => {
                             ) : (
                               <div className="flex items-center gap-1.5 text-yellow-600 dark:text-yellow-400">
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                <span className="font-bold text-sm">채점 중... ({testResults.filter(r => r.statusId > 2).length}/{totalCount})</span>
+                                <span className="font-bold text-sm">채점 중... ({doneCount}/{totalCount})</span>
                               </div>
                             )}
+                            <span className="text-xs text-text-faint">테스트 결과 {passedCount}/{totalCount}</span>
                           </div>
 
-                          {/* Result rows */}
-                          <div className="space-y-1.5">
+                          {/* Case selector */}
+                          <div className="flex items-center gap-2 overflow-x-auto pb-1">
                             {testResults.map((r, idx) => {
                               const isPending = r.statusId <= 2;
                               const isPass = r.isCorrect;
+                              const isActive = selectedResultIndex === idx;
                               return (
-                                <div
+                                <button
                                   key={r.token || idx}
-                                  className={`flex items-center justify-between px-3 py-2 rounded-md border ${isPending ? 'border-yellow-300/50 dark:border-yellow-600/20 bg-yellow-50/30 dark:bg-yellow-900/5' : isPass ? 'border-emerald-300/50 dark:border-emerald-600/20 bg-emerald-50/30 dark:bg-emerald-900/5' : 'border-red-300/50 dark:border-red-600/20 bg-red-50/30 dark:bg-red-900/5'}`}
+                                  onClick={() => setSelectedResultIndex(idx)}
+                                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold whitespace-nowrap transition-colors ${isActive
+                                    ? 'bg-border-subtle border-border-default text-text-primary'
+                                    : 'bg-surface-subtle/40 border-border-subtle text-text-secondary hover:text-text-primary hover:bg-hover-bg'
+                                    }`}
                                 >
-                                  <div className="flex items-center gap-2">
-                                    {isPending ? (
-                                      <Loader2 className="w-3.5 h-3.5 animate-spin text-yellow-500" />
-                                    ) : isPass ? (
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                                    ) : (
-                                      <AlertCircle className="w-3.5 h-3.5 text-red-500" />
-                                    )}
-                                    <span className={`text-xs font-bold ${isPending ? 'text-yellow-600 dark:text-yellow-400' : isPass ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
-                                      케이스 {idx + 1}
-                                    </span>
-                                    {!isPending && (
-                                      <span className="text-xs text-text-secondary">{r.statusDescription}</span>
-                                    )}
-                                  </div>
-                                  {!isPending && (r.time != null || r.memory != null) && (
-                                    <span className="text-[10px] text-text-faint">
-                                      {r.time != null ? `${r.time}s` : ''}{r.time != null && r.memory != null ? ' / ' : ''}{r.memory != null ? `${r.memory}KB` : ''}
-                                    </span>
+                                  {isPending ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-yellow-500" />
+                                  ) : isPass ? (
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                  ) : (
+                                    <span className="w-2 h-2 rounded-full bg-red-500" />
                                   )}
-                                </div>
+                                  Case {idx + 1}
+                                </button>
                               );
                             })}
                           </div>
-                        </>
+
+                          {/* Selected case detail */}
+                          {selectedResult && (
+                            <div className="rounded-xl border border-border-default bg-surface-subtle/30 p-4 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2.5 py-1 rounded-md bg-surface border border-border-default text-xs font-bold text-text-secondary">
+                                    Case {selectedResultIndex + 1}
+                                  </span>
+                                  <span
+                                    className={`text-lg font-bold ${selectedResult.statusId <= 2
+                                      ? 'text-yellow-600 dark:text-yellow-400'
+                                      : selectedResult.isCorrect
+                                        ? 'text-emerald-600 dark:text-emerald-400'
+                                        : 'text-red-500'
+                                      }`}
+                                  >
+                                    {selectedResult.statusId <= 2
+                                      ? '채점 중...'
+                                      : selectedResult.isCorrect
+                                        ? '맞았습니다!'
+                                        : '틀렸습니다'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-wider text-text-faint mb-1.5">입력</p>
+                                <pre className="bg-input-bg/80 border border-border-default rounded-lg p-3 text-sm text-text-secondary whitespace-pre-wrap break-words leading-relaxed">{selectedResult.input || '(빈 입력)'}</pre>
+                              </div>
+
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-wider text-text-faint mb-1.5">나의 출력</p>
+                                <pre className="bg-input-bg/80 border border-border-default rounded-lg p-3 text-sm text-text-secondary whitespace-pre-wrap break-words leading-relaxed">{selectedResult.stdout ?? '(출력 없음)'}</pre>
+                              </div>
+
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-wider text-text-faint mb-1.5">정답</p>
+                                <pre className="bg-input-bg/80 border border-border-default rounded-lg p-3 text-sm text-text-secondary whitespace-pre-wrap break-words leading-relaxed">{selectedResult.expected || '(빈 정답)'}</pre>
+                              </div>
+
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-wider text-text-faint mb-1.5">상세 정보</p>
+                                <div className="bg-input-bg/80 border border-border-default rounded-lg p-3 text-sm text-text-secondary space-y-1.5">
+                                  <p>채점 상태: <span className="font-semibold">{selectedResult.statusDescription}</span></p>
+                                  <p>실행 시간: <span className="font-semibold">{selectedResult.time != null ? `${selectedResult.time}s` : '-'}</span></p>
+                                  <p>메모리: <span className="font-semibold">{selectedResult.memory != null ? `${selectedResult.memory}KB` : '-'}</span></p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center py-8 text-text-faint">
                           <Play className="w-8 h-8 mb-2 opacity-15" />
@@ -776,13 +823,6 @@ export const IDE = () => {
         result={submitResult}
         problemNumber={problem?.problemNumber}
         onClose={closeSubmitModal}
-      />
-      <IDEExecuteModal
-        show={showExecuteModal}
-        status={executeModalStatus}
-        testResults={testResults}
-        problemNumber={problem?.problemNumber}
-        onClose={closeExecuteModal}
       />
       <IDEAddTestCaseModal
         show={showAddModal}
