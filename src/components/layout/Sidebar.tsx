@@ -272,8 +272,8 @@ export const Sidebar = () => {
           </div>
         </div>
 
-        {/* 탐색 섹션 (글로벌) */}
-        <div className="mt-8">
+        {/* 탐색 섹션 (글로벌) — 임시 비노출 */}
+        {/* <div className="mt-8">
           <div className="text-xs font-bold text-text-muted mb-2 px-2 tracking-widest uppercase">{t('nav.explore')}</div>
           <button
             onClick={() => navigate('/explore')}
@@ -287,7 +287,7 @@ export const Sidebar = () => {
             <Compass className={cn("w-5 h-5", location.pathname.startsWith('/explore') ? "text-text-primary" : "text-text-faint group-hover:text-text-muted")} />
             <span className="flex-1 text-left">{t('nav.exploreWorkspaces')}</span>
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Bottom Settings Section */}
