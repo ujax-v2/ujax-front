@@ -5,8 +5,9 @@ import { userState, workspacesState, currentWorkspaceState, isCreateWorkspaceMod
 import { getWorkspaces } from '@/api/workspace';
 import { Button, Card } from '@/components/ui/Base';
 import { useAuth } from '@/hooks/useAuth';
-import { Code2, Users, Zap, Layout, Monitor, Search, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { Code2, Zap, Layout, Monitor, LogOut, Settings, ChevronDown, Link2, UserRound, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { useT } from '@/i18n';
+import { useOnboardingRequirements } from '@/hooks/useOnboardingRequirements';
 
 export const Home = () => {
     const navigate = useNavigate();
@@ -20,6 +21,8 @@ export const Home = () => {
     const [loading, setLoading] = useState(user.isLoggedIn && workspaces.length === 0);
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const profileMenuRef = useRef<HTMLDivElement>(null);
+    const { isComplete: isOnboardingComplete, extensionConnected, hasBojId } =
+      useOnboardingRequirements(user.isLoggedIn, user.baekjoonId);
 
     // 프로필 메뉴 외부 클릭 닫기
     useEffect(() => {
@@ -69,6 +72,11 @@ export const Home = () => {
                 <div className="text-text-muted">{t('home.loadingWorkspaces')}</div>
             </div>
         );
+    }
+
+    // 로그인 사용자는 필수 온보딩 완료 전까지 전용 화면으로 이동
+    if (user.isLoggedIn && !isOnboardingComplete) {
+        return <Navigate to="/onboarding/required" replace state={{ from: '/' }} />;
     }
 
     // 로그인 유저 + 기존 WS 있으면 → 마지막 사용 WS 대시보드로 자동 이동
@@ -198,6 +206,71 @@ export const Home = () => {
                         >
                             <ChevronDown className="w-6 h-6" />
                         </button>
+                    </div>
+                </section>
+
+                {/* Quick Start (필수 설정 안내) */}
+                <section className="py-16 bg-page-deep border-t border-border-default/60">
+                    <div className="max-w-6xl mx-auto px-6">
+                        <Card className="border-border-default bg-surface/80 p-6 md:p-8">
+                            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+                                <div className="max-w-2xl">
+                                    <h3 className="text-2xl md:text-3xl font-bold text-text-primary">
+                                        {t('home.requiredSetupTitle')}
+                                    </h3>
+                                    <p className="mt-2 text-sm md:text-base text-text-muted">
+                                        {t('home.requiredSetupDesc')}
+                                    </p>
+                                </div>
+                                <Button
+                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                    onClick={() => window.open('https://chromewebstore.google.com/detail/ujax-problem-collector/odgcochkdbjimknlhdipkpimllachhbd', '_blank', 'noopener,noreferrer')}
+                                >
+                                    {t('home.requiredSetupInstall')}
+                                    <ExternalLink className="w-4 h-4 ml-1.5" />
+                                </Button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                                <div className="rounded-xl border border-border-subtle bg-surface p-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="rounded-lg p-2 bg-emerald-500/10 text-emerald-400">
+                                            <Link2 className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs uppercase tracking-[0.15em] text-text-faint font-semibold">STEP 1</p>
+                                            <p className="text-base font-semibold text-text-primary mt-1">{t('home.requiredSetupStepExtension')}</p>
+                                            <p className="text-sm text-text-muted mt-1">{t('home.requiredSetupStepExtensionDesc')}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="rounded-xl border border-border-subtle bg-surface p-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="rounded-lg p-2 bg-indigo-500/10 text-indigo-300">
+                                            <UserRound className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs uppercase tracking-[0.15em] text-text-faint font-semibold">STEP 2</p>
+                                            <p className="text-base font-semibold text-text-primary mt-1">{t('home.requiredSetupStepBoj')}</p>
+                                            <p className="text-sm text-text-muted mt-1">{t('home.requiredSetupStepBojDesc')}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {user.isLoggedIn && (
+                                <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
+                                    <span className={`inline-flex items-center gap-1 ${extensionConnected ? 'text-emerald-400' : 'text-text-faint'}`}>
+                                        <CheckCircle2 className="w-4 h-4" />
+                                        {t('onboarding.step.extension')}
+                                    </span>
+                                    <span className={`inline-flex items-center gap-1 ${hasBojId ? 'text-emerald-400' : 'text-text-faint'}`}>
+                                        <CheckCircle2 className="w-4 h-4" />
+                                        {t('onboarding.step.boj')}
+                                    </span>
+                                </div>
+                            )}
+                        </Card>
                     </div>
                 </section>
 

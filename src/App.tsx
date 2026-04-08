@@ -20,6 +20,7 @@ import { SignUp } from './features/auth/SignUp';
 import { SignUpTerms } from './features/auth/SignUpTerms';
 import { SignUpVerify } from './features/auth/SignUpVerify';
 import { OAuthCallback } from './features/auth/OAuthCallback';
+import { RequiredOnboarding } from './features/onboarding/RequiredOnboarding';
 import { ProblemSolutions } from './features/problems/ProblemSolutions';
 import { ChallengeList } from './features/challenges/ChallengeList';
 import { ChallengeDetail } from './features/challenges/ChallengeDetail';
@@ -34,6 +35,7 @@ import 'dayjs/locale/ko';
 import 'dayjs/locale/en';
 import { LangSync, useT } from './i18n';
 import { Toaster, toast } from 'sonner';
+import { useOnboardingRequirements } from './hooks/useOnboardingRequirements';
 
 const darkTheme = createTheme({
   palette: {
@@ -156,6 +158,28 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/" replace />;
   }
   return <>{children}</>;
+}
+
+function RequireOnboarding({ children }: { children: React.ReactNode }) {
+  const user = useRecoilValue(userState);
+  const location = useLocation();
+  const { isComplete, extensionChecked } = useOnboardingRequirements(user.isLoggedIn, user.baekjoonId);
+
+  if (!user.isLoggedIn) return <>{children}</>;
+  if (location.pathname === '/onboarding/required') return <>{children}</>;
+  if (!extensionChecked) return <>{children}</>;
+  if (isComplete) return <>{children}</>;
+
+  const from = `${location.pathname}${location.search}${location.hash}`;
+  return <Navigate to="/onboarding/required" replace state={{ from }} />;
+}
+
+function ProtectedOnboardingRoute({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <RequireOnboarding>{children}</RequireOnboarding>
+    </ProtectedRoute>
+  );
 }
 
 /**
@@ -345,7 +369,7 @@ function AppContent() {
   }, [user.isLoggedIn, user.accessToken, user.baekjoonId]);
 
   // 사이드바를 숨겨야 하는 페이지: 인증, IDE, 홈, 풀이 보기(solutions)
-  const isFullScreen = ['/login', '/signup', '/signup/terms', '/signup/verify', '/oauth/callback', '/'].includes(location.pathname)
+  const isFullScreen = ['/login', '/signup', '/signup/terms', '/signup/verify', '/oauth/callback', '/', '/onboarding/required'].includes(location.pathname)
     || location.pathname.includes('/ide')
     || location.pathname.includes('/solutions');
   // 워크스페이스가 없으면 사이드바 숨김 (컨텍스트 없으므로)
@@ -374,59 +398,60 @@ function AppContent() {
           <Route path="/signup" element={<PublicOnlyRoute><SignUp /></PublicOnlyRoute>} />
           <Route path="/signup/verify" element={<PublicOnlyRoute><SignUpVerify /></PublicOnlyRoute>} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
+          <Route path="/onboarding/required" element={<ProtectedRoute><RequiredOnboarding /></ProtectedRoute>} />
 
           {/* 홈 (비로그인/로그인 모두 접근 가능) */}
           <Route path="/" element={<Home />} />
 
           {/* ═══ 워크스페이스 스코프 라우트 ═══ */}
           <Route path="/ws/:wsId/dashboard" element={
-            <ProtectedRoute><WorkspaceScope><Dashboard /></WorkspaceScope></ProtectedRoute>
+            <ProtectedOnboardingRoute><WorkspaceScope><Dashboard /></WorkspaceScope></ProtectedOnboardingRoute>
           } />
           <Route path="/ws/:wsId/problems" element={
-            <ProtectedRoute><WorkspaceScope><ProblemList /></WorkspaceScope></ProtectedRoute>
+            <ProtectedOnboardingRoute><WorkspaceScope><ProblemList /></WorkspaceScope></ProtectedOnboardingRoute>
           } />
           <Route path="/ws/:wsId/problems/new" element={
-            <ProtectedRoute><WorkspaceScope><ProblemRegistration /></WorkspaceScope></ProtectedRoute>
+            <ProtectedOnboardingRoute><WorkspaceScope><ProblemRegistration /></WorkspaceScope></ProtectedOnboardingRoute>
           } />
           <Route path="/ws/:wsId/community" element={
-            <ProtectedRoute><WorkspaceScope><Community /></WorkspaceScope></ProtectedRoute>
+            <ProtectedOnboardingRoute><WorkspaceScope><Community /></WorkspaceScope></ProtectedOnboardingRoute>
           } />
           <Route path="/ws/:wsId/community/new" element={
-            <ProtectedRoute><WorkspaceScope><PostCreate /></WorkspaceScope></ProtectedRoute>
+            <ProtectedOnboardingRoute><WorkspaceScope><PostCreate /></WorkspaceScope></ProtectedOnboardingRoute>
           } />
           <Route path="/ws/:wsId/community/:boardId" element={
-            <ProtectedRoute><WorkspaceScope><PostDetail /></WorkspaceScope></ProtectedRoute>
+            <ProtectedOnboardingRoute><WorkspaceScope><PostDetail /></WorkspaceScope></ProtectedOnboardingRoute>
           } />
           <Route path="/ws/:wsId/community/:boardId/edit" element={
-            <ProtectedRoute><WorkspaceScope><PostEdit /></WorkspaceScope></ProtectedRoute>
+            <ProtectedOnboardingRoute><WorkspaceScope><PostEdit /></WorkspaceScope></ProtectedOnboardingRoute>
           } />
           <Route path="/ws/:wsId/challenges" element={
-            <ProtectedRoute><WorkspaceScope><ChallengeList /></WorkspaceScope></ProtectedRoute>
+            <ProtectedOnboardingRoute><WorkspaceScope><ChallengeList /></WorkspaceScope></ProtectedOnboardingRoute>
           } />
           <Route path="/ws/:wsId/challenges/:id" element={
-            <ProtectedRoute><WorkspaceScope><ChallengeDetail /></WorkspaceScope></ProtectedRoute>
+            <ProtectedOnboardingRoute><WorkspaceScope><ChallengeDetail /></WorkspaceScope></ProtectedOnboardingRoute>
           } />
 
           <Route path="/ws/:wsId/ide" element={
-            <ProtectedRoute><WorkspaceScope><IDE /></WorkspaceScope></ProtectedRoute>
+            <ProtectedOnboardingRoute><WorkspaceScope><IDE /></WorkspaceScope></ProtectedOnboardingRoute>
           } />
           <Route path="/ws/:wsId/ide/:problemId" element={
-            <ProtectedRoute><WorkspaceScope><IDE /></WorkspaceScope></ProtectedRoute>
+            <ProtectedOnboardingRoute><WorkspaceScope><IDE /></WorkspaceScope></ProtectedOnboardingRoute>
           } />
 
           <Route path="/ws/:wsId/problems/:workspaceProblemId/solutions" element={
-            <ProtectedRoute><WorkspaceScope><ProblemSolutions /></WorkspaceScope></ProtectedRoute>
+            <ProtectedOnboardingRoute><WorkspaceScope><ProblemSolutions /></WorkspaceScope></ProtectedOnboardingRoute>
           } />
 
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedOnboardingRoute><Profile /></ProtectedOnboardingRoute>} />
+          <Route path="/settings" element={<ProtectedOnboardingRoute><Settings /></ProtectedOnboardingRoute>} />
           <Route path="/explore" element={<WorkspaceExplore />} />
 
           {/* ═══ 레거시 라우트 리다이렉트 (구 URL 호환) ═══ */}
-          <Route path="/dashboard" element={<ProtectedRoute><RedirectToWorkspace page="dashboard" /></ProtectedRoute>} />
-          <Route path="/problems" element={<ProtectedRoute><RedirectToWorkspace page="problems" /></ProtectedRoute>} />
-          <Route path="/community" element={<ProtectedRoute><RedirectToWorkspace page="community" /></ProtectedRoute>} />
-          <Route path="/challenges" element={<ProtectedRoute><RedirectToWorkspace page="challenges" /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedOnboardingRoute><RedirectToWorkspace page="dashboard" /></ProtectedOnboardingRoute>} />
+          <Route path="/problems" element={<ProtectedOnboardingRoute><RedirectToWorkspace page="problems" /></ProtectedOnboardingRoute>} />
+          <Route path="/community" element={<ProtectedOnboardingRoute><RedirectToWorkspace page="community" /></ProtectedOnboardingRoute>} />
+          <Route path="/challenges" element={<ProtectedOnboardingRoute><RedirectToWorkspace page="challenges" /></ProtectedOnboardingRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
