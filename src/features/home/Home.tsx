@@ -259,19 +259,11 @@ export const Home = () => {
                         </div>
                     </div>
 
-                    {/* 스크롤 화살표 */}
-                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 mx-auto animate-bounce z-20">
-                        <button
-                            onClick={() => document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' })}
-                            className="p-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors text-text-muted hover:text-text-primary"
-                        >
-                            <ChevronDown className="w-6 h-6" />
-                        </button>
-                    </div>
+                    {/* 탐색 섹션 비노출로 스크롤 화살표 임시 제거 */}
                 </section>
 
-                {/* ═══ 탐색 섹션 (마지막 섹션) ═══ */}
-                <section id="explore" className="min-h-screen py-16 bg-page-deep flex flex-col justify-center shrink-0 relative">
+                {/* ═══ 탐색 섹션 (마지막 섹션) — 임시 비노출 ═══ */}
+                {/* <section id="explore" className="min-h-screen py-16 bg-page-deep flex flex-col justify-center shrink-0 relative">
                     <div className="max-w-3xl mx-auto px-6 text-center w-full mt-[-2rem]">
                         <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
                             {t('home.exploreTitle')}
@@ -280,7 +272,6 @@ export const Home = () => {
                             {t('home.exploreDesc')}
                         </p>
 
-                        {/* 탐색 검색바 */}
                         <form onSubmit={handleExploreSearch} className="flex gap-3 max-w-xl mx-auto">
                             <div className="flex-1 relative">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-faint" />
@@ -300,7 +291,6 @@ export const Home = () => {
                             </Button>
                         </form>
 
-                        {/* 인기 태그 */}
                         <div className="flex flex-wrap gap-3 justify-center mt-8 cursor-pointer">
                             {['알고리즘', 'SSAFY', '코테대비', 'LeetCode', '대회준비'].map(tag => (
                                 <button
@@ -317,7 +307,7 @@ export const Home = () => {
                             ))}
                         </div>
                     </div>
-                </section>
+                </section> */}
 
                 {/* Footer */}
                 <footer className="border-t border-border-default py-12 text-center text-text-faint text-sm">
