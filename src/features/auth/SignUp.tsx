@@ -6,19 +6,18 @@ import { Button, Card } from '@/components/ui/Base';
 import { Mail, Lock, User, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { isMailSendFailure, parseApiProblem } from '@/utils/error';
 import {
-  SIGNUP_VERIFICATION_FAILED_EVENT,
-  SIGNUP_VERIFICATION_READY_EVENT,
-  clearPendingSignupVerification,
   clearSignupVerificationSession,
-  getPendingSignupVerification,
   getSignupDraft,
   hasAcceptedRequiredSignupTerms,
   saveSignupDraft,
-  savePendingSignupVerification,
   saveSignupVerificationSession,
 } from './signupVerificationStorage';
 
 type EmailCheckState = 'idle' | 'checking' | 'valid' | 'invalid';
+
+function isValidPassword(value: string) {
+  return value.length >= 8 && /[A-Za-z]/.test(value) && /\d/.test(value);
+}
 
 export const SignUp = () => {
   const location = useLocation();
@@ -28,7 +27,7 @@ export const SignUp = () => {
   const [termsAccepted, setTermsAccepted] = useState<boolean | null>(null);
   const [formData, setFormData] = useState({
     email: initialDraft?.email || '',
-    password: '',
+    password: initialDraft?.password || '',
     passwordConfirm: '',
     nickname: initialDraft?.nickname || '',
   });
@@ -63,9 +62,10 @@ export const SignUp = () => {
     saveSignupDraft({
       email: formData.email,
       nickname: formData.nickname,
+      password: formData.password,
       checkedEmail,
     });
-  }, [checkedEmail, formData.email, formData.nickname, termsAccepted]);
+  }, [checkedEmail, formData.email, formData.nickname, formData.password, termsAccepted]);
 
   useEffect(() => {
     const signupRequestError = (location.state as { signupRequestError?: string } | null)?.signupRequestError;
@@ -77,9 +77,7 @@ export const SignUp = () => {
 
   const validate = (name: string, value: string, nextFormData = formData) => {
     if (name === 'password') {
-      if (value.length < 8) return t('auth.passwordLengthError');
-      if (!/[0-9]/.test(value)) return t('auth.passwordNumberError');
-      return '';
+      return value && !isValidPassword(value) ? t('auth.passwordRuleError') : '';
     }
     if (name === 'passwordConfirm') {
       return value !== nextFormData.password ? t('auth.passwordConfirmMismatchError') : '';
@@ -103,6 +101,8 @@ export const SignUp = () => {
         return t('auth.invalidEmailError');
       case 'D002':
         return t('auth.duplicateEmailError');
+      case 'C006':
+        return t('auth.passwordRuleError');
       default:
         return problem.detail || fallback;
     }
@@ -145,7 +145,6 @@ export const SignUp = () => {
     setEmailCheckState('idle');
     setEmailCheckMessage('');
     setCheckedEmail('');
-    clearPendingSignupVerification();
     clearSignupVerificationSession();
   };
 
@@ -197,10 +196,11 @@ export const SignUp = () => {
     setEmailCheckMessage('');
 
     try {
-      await checkEmailAvailabilityApi(formData.email);
+      await checkEmailAvailabilityApi(formData.email.trim());
       setEmailCheckState('valid');
       setEmailCheckMessage(t('auth.emailAvailable'));
-      setCheckedEmail(formData.email);
+      setCheckedEmail(formData.email.trim());
+      setFormData(prev => ({ ...prev, email: prev.email.trim() }));
     } catch (err) {
       setEmailCheckState('invalid');
       setCheckedEmail('');
@@ -212,7 +212,9 @@ export const SignUp = () => {
     e.preventDefault();
     if (loading) return;
 
-    const isEmailChecked = emailCheckState === 'valid' && checkedEmail === formData.email;
+    const trimmedEmail = formData.email.trim();
+    const trimmedNickname = formData.nickname.trim();
+    const isEmailChecked = emailCheckState === 'valid' && checkedEmail === trimmedEmail;
 
     if (!isEmailChecked) {
       setEmailCheckState('invalid');
@@ -220,49 +222,38 @@ export const SignUp = () => {
       return;
     }
 
-    if (errors.password || !formData.email.trim() || !formData.password || !formData.nickname.trim()) {
+    if (
+      errors.password
+      || errors.passwordConfirm
+      || !trimmedEmail
+      || !formData.password
+      || !formData.passwordConfirm
+      || !trimmedNickname
+    ) {
       return;
     }
 
     setApiError('');
     setLoading(true);
-    const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const optimisticExpiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
-    const pendingSignup = {
-      email: formData.email.trim(),
-      expiresAt: optimisticExpiresAt,
-      requestId,
-    };
 
-    savePendingSignupVerification(pendingSignup);
-    clearSignupVerificationSession();
-    navigate('/signup/verify', { replace: true, state: pendingSignup });
-
-    signupRequestApi(formData.email.trim(), formData.password, formData.nickname.trim())
-      .then((result) => {
-        const currentPending = getPendingSignupVerification();
-        if (!currentPending || currentPending.requestId !== requestId) return;
-
-        clearPendingSignupVerification();
-        saveSignupVerificationSession(result.data);
-        window.dispatchEvent(new CustomEvent(SIGNUP_VERIFICATION_READY_EVENT, {
-          detail: result.data,
-        }));
-      })
-      .catch((err) => {
-        const currentPending = getPendingSignupVerification();
-        if (!currentPending || currentPending.requestId !== requestId) return;
-
-        const message = getKnownAuthMessage(err, t('auth.signupRequestFailed'));
-        clearPendingSignupVerification();
-        clearSignupVerificationSession();
-        window.dispatchEvent(new CustomEvent(SIGNUP_VERIFICATION_FAILED_EVENT, {
-          detail: { message },
-        }));
+    try {
+      const result = await signupRequestApi(trimmedEmail);
+      saveSignupDraft({
+        email: trimmedEmail,
+        nickname: trimmedNickname,
+        password: formData.password,
+        checkedEmail: trimmedEmail,
       });
+      saveSignupVerificationSession(result.data);
+      navigate('/signup/verify', { replace: true, state: result.data });
+    } catch (err) {
+      setApiError(getKnownAuthMessage(err, t('auth.signupRequestFailed')));
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const isEmailChecked = emailCheckState === 'valid' && checkedEmail === formData.email;
+  const isEmailChecked = emailCheckState === 'valid' && checkedEmail === formData.email.trim();
   const canCheckEmail = Boolean(formData.email) && emailCheckState !== 'checking' && !loading;
   const canSubmit = isEmailChecked
     && !errors.password
@@ -420,7 +411,7 @@ export const SignUp = () => {
 
         <div className="mt-6 text-center text-sm text-text-muted">
           {t('auth.hasAccount')}{' '}
-          <button onClick={() => navigate('/login')} className="text-emerald-500 hover:text-emerald-400 font-medium">
+          <button type="button" onClick={() => navigate('/login')} className="text-emerald-500 hover:text-emerald-400 font-medium">
             {t('auth.login')}
           </button>
         </div>

@@ -8,30 +8,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { useT } from '@/i18n';
 import { isMailSendFailure, parseApiProblem } from '@/utils/error';
 import {
-  SIGNUP_VERIFICATION_FAILED_EVENT,
-  SIGNUP_VERIFICATION_READY_EVENT,
-  clearPendingSignupVerification,
   clearSignupDraft,
   clearSignupTermsAgreement,
   clearSignupVerificationSession,
-  getPendingSignupVerification,
+  getSignupDraft,
   getSignupVerificationSession,
-  type PendingSignupVerification,
   saveSignupVerificationSession,
 } from './signupVerificationStorage';
-
-const VERIFICATION_TTL_SECONDS = 300;
 
 function isSignupVerificationSession(value: unknown): value is SignupVerificationSession {
   if (!value || typeof value !== 'object') return false;
   const session = value as SignupVerificationSession;
   return !!session.requestToken && !!session.email && !!session.expiresAt;
-}
-
-function isPendingSignupVerification(value: unknown): value is PendingSignupVerification {
-  if (!value || typeof value !== 'object') return false;
-  const session = value as PendingSignupVerification;
-  return !!session.requestId && !!session.email && !!session.expiresAt;
 }
 
 function formatRemainingSeconds(totalSeconds: number) {
@@ -49,22 +37,14 @@ export const SignUpVerify = () => {
     () => isSignupVerificationSession(location.state) ? location.state : null,
     [location.state],
   );
-  const locationPending = useMemo(
-    () => isPendingSignupVerification(location.state) ? location.state : null,
-    [location.state],
-  );
   const [session, setSession] = useState<SignupVerificationSession | null>(
     () => locationSession || getSignupVerificationSession(),
-  );
-  const [pendingSignup, setPendingSignup] = useState<PendingSignupVerification | null>(
-    () => locationPending || getPendingSignupVerification(),
   );
   const [code, setCode] = useState('');
   const [apiError, setApiError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
 
   const getKnownAuthMessage = (err: unknown, fallback: string) => {
@@ -87,19 +67,26 @@ export const SignUpVerify = () => {
         return t('auth.duplicateEmailError');
       case 'C009':
         return t('auth.invalidEmailError');
+      case 'C006':
+        return t('auth.passwordRuleError');
+      case 'R001':
+        return t('auth.signupRequestMissingError');
       default:
-        if (problem.status === 404) {
-          return t('auth.signupRequestMissingError');
-        }
         return problem.detail || fallback;
     }
+  };
+
+  const navigateToSignupWithError = (message: string) => {
+    clearSignupVerificationSession();
+    navigate('/signup', {
+      replace: true,
+      state: { signupRequestError: message },
+    });
   };
 
   useEffect(() => {
     if (locationSession) {
       setSession(locationSession);
-      setPendingSignup(null);
-      clearPendingSignupVerification();
       saveSignupVerificationSession(locationSession);
       return;
     }
@@ -107,77 +94,29 @@ export const SignUpVerify = () => {
     const stored = getSignupVerificationSession();
     if (stored) {
       setSession(stored);
-      setPendingSignup(null);
-      clearPendingSignupVerification();
-      return;
-    }
-
-    if (locationPending) {
-      setPendingSignup(locationPending);
-      return;
-    }
-
-    const pending = getPendingSignupVerification();
-    if (pending) {
-      setPendingSignup(pending);
       return;
     }
 
     navigate('/signup', { replace: true });
-  }, [locationPending, locationSession, navigate]);
+  }, [locationSession, navigate]);
 
   useEffect(() => {
-    const handleReady = (event: Event) => {
-      const nextSession = (event as CustomEvent<SignupVerificationSession>).detail;
-      clearPendingSignupVerification();
-      saveSignupVerificationSession(nextSession);
-      setPendingSignup(null);
-      setSession(nextSession);
-      setApiError('');
-    };
+    if (!session) return;
 
-    const handleFailed = (event: Event) => {
-      const detail = (event as CustomEvent<{ message?: string }>).detail;
-      clearPendingSignupVerification();
-      clearSignupVerificationSession();
-      setPendingSignup(null);
-      setSession(null);
-      navigate('/signup', {
-        replace: true,
-        state: { signupRequestError: detail?.message || t('auth.signupRequestFailed') },
-      });
-    };
-
-    window.addEventListener(SIGNUP_VERIFICATION_READY_EVENT, handleReady);
-    window.addEventListener(SIGNUP_VERIFICATION_FAILED_EVENT, handleFailed);
-
-    return () => {
-      window.removeEventListener(SIGNUP_VERIFICATION_READY_EVENT, handleReady);
-      window.removeEventListener(SIGNUP_VERIFICATION_FAILED_EVENT, handleFailed);
-    };
-  }, [navigate, t]);
+    const draft = getSignupDraft();
+    if (!draft || !draft.password || !draft.nickname || !draft.email || draft.email !== session.email) {
+      navigateToSignupWithError(t('auth.signupRequestMissingError'));
+    }
+  }, [navigate, session, t]);
 
   useEffect(() => {
-    if (resendCooldown <= 0) return;
-
-    const timer = window.setInterval(() => {
-      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-
-    return () => window.clearInterval(timer);
-  }, [resendCooldown]);
-
-  useEffect(() => {
-    const expiresAt = session?.expiresAt || pendingSignup?.expiresAt;
-    if (!expiresAt) {
+    if (!session?.expiresAt) {
       setRemainingSeconds(0);
       return;
     }
 
     const updateRemainingSeconds = () => {
-      // 서버가 타임존 없이 반환하는 경우(e.g. "2026-03-30T10:30:00") UTC로 강제 파싱
-      const normalized = /Z$|[+-]\d{2}:\d{2}$/.test(expiresAt) ? expiresAt : `${expiresAt}Z`;
-      const expiresAtMs = new Date(normalized).getTime();
+      const expiresAtMs = new Date(session.expiresAt).getTime();
       const diff = Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000));
       setRemainingSeconds(diff);
     };
@@ -186,17 +125,29 @@ export const SignUpVerify = () => {
     const timer = window.setInterval(updateRemainingSeconds, 1000);
 
     return () => window.clearInterval(timer);
-  }, [pendingSignup?.expiresAt, session?.expiresAt]);
+  }, [session?.expiresAt]);
 
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session || code.length !== 6) return;
 
+    const draft = getSignupDraft();
+    if (!draft || !draft.password || !draft.nickname || draft.email !== session.email) {
+      navigateToSignupWithError(t('auth.signupRequestMissingError'));
+      return;
+    }
+
     setApiError('');
     setSubmitting(true);
 
     try {
-      const result = await signupConfirmApi(session.requestToken, code);
+      const result = await signupConfirmApi(
+        session.requestToken,
+        code,
+        session.email,
+        draft.password,
+        draft.nickname.trim(),
+      );
       clearSignupDraft();
       clearSignupTermsAgreement();
       clearSignupVerificationSession();
@@ -204,7 +155,16 @@ export const SignUpVerify = () => {
       await setAuthUser(accessToken, refreshToken);
       navigate('/');
     } catch (err) {
-      console.error('Signup confirm error', err);
+      const problem = parseApiProblem(err);
+      if (problem?.title === 'C011' && session) {
+        const expiredSession = { ...session, expiresAt: new Date(0).toISOString() };
+        setSession(expiredSession);
+        saveSignupVerificationSession(expiredSession);
+      }
+      if (problem?.title === 'R001') {
+        navigateToSignupWithError(t('auth.signupRequestMissingError'));
+        return;
+      }
       setApiError(getKnownAuthMessage(err, t('auth.signupConfirmFailed')));
     } finally {
       setSubmitting(false);
@@ -212,29 +172,18 @@ export const SignUpVerify = () => {
   };
 
   const handleResend = async () => {
-    if (!session || resendCooldown > 0 || resending) return;
+    if (!session || remainingSeconds > 0 || resending) return;
 
     setApiError('');
-    setResendSuccess(true);
-    setResendCooldown(30);
     setResending(true);
-    const optimisticSession = {
-      ...session,
-      expiresAt: new Date(Date.now() + VERIFICATION_TTL_SECONDS * 1000).toISOString(),
-    };
-    setSession(optimisticSession);
-    saveSignupVerificationSession(optimisticSession);
+    setResendSuccess(false);
 
     try {
-      const result = await signupResendApi(session.requestToken);
+      const result = await signupResendApi(session.email);
       setSession(result.data);
       saveSignupVerificationSession(result.data);
+      setResendSuccess(true);
     } catch (err) {
-      console.error('Signup resend error', err);
-      setResendCooldown(0);
-      setResendSuccess(false);
-      setSession(session);
-      saveSignupVerificationSession(session);
       setApiError(getKnownAuthMessage(err, t('auth.signupResendFailed')));
     } finally {
       setResending(false);
@@ -248,13 +197,12 @@ export const SignUpVerify = () => {
       : 'text-emerald-500';
 
   const handleBackToSignUp = () => {
-    clearPendingSignupVerification();
     clearSignupVerificationSession();
     navigate('/signup', { replace: true });
   };
 
-  const displayEmail = session?.email || pendingSignup?.email || '';
-  if (!session && !pendingSignup) return null;
+  const displayEmail = session?.email || '';
+  if (!session) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-page p-4">
@@ -330,13 +278,11 @@ export const SignUpVerify = () => {
               type="button"
               variant="secondary"
               onClick={handleResend}
-              disabled={!session || resendCooldown > 0 || resending}
+              disabled={!session || remainingSeconds > 0 || resending}
               className="w-full gap-2"
             >
               <RotateCcw className="w-4 h-4" />
-              {resendCooldown > 0
-                ? `${t('auth.resendCodeButton')} (${resendCooldown}${t('auth.secondsSuffix')})`
-                : t('auth.resendCodeButton')}
+              {resending ? t('auth.resendCodeLoading') : t('auth.resendCodeButton')}
             </Button>
             {resendSuccess && (
               <p className="text-xs text-emerald-500 text-center">{t('auth.resendSuccessMessage')}</p>
