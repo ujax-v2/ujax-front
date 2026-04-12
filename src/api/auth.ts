@@ -1,13 +1,30 @@
-import type { components } from '@ujax/api-spec/types';
 import { apiFetch } from './client';
 
-type ApiAuthToken = components['schemas']['ApiResponse-AuthTokenResponse'];
-export type AuthTokenResponse = ApiAuthToken['data'];
-export type SignupRequest = components['schemas']['SignupRequest'];
-export type LoginRequest = components['schemas']['LoginRequest'];
+interface ApiAuthTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+interface ApiSuccessResponse<T> {
+  success: boolean;
+  data: T;
+  message: string | null;
+}
+
+interface ApiProblemResponse {
+  title?: string;
+  status?: number;
+  detail?: string;
+  fieldErrors?: Array<{ field?: string; message?: string }>;
+}
+
+interface SignupRequestResponse {
+  requestToken: string;
+  expiresAt: string;
+}
 
 interface ApiAuthResponse {
-  data: AuthTokenResponse;
+  data: ApiAuthTokenResponse;
 }
 
 export interface SignupVerificationSession {
@@ -18,12 +35,6 @@ export interface SignupVerificationSession {
 
 interface ApiSignupVerificationSessionResponse {
   data: SignupVerificationSession;
-}
-
-interface ApiProblemResponse {
-  title?: string;
-  status?: number;
-  detail?: string;
 }
 
 class ApiTimeoutError extends Error {
@@ -37,12 +48,16 @@ class ApiTimeoutError extends Error {
 export class ApiProblemError extends Error {
   title?: string;
   status?: number;
+  detail?: string;
+  fieldErrors?: Array<{ field?: string; message?: string }>;
 
   constructor(problem: ApiProblemResponse | null, fallback: string) {
     super(problem?.detail || fallback);
     this.name = 'ApiProblemError';
     this.title = problem?.title;
     this.status = problem?.status;
+    this.detail = problem?.detail;
+    this.fieldErrors = problem?.fieldErrors;
     Object.setPrototypeOf(this, ApiProblemError.prototype);
   }
 }
@@ -100,40 +115,50 @@ export async function checkEmailAvailabilityApi(email: string): Promise<void> {
   }
 }
 
-export async function signupRequestApi(email: string, password: string, name: string): Promise<ApiSignupVerificationSessionResponse> {
+export async function signupRequestApi(email: string): Promise<ApiSignupVerificationSessionResponse> {
+  const trimmedEmail = email.trim();
   const res = await apiFetchWithTimeout('/api/v1/auth/signup/request', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, name }),
+    body: JSON.stringify({ email: trimmedEmail }),
   }, 15000);
+
   if (!res.ok) {
     await throwApiProblem(res, '인증 코드 발송에 실패했습니다.');
   }
-  return res.json();
+
+  const json = await res.json() as ApiSuccessResponse<SignupRequestResponse>;
+  return {
+    ...json,
+    data: {
+      ...json.data,
+      email: trimmedEmail,
+    },
+  };
 }
 
-export async function signupConfirmApi(requestToken: string, code: string): Promise<ApiAuthResponse> {
-  const res = await apiFetch('/api/v1/auth/signup/confirm', {
+export async function signupConfirmApi(
+  requestToken: string,
+  code: string,
+  email: string,
+  password: string,
+  name: string,
+): Promise<ApiAuthResponse> {
+  const res = await apiFetch('/api/v1/auth/signup/complete', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ requestToken, code }),
+    body: JSON.stringify({ requestToken, code, email, password, name }),
   });
+
   if (!res.ok) {
     await throwApiProblem(res, '회원가입에 실패했습니다.');
   }
+
   return res.json();
 }
 
-export async function signupResendApi(requestToken: string): Promise<ApiSignupVerificationSessionResponse> {
-  const res = await apiFetchWithTimeout('/api/v1/auth/signup/resend', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ requestToken }),
-  }, 15000);
-  if (!res.ok) {
-    await throwApiProblem(res, '인증 코드 재발송에 실패했습니다.');
-  }
-  return res.json();
+export async function signupResendApi(email: string): Promise<ApiSignupVerificationSessionResponse> {
+  return signupRequestApi(email);
 }
 
 export async function logoutApi(refreshToken: string): Promise<void> {
