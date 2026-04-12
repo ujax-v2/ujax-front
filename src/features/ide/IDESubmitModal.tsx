@@ -18,19 +18,22 @@ export function IDESubmitModal({ show, status, result, problemNumber, onClose }:
   const problemLabel = problemNumber ? `${problemNumber}번 문제` : '';
 
   const isJudging = status === 'submitted';
+  const wrongMessage = result || '다시 시도해주세요.';
+  const isJudgeWrongVerdict = /(틀렸|wrong|오답|time limit|runtime|compile|메모리|시간 초과|런타임|컴파일)/i.test(wrongMessage);
+  const wrongTitle = isJudgeWrongVerdict ? '틀렸습니다' : '제출 확인 실패';
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-[1px]"
       onClick={isJudging ? undefined : onClose}
     >
       <div
-        className="relative bg-surface border border-border-default rounded-xl shadow-xl w-full max-w-lg mx-4 py-16 flex flex-col items-center gap-5"
+        className="relative bg-surface border border-border-default rounded-2xl shadow-xl w-full max-w-lg mx-4 py-12 flex flex-col items-center gap-4"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-text-faint hover:text-text-primary transition-colors"
+          className="absolute top-4 right-4 text-text-faint hover:text-text-primary transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -56,10 +59,15 @@ export function IDESubmitModal({ show, status, result, problemNumber, onClose }:
         )}
         {status === 'wrong' && (
           <>
-            <AlertCircle className="w-16 h-16 text-red-500" />
+            <AlertCircle className="w-14 h-14 text-red-500" />
             <p className="text-base font-semibold text-text-secondary">{problemLabel}</p>
-            <p className="text-2xl font-bold text-red-500">{result || '틀렸습니다'}</p>
-            <Button variant="primary" onClick={onClose} className="mt-2 text-sm px-6 py-2">확인</Button>
+            <p className="text-xl font-bold text-red-500 tracking-tight">{wrongTitle}</p>
+            <div className="mt-0.5 w-full px-8">
+              <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-center text-sm leading-relaxed text-red-300">
+                {wrongMessage}
+              </p>
+            </div>
+            <Button variant="secondary" onClick={onClose} className="mt-2 text-sm px-6 py-2">확인</Button>
           </>
         )}
         {status === 'timeout' && (

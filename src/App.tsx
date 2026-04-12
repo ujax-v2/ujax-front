@@ -3,7 +3,8 @@ import { useRecoilState, useRecoilValue, RecoilRoot } from 'recoil';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { sidebarOpenState, userState, currentWorkspaceState, workspacesState, currentProblemBoxState, myWorkspaceRoleState, Workspace, themeState, ThemeMode, languageState, GUEST_USER } from './store/atoms';
 import { Sidebar } from './components/layout/Sidebar';
-import { getWorkspaces, getWorkspaceSettings } from './api/workspace';
+import { getWorkspaces } from './api/workspace';
+import { getMe } from './api/user';
 import { Dashboard } from './features/dashboard/Dashboard';
 import { Home } from './features/home/Home';
 import { IDE } from './features/ide/IDE';
@@ -198,19 +199,6 @@ function WorkspaceScope({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true; };
   }, [workspaces.length, setWorkspaces]);
 
-  // 현재 워크스페이스 settings(mmWebhookUrl 포함) 로드
-  React.useEffect(() => {
-    if (!numericWsId) return;
-    getWorkspaceSettings(numericWsId)
-      .then(data => {
-        setWorkspaces(prev => prev.map(w => w.id === numericWsId
-          ? { ...w, mmWebhookUrl: data.hookUrl ?? null, imageUrl: data.imageUrl ?? null }
-          : w
-        ));
-      })
-      .catch(() => {});
-  }, [numericWsId]);
-
   const isMember = workspaces.some(w => w.id === numericWsId);
 
   // URL의 wsId가 변경되면 Recoil 상태도 동기화
@@ -292,6 +280,22 @@ function AppContent() {
   const setMyWorkspaceRole = useRecoilState(myWorkspaceRoleState)[1];
   const location = useLocation();
   const navigate = useNavigate();
+  const normalizeBojId = (value?: string | null) => String(value ?? '').trim();
+
+  // 앱 시작 시 로그인 상태면 서버에서 최신 유저 정보 동기화 (profileImageUrl 등 stale 방지)
+  React.useEffect(() => {
+    if (!user.isLoggedIn) return;
+    getMe().then(me => {
+      const normalizedBojId = normalizeBojId(me.baekjoonId);
+      setUser(prev => prev.isLoggedIn ? {
+        ...prev,
+        name: me.name,
+        profileImageUrl: me.profileImageUrl ?? '',
+        baekjoonId: normalizedBojId,
+      } : prev);
+    }).catch(() => { /* 실패 시 기존 캐시 유지 */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // client.ts에서 발생하는 인증 이벤트 처리
   React.useEffect(() => {
@@ -328,6 +332,17 @@ function AppContent() {
       window.removeEventListener('ujaxAuthExpired', onAuthExpired);
     };
   }, [navigate, setUser, setWorkspaces, setCurrentWsId, setCurrentProblemBox, setMyWorkspaceRole]);
+
+  // 같은 탭에서 프로필(baekjoonId) 변경 시에도 extension으로 즉시 동기화
+  React.useEffect(() => {
+    if (!user.isLoggedIn || !user.accessToken) return;
+    const normalizedBojId = normalizeBojId(user.baekjoonId);
+    window.postMessage({
+      type: 'ujaxAuthChanged',
+      token: user.accessToken,
+      bojId: normalizedBojId || null,
+    }, '*');
+  }, [user.isLoggedIn, user.accessToken, user.baekjoonId]);
 
   // 사이드바를 숨겨야 하는 페이지: 인증, IDE, 홈, 풀이 보기(solutions)
   const isFullScreen = ['/login', '/signup', '/signup/terms', '/signup/verify', '/oauth/callback', '/'].includes(location.pathname)

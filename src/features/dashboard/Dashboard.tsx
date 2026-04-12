@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { workspacesState, currentWorkspaceState, isCreateWorkspaceModalOpenState } from '@/store/atoms';
 import { useWorkspaceNavigate } from '@/hooks/useWorkspaceNavigate';
@@ -73,7 +73,7 @@ export const Dashboard = () => {
 
   const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
 
-  useEffect(() => {
+  const fetchDashboard = useCallback(() => {
     if (!currentWorkspaceId) return;
     setLoading(true);
     getWorkspaceDashboard(currentWorkspaceId)
@@ -81,6 +81,15 @@ export const Dashboard = () => {
       .catch(err => console.error('Failed to load dashboard:', err))
       .finally(() => setLoading(false));
   }, [currentWorkspaceId]);
+
+  useEffect(() => {
+    fetchDashboard();
+  }, [fetchDashboard]);
+
+  useEffect(() => {
+    window.addEventListener('ujaxProblemAccepted', fetchDashboard);
+    return () => window.removeEventListener('ujaxProblemAccepted', fetchDashboard);
+  }, [fetchDashboard]);
 
   if (!currentWorkspace) {
     return (
@@ -249,7 +258,7 @@ export const Dashboard = () => {
                   </>
                 )}
               </Card>
-              <Card className="bg-surface-raised border-border-default p-4 flex-1 flex flex-col justify-center shadow-md hover:border-border-subtle transition-colors cursor-pointer">
+              <Card className="bg-surface-raised border-border-default p-4 flex-1 flex flex-col justify-center shadow-md hover:border-border-subtle transition-colors cursor-pointer" onClick={() => summary?.hotProblem?.problemNumber && toWs(`ide/${summary.hotProblem.problemNumber}`)}>
                 <h3 className="text-base font-medium text-text-muted mb-1">{t('dashboard.hotProblem')}</h3>
                 {loading ? (
                   <div className="text-sm text-text-faint">불러오는 중...</div>
@@ -315,10 +324,10 @@ export const Dashboard = () => {
                 <div className="flex items-center justify-center py-8 text-text-faint text-sm">불러오는 중...</div>
               ) : (() => {
                 const list = activeRankingTab === 'monthlySolved'
-                  ? (rankings?.monthlySolved ?? []).map(r => ({ id: r.workspaceMemberId, name: r.nickname, value: `${r.solvedCount} 문제` }))
+                  ? (rankings?.monthlySolved ?? []).map(r => ({ id: r.workspaceMemberId, name: r.nickname, userImage: r.userImage, value: `${r.solvedCount} 문제` }))
                   : activeRankingTab === 'streak'
-                    ? (rankings?.streak ?? []).map(r => ({ id: r.workspaceMemberId, name: r.nickname, value: `${r.streakDays} 일` }))
-                    : (rankings?.deadlineRate ?? []).map(r => ({ id: r.workspaceMemberId, name: r.nickname, value: `${r.ratePercent} %` }));
+                    ? (rankings?.streak ?? []).map(r => ({ id: r.workspaceMemberId, name: r.nickname, userImage: r.userImage, value: `${r.streakDays} 일` }))
+                    : (rankings?.deadlineRate ?? []).map(r => ({ id: r.workspaceMemberId, name: r.nickname, userImage: r.userImage, value: `${r.ratePercent} %` }));
 
                 if (list.length === 0) {
                   return <div className="flex items-center justify-center py-8 text-text-faint text-sm">데이터가 없습니다.</div>;
@@ -337,8 +346,10 @@ export const Dashboard = () => {
                             {idx + 1}
                           </div>
                           <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-text-secondary ${idx === 0 ? 'bg-surface-subtle border-2 border-yellow-500/50' : 'bg-surface-subtle'}`}>
-                              {rank.name.charAt(0)}
+                            <div className={`w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold text-text-secondary ${idx === 0 ? 'bg-surface-subtle border-2 border-yellow-500/50' : 'bg-surface-subtle'}`}>
+                              {rank.userImage
+                                ? <img src={rank.userImage} alt="" className="w-full h-full object-cover" />
+                                : rank.name.charAt(0)}
                             </div>
                             <span className={`font-semibold tracking-tight ${idx === 0 ? 'text-text-primary text-base' : 'text-text-secondary text-[15px]'}`}>
                               {rank.name}

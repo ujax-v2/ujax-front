@@ -94,6 +94,19 @@ export const ProblemList = () => {
     fetchBoxes();
   }, [fetchBoxes]);
 
+  // 문제 검색
+  const [searchInput, setSearchInput] = useState('');
+  const [keyword, setKeyword] = useState('');
+
+  // 디바운스: 입력 후 400ms 뒤 keyword 반영
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setKeyword(searchInput.trim());
+      setProblemPage(0);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   // 문제집 내부 문제 목록
   const [problems, setProblems] = useState<WorkspaceProblemListData['content']>([]);
   const [problemsLoading, setProblemsLoading] = useState(false);
@@ -111,7 +124,7 @@ export const ProblemList = () => {
     if (!currentWsId || !currentBox) return;
     setProblemsLoading(true);
     try {
-      const data = await getWorkspaceProblems(currentWsId, currentBox.id, problemPage);
+      const data = await getWorkspaceProblems(currentWsId, currentBox.id, problemPage, 10, keyword || undefined);
       setProblems(data.content);
       setProblemTotalPages(data.page?.totalPages ?? 0);
     } catch {
@@ -119,10 +132,15 @@ export const ProblemList = () => {
       setCurrentBox(null);
     }
     finally { setProblemsLoading(false); }
-  }, [currentWsId, currentBox, problemPage]);
+  }, [currentWsId, currentBox, problemPage, keyword]);
 
   useEffect(() => {
-    if (currentBox) fetchProblems();
+    if (currentBox) {
+      fetchProblems();
+    } else {
+      setSearchInput('');
+      setKeyword('');
+    }
   }, [currentBox, fetchProblems]);
 
   // Extension batch context: 문제 목록이 로드되면 extension에 전달
@@ -439,13 +457,17 @@ export const ProblemList = () => {
         </div>
 
         {/* 생성 모달 */}
-        <Modal isOpen={isCreateModalOpen} onClose={() => { setIsCreateModalOpen(false); setCreateError(''); }} title={t('problems.newBox')}>
+        <Modal isOpen={isCreateModalOpen} onClose={() => { setIsCreateModalOpen(false); setCreateError(''); }} title={t('problems.newBox')} className="max-w-xl">
           <form onSubmit={handleCreateBox} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-text-muted">{t('problems.boxName')}</label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-text-muted">{t('problems.boxName')}</label>
+                <span className={`text-xs ${newBox.title.length >= 30 ? 'text-red-400' : 'text-text-faint'}`}>{newBox.title.length}/30</span>
+              </div>
               <input
                 type="text"
                 required
+                maxLength={30}
                 value={newBox.title}
                 onChange={(e) => setNewBox({ ...newBox, title: e.target.value })}
                 placeholder={t('problems.boxNamePlaceholder')}
@@ -453,12 +475,21 @@ export const ProblemList = () => {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-text-muted">{t('problems.boxDesc')}</label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-text-muted">{t('problems.boxDesc')}</label>
+                <span className={`text-xs ${(newBox.description?.length ?? 0) >= 255 ? 'text-red-400' : 'text-text-faint'}`}>{newBox.description?.length ?? 0}/255</span>
+              </div>
               <textarea
                 value={newBox.description}
-                onChange={(e) => setNewBox({ ...newBox, description: e.target.value })}
+                maxLength={255}
+                onChange={(e) => {
+                  setNewBox({ ...newBox, description: e.target.value });
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
                 placeholder={t('problems.boxDescPlaceholder')}
-                className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-2.5 text-text-secondary focus:outline-none focus:border-emerald-500 min-h-[80px]"
+                rows={3}
+                className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-2.5 text-text-secondary focus:outline-none focus:border-emerald-500 resize-none overflow-hidden"
               />
             </div>
             {createError && (
@@ -477,13 +508,17 @@ export const ProblemList = () => {
         </Modal>
 
         {/* 수정 모달 */}
-        <Modal isOpen={!!editTarget} onClose={() => { setEditTarget(null); setEditError(''); }} title={t('problems.editBox')}>
+        <Modal isOpen={!!editTarget} onClose={() => { setEditTarget(null); setEditError(''); }} title={t('problems.editBox')} className="max-w-xl">
           <form onSubmit={handleEditBox} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-text-muted">{t('problems.boxName')}</label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-text-muted">{t('problems.boxName')}</label>
+                <span className={`text-xs ${(editTarget?.title?.length ?? 0) >= 30 ? 'text-red-400' : 'text-text-faint'}`}>{editTarget?.title?.length ?? 0}/30</span>
+              </div>
               <input
                 type="text"
                 required
+                maxLength={30}
                 value={editTarget?.title || ''}
                 onChange={(e) => setEditTarget(prev => prev ? { ...prev, title: e.target.value } : prev)}
                 placeholder={t('problems.boxNamePlaceholder')}
@@ -491,12 +526,21 @@ export const ProblemList = () => {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-text-muted">{t('problems.boxDesc')}</label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-text-muted">{t('problems.boxDesc')}</label>
+                <span className={`text-xs ${(editTarget?.description?.length ?? 0) >= 255 ? 'text-red-400' : 'text-text-faint'}`}>{editTarget?.description?.length ?? 0}/255</span>
+              </div>
               <textarea
                 value={editTarget?.description || ''}
-                onChange={(e) => setEditTarget(prev => prev ? { ...prev, description: e.target.value } : prev)}
+                maxLength={255}
+                onChange={(e) => {
+                  setEditTarget(prev => prev ? { ...prev, description: e.target.value } : prev);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
                 placeholder={t('problems.boxDescPlaceholder')}
-                className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-2.5 text-text-secondary focus:outline-none focus:border-emerald-500 min-h-[80px]"
+                rows={3}
+                className="w-full bg-input-bg border border-border-default rounded-lg px-4 py-2.5 text-text-secondary focus:outline-none focus:border-emerald-500 resize-none overflow-hidden"
               />
             </div>
             {editError && (
@@ -602,6 +646,8 @@ export const ProblemList = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-faint" />
             <input
               type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               placeholder={t('problems.searchProblems')}
               className="w-full h-12 bg-surface-raised border border-border-default rounded-xl pl-12 pr-4 text-text-secondary placeholder:text-text-faint focus:outline-none focus:border-emerald-500 transition-all shadow-sm"
             />

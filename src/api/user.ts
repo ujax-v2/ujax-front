@@ -5,6 +5,9 @@ type ApiUser = components['schemas']['ApiResponse-UserResponse'];
 export type UserResponse = ApiUser['data'];
 export type UserUpdateRequest = components['schemas']['UserUpdateRequest'];
 
+type ApiPresignedUrl = components['schemas']['ApiResponse-PresignedUrlResponse'];
+export type PresignedUrlResponse = ApiPresignedUrl['data'];
+
 type ApiWorkspaceMemberProfile = components['schemas']['ApiResponse-WorkspaceMemberProfileResponse'];
 export type WorkspaceMemberProfileResponse = ApiWorkspaceMemberProfile['data'];
 
@@ -31,7 +34,7 @@ export async function getProfileImagePresignedUrl(fileSize: number, contentType:
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ fileSize, contentType }),
   });
-  return res.data as { presignedUrl: string; imageUrl: string };
+  return res.data as PresignedUrlResponse;
 }
 
 export async function deleteMe(): Promise<void> {

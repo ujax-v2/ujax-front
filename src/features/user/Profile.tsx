@@ -42,6 +42,9 @@ const ContributionGraph = ({
   };
 
   const activityData = useMemo(() => {
+    const toLocalDateStr = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
     if (selectedYear === null) {
       const today = new Date(); today.setHours(0, 0, 0, 0);
       const start = new Date(today); start.setDate(today.getDate() - 364);
@@ -52,7 +55,7 @@ const ContributionGraph = ({
         const week = Array.from({ length: days }).map((_, d) => {
           const day = new Date(cur); day.setDate(cur.getDate() + d);
           const inRange = day >= new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()) && day <= today;
-          const dateStr = day.toISOString().split('T')[0];
+          const dateStr = toLocalDateStr(day);
           const count = inRange ? (activityMap[dateStr] ?? 0) : 0;
           return { level: inRange ? getLevel(count) : -1, count, dateStr };
         });
@@ -72,7 +75,7 @@ const ContributionGraph = ({
           const day = new Date(cur); day.setDate(cur.getDate() + d);
           const inYear = day.getFullYear() === selectedYear;
           const isFuture = day > today;
-          const dateStr = day.toISOString().split('T')[0];
+          const dateStr = toLocalDateStr(day);
           const count = inYear && !isFuture ? (activityMap[dateStr] ?? 0) : 0;
           return { level: inYear && !isFuture ? getLevel(count) : -1, count, dateStr };
         });
@@ -207,11 +210,20 @@ export const Profile = () => {
   const [profileData, setProfileData] = useState<WorkspaceMemberProfileResponse | null>(null);
   const [activityData, setActivityData] = useState<WorkspaceMemberProfileActivityResponse | null>(null);
 
-  useEffect(() => {
+  const fetchProfile = useCallback(() => {
     if (!currentWsId) return;
     getMyWorkspaceProfile(currentWsId).then(setProfileData).catch(() => {});
     getMyWorkspaceProfileActivity(currentWsId).then(setActivityData).catch(() => {});
   }, [currentWsId]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  useEffect(() => {
+    window.addEventListener('ujaxProblemAccepted', fetchProfile);
+    return () => window.removeEventListener('ujaxProblemAccepted', fetchProfile);
+  }, [fetchProfile]);
 
   const handleYearChange = useCallback((year: number | null) => {
     if (!currentWsId) return;

@@ -97,15 +97,16 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  className?: string;
 }
 
-export const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
+export const Modal = ({ isOpen, onClose, title, children, className }: ModalProps) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
-      <div className="relative w-full max-w-lg mx-auto my-6 z-50">
+      <div className={`relative w-full max-w-lg mx-auto my-6 z-50 ${className ?? ''}`}>
         <div className="relative flex flex-col w-full bg-surface border border-border-default rounded-xl shadow-2xl outline-none focus:outline-none">
           {/* Header */}
           <div className="flex items-center justify-between p-5 border-b border-border-default rounded-t">

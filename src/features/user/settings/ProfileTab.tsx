@@ -35,16 +35,18 @@ export const ProfileTab = () => {
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const normalizeBojId = (value?: string | null) => String(value ?? '').trim();
 
   // Load user profile on mount
   useEffect(() => {
     getMe().then(data => {
+      const normalizedBojId = normalizeBojId(data.baekjoonId);
       setName(data.name);
       setEmail(data.email);
       setProfileImageUrl(data.profileImageUrl ?? '');
-      setBaekjoonId(data.baekjoonId ?? '');
+      setBaekjoonId(normalizedBojId);
       setOriginalName(data.name);
-      setOriginalBaekjoonId(data.baekjoonId ?? '');
+      setOriginalBaekjoonId(normalizedBojId);
       setOriginalImageUrl(data.profileImageUrl ?? '');
       // Recoil 업데이트 → authStorageEffect가 localStorage 자동 동기화
       setUser(prev => ({
@@ -53,7 +55,7 @@ export const ProfileTab = () => {
         name: data.name,
         email: data.email,
         profileImageUrl: data.profileImageUrl ?? '',
-        baekjoonId: data.baekjoonId ?? '',
+        baekjoonId: normalizedBojId,
         provider: data.provider,
       }));
     }).catch(err => {
@@ -101,10 +103,22 @@ export const ProfileTab = () => {
     setSaveResult(null);
     setSaveError('');
     try {
+      const normalizedBaekjoonId = baekjoonId.trim();
+      const normalizedOriginalBaekjoonId = originalBaekjoonId.trim();
+
+      // 공백-only 입력은 프론트에서 즉시 차단
+      if (baekjoonId.length > 0 && !normalizedBaekjoonId) {
+        setSaveResult('error');
+        setSaveError(t('settings.profile.baekjoonWhitespaceError'));
+        return;
+      }
+
       // 변경된 필드만 전송
       const requestBody: Record<string, string | null> = {};
       if (name !== originalName) requestBody.name = name;
-      if (baekjoonId !== originalBaekjoonId) requestBody.baekjoonId = baekjoonId || null;
+      if (normalizedBaekjoonId !== normalizedOriginalBaekjoonId) {
+        requestBody.baekjoonId = normalizedBaekjoonId || null;
+      }
 
       if (imageRemoved) {
         requestBody.profileImageUrl = null;
@@ -129,20 +143,22 @@ export const ProfileTab = () => {
 
       const updated = await updateMe(requestBody);
       // Recoil 업데이트 → authStorageEffect가 localStorage 자동 동기화
+      const updatedBojId = normalizeBojId(updated.baekjoonId);
       setUser(prev => ({
         ...prev,
         name: updated.name,
         profileImageUrl: updated.profileImageUrl ?? '',
-        baekjoonId: updated.baekjoonId ?? '',
+        baekjoonId: updatedBojId,
       }));
       setProfileImageUrl(updated.profileImageUrl ?? '');
+      setBaekjoonId(updatedBojId);
       setPreviewUrl('');
       setPendingFile(null);
       setImageRemoved(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
       // 원본값 갱신
       setOriginalName(updated.name);
-      setOriginalBaekjoonId(updated.baekjoonId ?? '');
+      setOriginalBaekjoonId(updatedBojId);
       setOriginalImageUrl(updated.profileImageUrl ?? '');
       setSaveResult('success');
     } catch (err: any) {
@@ -216,7 +232,14 @@ export const ProfileTab = () => {
         <h3 className="text-sm font-bold text-text-secondary">{t('settings.profile.linkedAccounts')}</h3>
         <div>
           <label className="block text-xs font-bold text-text-faint mb-1">{t('settings.profile.baekjoonId')}</label>
-          <input type="text" value={baekjoonId} onChange={e => setBaekjoonId(e.target.value)} placeholder={t('settings.profile.baekjoonPlaceholder')} className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" />
+          <input
+            type="text"
+            value={baekjoonId}
+            onChange={e => setBaekjoonId(e.target.value)}
+            onBlur={() => setBaekjoonId(prev => prev.trim())}
+            placeholder={t('settings.profile.baekjoonPlaceholder')}
+            className="w-full bg-input-bg border border-border-subtle rounded px-3 py-1.5 text-sm text-text-secondary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+          />
           <p className="text-[11px] text-text-faint mt-1">{t('settings.profile.baekjoonDesc')}</p>
         </div>
         <div className="space-y-2 pt-2">

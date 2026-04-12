@@ -1,6 +1,6 @@
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { useNavigate } from 'react-router-dom';
-import { userState, workspacesState, currentWorkspaceState, currentProblemBoxState, myWorkspaceRoleState, GUEST_USER, UserState } from '@/store/atoms';
+import { userState, workspacesState, currentWorkspaceState, currentProblemBoxState, myWorkspaceRoleState, problemContextState, GUEST_USER, UserState } from '@/store/atoms';
 import { logoutApi } from '@/api/auth';
 import { getMe } from '@/api/user';
 
@@ -17,7 +17,10 @@ export function useAuth() {
   const setCurrentWsId = useSetRecoilState(currentWorkspaceState);
   const setCurrentProblemBox = useSetRecoilState(currentProblemBoxState);
   const setMyWorkspaceRole = useSetRecoilState(myWorkspaceRoleState);
+  const setProblemContext = useSetRecoilState(problemContextState);
   const navigate = useNavigate();
+
+  const normalizeBojId = (value?: string | null) => String(value ?? '').trim();
 
   /**
    * 토큰을 받아 getMe()로 유저 정보를 조회하고 Recoil userState에 저장한다.
@@ -39,6 +42,8 @@ export function useAuth() {
       throw e;
     }
 
+    const normalizedBojId = normalizeBojId(me.baekjoonId);
+
     const userData: UserState = {
       isLoggedIn: true,
       id: me.id,
@@ -46,7 +51,7 @@ export function useAuth() {
       email: me.email,
       avatar: me.name,
       profileImageUrl: me.profileImageUrl ?? '',
-      baekjoonId: me.baekjoonId ?? '',
+      baekjoonId: normalizedBojId,
       provider: me.provider,
       accessToken,
       refreshToken,
@@ -55,6 +60,7 @@ export function useAuth() {
     // Recoil 업데이트 → authStorageEffect가 자동으로 localStorage 동기화
     setWorkspaces([]);
     setUser(userData);
+    window.postMessage({ type: 'ujaxAuthChanged', token: accessToken, bojId: normalizedBojId || null }, '*');
 
     return userData;
   };
@@ -81,6 +87,8 @@ export function useAuth() {
     setCurrentWsId(0);
     setCurrentProblemBox(null);
     setMyWorkspaceRole('MEMBER');
+    setProblemContext({});
+    window.postMessage({ type: 'ujaxAuthChanged', token: null, bojId: null }, '*');
     navigate('/login');
   };
 

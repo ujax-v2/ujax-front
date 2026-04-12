@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 type CrawlStatus = 'idle' | 'crawling' | 'success' | 'error' | 'timeout';
 export type CrawlReason = 'NOT_FOUND' | 'SERVER_ERROR' | 'NETWORK_ERROR' | null;
 
-const CRAWL_TIMEOUT_MS = 8_000;
+const CRAWL_TIMEOUT_MS = 20_000;
 
 export function useExtensionCrawl() {
   const [status, setStatus] = useState<CrawlStatus>('idle');
@@ -39,6 +39,7 @@ export function useExtensionCrawl() {
   const requestCrawl = useCallback((problemNum: number) => {
     cleanup();
     problemNumRef.current = problemNum;
+    setReason(null);
     setStatus('crawling');
 
     window.postMessage({
